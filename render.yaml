@@ -1,0 +1,34 @@
+services:
+  - type: web
+    name: aplikousa-web
+    runtime: node
+    plan: free
+    startCommand: npm run start
+    buildCommand: npm run build && npm run db:push
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_PUBLISHABLE_KEY
+        sync: false
+      - key: REPLIT_CONNECTORS_HOSTNAME
+        sync: false
+      - key: REPL_IDENTITY
+        sync: false
+      - key: WEB_REPL_RENEWAL
+        sync: false
+      - key: REPLIT_DOMAINS
+        sync: false
+      - key: REPLIT_DEPLOYMENT
+        value: "true"
+    domains:
+      - aplikousa.onrender.com
+
+databases:
+  - name: aplikousa-db
+    databaseName: aplikousa
+    user: aplikousa_user
+    plan: free
