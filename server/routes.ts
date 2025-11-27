@@ -231,10 +231,9 @@ export async function registerRoutes(
         status: "completed",
       });
 
-      // Update payment status and package
+      // Update payment status
       await storage.updateUserStripeInfo(userId, { 
-        paymentStatus: "completed",
-        package: packageType
+        paymentStatus: "completed"
       });
 
       // Send payment success email
