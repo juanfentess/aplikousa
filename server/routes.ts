@@ -4,11 +4,11 @@ import { createServer, Server as HTTPServer } from "http";
 import ConnectPgSimple from "connect-pg-simple";
 import { db } from "./db";
 import { storage } from "./storage";
-import { sendTemplateEmail, sendCustomEmail } from "./email";
+import { sendTemplateEmail, sendTemplateEmail } from "./email";
 import {
   generateApplicationConfirmationHTML,
-  generateApplicationReviewHTML,
 } from "./documents";
+import { sendTemplateEmail, sendVerificationEmail, sendPasswordResetEmail } from "./email";
 import Stripe from "stripe";
 import { StripeSync } from "stripe-replit-sync";
 import { sql } from "drizzle-orm";
@@ -280,7 +280,7 @@ export function createServer(): HTTPServer {
         </html>
       `;
 
-      await sendCustomEmail(
+      await sendTemplateEmail(
         email,
         `Verifikoni Email-in - AplikoUSA`,
         htmlContent
@@ -401,7 +401,7 @@ export function createServer(): HTTPServer {
         </html>
       `;
 
-      await sendCustomEmail(
+      await sendTemplateEmail(
         user.email,
         `Verifikoni Email-in - AplikoUSA`,
         htmlContent
@@ -462,7 +462,7 @@ export function createServer(): HTTPServer {
         </html>
       `;
 
-      await sendCustomEmail(
+      await sendTemplateEmail(
         email,
         `Rivendosni Fjalëkalimin - AplikoUSA`,
         htmlContent
@@ -978,7 +978,7 @@ export function createServer(): HTTPServer {
         </html>
       `;
 
-      await sendCustomEmail(client.email, "Fjalëkalimi u Rivendos - AplikoUSA", htmlContent);
+      await sendTemplateEmail(client.email, "Fjalëkalimi u Rivendos - AplikoUSA", htmlContent);
 
       res.json({ success: true, newPassword });
     } catch (error) {
@@ -1032,7 +1032,7 @@ export function createServer(): HTTPServer {
         </html>
       `;
 
-      await sendCustomEmail(client.email, "Verifikoni Email-in - AplikoUSA", htmlContent);
+      await sendTemplateEmail(client.email, "Verifikoni Email-in - AplikoUSA", htmlContent);
 
       res.json({ success: true });
     } catch (error) {
@@ -1147,37 +1147,6 @@ export function createServer(): HTTPServer {
     }
   });
 
-  // Get application review document (HTML for PDF)
-  app.get("/api/documents/:userId/review", async (req: Request, res: Response) => {
-    try {
-      const { userId } = req.params as { userId: string };
-
-      const user = await storage.getUser(userId);
-      if (!user) {
-        return res.status(404).json({ error: "User not found" });
-      }
-
-      let application = await storage.getApplication(userId);
-      if (!application) {
-        application = await storage.createApplication({
-          userId,
-          status: "pending",
-          registrationStatus: "completed",
-          paymentStatus: "pending",
-          formStatus: "pending",
-          photoStatus: "pending",
-          submissionStatus: "pending",
-        });
-      }
-
-      const html = generateApplicationReviewHTML(user, application);
-      res.setHeader("Content-Type", "text/html; charset=utf-8");
-      res.send(html);
-    } catch (error) {
-      console.error("Error generating review document:", error);
-      res.status(500).json({ error: "Failed to generate document" });
-    }
-  });
 
   // Webhook for Stripe events
   app.post("/api/stripe/webhook/:webhookId", async (req: Request, res: Response) => {
@@ -1306,7 +1275,7 @@ export function createServer(): HTTPServer {
         </html>
       `;
 
-      await sendCustomEmail(
+      await sendTemplateEmail(
         user.email,
         "Pagesa e Pranuar - AplikoUSA",
         htmlContent
