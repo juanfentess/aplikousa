@@ -129,10 +129,11 @@ export async function sendVerificationEmail(
     console.log(`[EMAIL] Attempting to send verification email to ${toEmail} from ${fromEmail}`);
 
     const response = await client.emails.send({
-      from: fromEmail,
+      from: `AplikoUSA <${fromEmail}>`,
       to: toEmail,
       subject: "Verifikoni adresën tuaj në AplikoUSA",
       html: htmlContent,
+      replyTo: "info@aplikousa.com",
     });
 
     console.log(`[EMAIL] Send response:`, response);
@@ -166,10 +167,11 @@ export async function sendTemplateEmail(
     const subject = templateSubject.replace(/\{recipientName\}/g, recipientName);
 
     const response = await client.emails.send({
-      from: fromEmail,
+      from: `AplikoUSA <${fromEmail}>`,
       to: toEmail,
       subject,
       html: htmlContent,
+      replyTo: "info@aplikousa.com",
     });
 
     return !!response.data?.id;
