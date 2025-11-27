@@ -233,7 +233,7 @@ export class Storage implements IStorage {
   }): Promise<Application> {
     const result = await db
       .update(applications)
-      .set(steps)
+      .set({ ...steps, updatedAt: new Date() })
       .where(eq(applications.id, id))
       .returning();
     return result[0];
