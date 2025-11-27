@@ -177,14 +177,17 @@ export async function registerRoutes(httpServer: HTTPServer, app: Express): Prom
   try {
     const existingAdmin = await storage.getAdminByEmail("admin@aplikousa.com");
     if (!existingAdmin) {
-      await storage.createAdmin({
+      console.log("[Admin] Creating default admin user...");
+      const newAdmin = await storage.createAdmin({
         email: "admin@aplikousa.com",
         password: "admin123"
       });
-      console.log("[Admin] Default admin created: admin@aplikousa.com / admin123");
+      console.log("[Admin] Default admin created:", newAdmin.email);
+    } else {
+      console.log("[Admin] Admin already exists:", existingAdmin.email);
     }
   } catch (err: any) {
-    console.error("[Admin] Failed to seed admin:", err.message);
+    console.error("[Admin] Failed to seed admin:", err.message, err);
   }
 
   // Middleware to log requests
@@ -692,20 +695,33 @@ export async function registerRoutes(httpServer: HTTPServer, app: Express): Prom
   // Admin routes
   app.post("/api/admin/login", async (req: Request, res: Response) => {
     try {
+      console.log("[Admin Login] Request received:", { email: req.body.email });
       const { email, password } = req.body;
 
       if (!email || !password) {
+        console.log("[Admin Login] Missing credentials");
         return res.status(400).json({ error: "Missing email or password" });
       }
 
+      console.log("[Admin Login] Looking up admin:", email);
       const admin = await storage.getAdminByEmail(email);
-      if (!admin || admin.password !== password) {
+      console.log("[Admin Login] Admin found:", !!admin);
+      
+      if (!admin) {
+        console.log("[Admin Login] Admin not found");
+        return res.status(401).json({ error: "Invalid credentials" });
+      }
+      
+      console.log("[Admin Login] Password check:", password === admin.password);
+      if (admin.password !== password) {
+        console.log("[Admin Login] Password mismatch");
         return res.status(401).json({ error: "Invalid credentials" });
       }
 
+      console.log("[Admin Login] Login successful for:", admin.email);
       res.json({ adminId: admin.id, id: admin.id, email: admin.email });
     } catch (error: any) {
-      console.error("Admin login error:", error);
+      console.error("[Admin Login] Error:", error.message, error);
       res
         .status(500)
         .json({ error: error.message || "Login failed" });
