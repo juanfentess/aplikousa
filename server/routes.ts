@@ -1568,10 +1568,10 @@ export async function registerRoutes(httpServer: HTTPServer, app: Express): Prom
 
   app.post("/api/checkout", async (req: Request, res: Response) => {
     try {
-      const { userId, priceId } = req.body;
+      const { userId, packageType } = req.body;
 
-      if (!userId || !priceId) {
-        return res.status(400).json({ error: "Missing userId or priceId" });
+      if (!userId || !packageType) {
+        return res.status(400).json({ error: "Missing userId or packageType" });
       }
 
       const user = await storage.getUser(userId);
@@ -1579,26 +1579,42 @@ export async function registerRoutes(httpServer: HTTPServer, app: Express): Prom
         return res.status(404).json({ error: "User not found" });
       }
 
+      // Get or create Stripe customer
       let customerId = user.stripeCustomerId;
       if (!customerId) {
         const customer = await stripeService.createCustomer(user.email, user.id);
-        await storage.updateUserStripeInfo(user.id, {
-          stripeCustomerId: customer.id,
-        });
         customerId = customer.id;
+        await storage.updateUserStripeInfo(user.id, {
+          stripeCustomerId: customerId,
+        });
       }
 
-      const session = await stripeService.createCheckoutSession(
+      // Package details - EUR pricing
+      const packages: Record<string, { name: string; amount: number }> = {
+        individual: { name: "Individual Package", amount: 20 },
+        couple: { name: "Couple Package", amount: 35 },
+        family: { name: "Family Package", amount: 50 },
+      };
+
+      const pkg = packages[packageType];
+      if (!pkg) {
+        return res.status(400).json({ error: "Invalid package type" });
+      }
+
+      // Create checkout session with amount
+      const baseUrl = `${req.protocol}://${req.get("host")}`;
+      const session = await stripeService.createCheckoutSessionWithAmount(
         customerId,
-        priceId,
-        `${process.env.REPLIT_DOMAINS || "localhost:5000"}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-        `${process.env.REPLIT_DOMAINS || "localhost:5000"}/checkout/cancel`
+        pkg.amount,
+        pkg.name,
+        `${baseUrl}/dashboard?payment=success`,
+        `${baseUrl}/dashboard?payment=cancelled`
       );
 
       res.json({ url: session.url });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating checkout session:", error);
-      res.status(500).json({ error: "Failed to create checkout session" });
+      res.status(500).json({ error: error.message || "Failed to create checkout session" });
     }
   });
 
