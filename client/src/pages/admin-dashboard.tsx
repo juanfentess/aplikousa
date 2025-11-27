@@ -585,6 +585,7 @@ export default function AdminDashboard() {
     { id: "templates", label: "Email Templates", icon: Mail },
     { id: "send-email", label: "Dërgo Email", icon: Send },
     { id: "custom-email", label: "Email Custom", icon: PenTool },
+    { id: "blog", label: "Blog", icon: FileText },
     { id: "settings", label: "Rregullimet", icon: Settings },
   ];
 
@@ -1446,6 +1447,93 @@ export default function AdminDashboard() {
             </motion.div>
           )}
 
+          {/* Blog Tab */}
+          {activeTab === "blog" && (
+            <motion.div key="blog" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
+              <div>
+                <h2 className="text-3xl font-bold text-gray-900">Menaxhimi i Blog-ut</h2>
+                <p className="text-gray-600 mt-2">Krijo dhe menaxho postimet e blog-ut</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <Button onClick={() => {
+                  setShowBlogPostDialog(true);
+                  setEditingPost(null);
+                  setBlogPostForm({ title: "", slug: "", content: "", excerpt: "", categoryId: "", imageUrl: "", seoTitle: "", seoDescription: "", seoKeywords: "", isPublished: false });
+                }} className="bg-blue-600 hover:bg-blue-700" data-testid="button-new-post">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Postim i Ri
+                </Button>
+                <Button onClick={() => setShowBlogCategoryDialog(true)} className="bg-green-600 hover:bg-green-700" data-testid="button-new-category">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Kategori e Re
+                </Button>
+              </div>
+
+              {/* Categories */}
+              {blogCategories.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Kategoritë ({blogCategories.length})</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {blogCategories.map((cat) => (
+                        <div key={cat.id} className="p-3 bg-gray-50 rounded border" data-testid={`category-item-${cat.slug}`}>
+                          <p className="font-semibold">{cat.name}</p>
+                          <p className="text-sm text-gray-600">{cat.slug}</p>
+                          {cat.description && <p className="text-xs text-gray-500">{cat.description}</p>}
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Posts */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Postimet ({blogPosts.length})</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {blogPosts.length === 0 ? (
+                      <p className="text-gray-500">Nuk ka postime akoma</p>
+                    ) : (
+                      blogPosts.map((post) => (
+                        <div key={post.id} className="p-4 border rounded-lg hover:bg-gray-50 transition" data-testid={`post-item-${post.slug}`}>
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <p className="font-semibold">{post.title}</p>
+                              <p className="text-sm text-gray-600">{post.slug}</p>
+                              <div className="flex gap-2 mt-2">
+                                <span className={`text-xs px-2 py-1 rounded ${post.isPublished ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}`}>
+                                  {post.isPublished ? "✓ Publikuar" : "○ Draft"}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button size="sm" variant="outline" onClick={() => {
+                                setEditingPost(post);
+                                setBlogPostForm(post);
+                                setShowBlogPostDialog(true);
+                              }} data-testid={`button-edit-post-${post.id}`}>
+                                <Edit2 className="h-4 w-4" />
+                              </Button>
+                              <Button size="sm" variant="outline" onClick={() => handleDeleteBlogPost(post.id)} data-testid={`button-delete-post-${post.id}`}>
+                                <Trash2 className="h-4 w-4 text-red-500" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+
           {/* Settings Tab */}
           {activeTab === "settings" && (
             <motion.div key="settings" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
@@ -1727,6 +1815,178 @@ export default function AdminDashboard() {
               data-testid="button-save-steps"
             >
               {loading ? "Duke u ruajtur..." : "Ruaj Hapat"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Blog Post Dialog */}
+      <Dialog open={showBlogPostDialog} onOpenChange={setShowBlogPostDialog}>
+        <DialogContent className="sm:max-w-2xl max-h-screen overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{editingPost ? "Redakto Postimin" : "Krijo Postim të Ri"}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="title">Titulli *</Label>
+                <Input
+                  id="title"
+                  placeholder="Titulli i postimit"
+                  value={blogPostForm.title}
+                  onChange={(e) => setBlogPostForm({...blogPostForm, title: e.target.value})}
+                  data-testid="input-post-title"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="slug">Slug (URL) *</Label>
+                <Input
+                  id="slug"
+                  placeholder="url-i-postimit"
+                  value={blogPostForm.slug}
+                  onChange={(e) => setBlogPostForm({...blogPostForm, slug: e.target.value})}
+                  data-testid="input-post-slug"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="category">Kategoria *</Label>
+              <Select value={blogPostForm.categoryId} onValueChange={(value) => setBlogPostForm({...blogPostForm, categoryId: value})}>
+                <SelectTrigger data-testid="select-category">
+                  <SelectValue placeholder="Zgjedhni kategorinë" />
+                </SelectTrigger>
+                <SelectContent>
+                  {blogCategories.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="content">Përmbajtja (HTML) *</Label>
+              <Textarea
+                id="content"
+                placeholder="<h1>Përmbajtja e postimit...</h1>"
+                value={blogPostForm.content}
+                onChange={(e) => setBlogPostForm({...blogPostForm, content: e.target.value})}
+                rows={6}
+                data-testid="input-post-content"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="excerpt">Përmbledhje</Label>
+              <Input
+                id="excerpt"
+                placeholder="Përmbledhja e postimit (opsionale)"
+                value={blogPostForm.excerpt}
+                onChange={(e) => setBlogPostForm({...blogPostForm, excerpt: e.target.value})}
+                data-testid="input-post-excerpt"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="imageUrl">URL e Fotos</Label>
+              <Input
+                id="imageUrl"
+                placeholder="https://..."
+                value={blogPostForm.imageUrl}
+                onChange={(e) => setBlogPostForm({...blogPostForm, imageUrl: e.target.value})}
+                data-testid="input-post-image"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="seoTitle">SEO Titulli</Label>
+                <Input
+                  id="seoTitle"
+                  placeholder="Titulli për search engines"
+                  value={blogPostForm.seoTitle}
+                  onChange={(e) => setBlogPostForm({...blogPostForm, seoTitle: e.target.value})}
+                  data-testid="input-post-seo-title"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="seoDescription">SEO Përshkrimi</Label>
+                <Input
+                  id="seoDescription"
+                  placeholder="Përshkrimi për search engines"
+                  value={blogPostForm.seoDescription}
+                  onChange={(e) => setBlogPostForm({...blogPostForm, seoDescription: e.target.value})}
+                  data-testid="input-post-seo-desc"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="seoKeywords">SEO Fjalë Kyçe</Label>
+              <Input
+                id="seoKeywords"
+                placeholder="fjalë, kyçe, të, ndarë, me, presje"
+                value={blogPostForm.seoKeywords}
+                onChange={(e) => setBlogPostForm({...blogPostForm, seoKeywords: e.target.value})}
+                data-testid="input-post-seo-keywords"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="isPublished"
+                checked={blogPostForm.isPublished}
+                onChange={(e) => setBlogPostForm({...blogPostForm, isPublished: e.target.checked})}
+                data-testid="checkbox-publish"
+              />
+              <Label htmlFor="isPublished">Publikoj këtë postim menjëherë</Label>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowBlogPostDialog(false)}>Anulo</Button>
+            <Button onClick={handleCreateBlogPost} disabled={loading} data-testid="button-save-post">
+              {loading ? "Duke ruajtur..." : "Ruaj Postimin"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Blog Category Dialog */}
+      <Dialog open={showBlogCategoryDialog} onOpenChange={setShowBlogCategoryDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Krijo Kategori të Re</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="catName">Emri i Kategorisë *</Label>
+              <Input
+                id="catName"
+                placeholder="p.sh. Këshilla"
+                value={blogCategoryForm.name}
+                onChange={(e) => setBlogCategoryForm({...blogCategoryForm, name: e.target.value})}
+                data-testid="input-category-name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="catSlug">Slug (URL) *</Label>
+              <Input
+                id="catSlug"
+                placeholder="p.sh. keshilla"
+                value={blogCategoryForm.slug}
+                onChange={(e) => setBlogCategoryForm({...blogCategoryForm, slug: e.target.value})}
+                data-testid="input-category-slug"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="catDesc">Përshkrimi</Label>
+              <Input
+                id="catDesc"
+                placeholder="Përshkrimi i kategorisë (opsionale)"
+                value={blogCategoryForm.description}
+                onChange={(e) => setBlogCategoryForm({...blogCategoryForm, description: e.target.value})}
+                data-testid="input-category-desc"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowBlogCategoryDialog(false)}>Anulo</Button>
+            <Button onClick={handleCreateBlogCategory} disabled={loading} data-testid="button-save-category">
+              {loading ? "Duke ruajtur..." : "Krijo Kategorinë"}
             </Button>
           </DialogFooter>
         </DialogContent>
