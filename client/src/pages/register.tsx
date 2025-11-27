@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
+import { toast } from "sonner";
 
 export default function Register() {
   const [isLoading, setIsLoading] = useState(false);
@@ -32,13 +33,19 @@ export default function Register() {
       });
 
       const data = await response.json();
-      if (data.userId) {
+      if (response.ok && data.userId) {
         localStorage.setItem("userId", data.userId);
         localStorage.setItem("paymentStatus", "pending");
+        toast.success("Regjistrim i suksesshëm! Verifikoni emailin tuaj.");
         setLocation("/dashboard");
+      } else {
+        const errorMsg = data.error || "Regjistrimi dështoi. Provoni përsëri.";
+        toast.error(errorMsg);
+        console.error("Registration failed:", errorMsg);
       }
     } catch (error) {
       console.error("Registration error:", error);
+      toast.error("Gabim në lidhjen me serverin");
     } finally {
       setIsLoading(false);
     }

@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
+import { toast } from "sonner";
 
 export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
@@ -30,13 +31,19 @@ export default function Login() {
       });
 
       const data = await response.json();
-      if (data.userId) {
+      if (response.ok && data.userId) {
         localStorage.setItem("userId", data.userId);
         localStorage.setItem("paymentStatus", data.paymentStatus || "pending");
+        toast.success("Hyrje e suksesshme!");
         setLocation("/dashboard");
+      } else {
+        const errorMsg = data.error || "Hyrje e dështuar. Kontrolloni kredencialët tuaj.";
+        toast.error(errorMsg);
+        console.error("Login failed:", errorMsg);
       }
     } catch (error) {
       console.error("Login error:", error);
+      toast.error("Gabim në lidhjen me serverin");
     } finally {
       setIsLoading(false);
     }
@@ -103,9 +110,6 @@ export default function Login() {
             <CardFooter className="flex flex-col gap-4 text-center text-sm text-gray-500">
               <Link href="/register" className="hover:text-primary transition-colors">
                 Nuk keni llogari? <span className="font-semibold text-primary">Regjistrohu këtu</span>
-              </Link>
-              <Link href="#" className="hover:text-primary transition-colors">
-                Harruat fjalëkalimin?
               </Link>
             </CardFooter>
           </Card>
