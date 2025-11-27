@@ -317,6 +317,49 @@ export async function registerRoutes(
     }
   });
 
+  // Stripe Checkout
+  app.post("/api/checkout", async (req, res) => {
+    try {
+      const { userId, productId } = req.body;
+
+      if (!userId || !productId) {
+        return res.status(400).json({ error: "Missing userId or productId" });
+      }
+
+      // Get user
+      const user = await storage.getUserById(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Get or create Stripe customer
+      let stripeCustomerId = user.stripeCustomerId;
+      if (!stripeCustomerId) {
+        const customer = await stripeService.createCustomer(user.email, userId);
+        stripeCustomerId = customer.id;
+        // Update user with Stripe customer ID
+        await storage.updateUser(userId, { stripeCustomerId });
+      }
+
+      // Get price from product
+      const priceId = await stripeService.getPriceFromProduct(productId);
+
+      // Create checkout session
+      const baseUrl = `${req.protocol}://${req.get("host")}`;
+      const session = await stripeService.createCheckoutSession(
+        stripeCustomerId,
+        priceId,
+        `${baseUrl}/dashboard?payment=success`,
+        `${baseUrl}/dashboard?payment=cancelled`
+      );
+
+      res.json({ url: session.url });
+    } catch (error: any) {
+      console.error("Checkout error:", error);
+      res.status(500).json({ error: error.message || "Checkout failed" });
+    }
+  });
+
   // Stripe Routes
   app.get("/api/stripe/publishable-key", async (req, res) => {
     try {

@@ -88,12 +88,11 @@ export default function Dashboard() {
         return;
       }
 
-      // Map package type to price ID (from Stripe)
-      // Replace these with your actual Stripe price IDs from: https://dashboard.stripe.com/prices
-      const priceIds: Record<string, string> = {
-        individual: "price_1234567890individual", // 20€
-        couple: "price_1234567890couple",         // 35€
-        family: "price_1234567890family",          // 50€
+      // Map package type to Stripe product ID
+      const productIds: Record<string, string> = {
+        individual: "prod_TV7Ys2UMWEGndb", // 20€
+        couple: "prod_TV7YLEvYXfVUOR",     // 35€
+        family: "prod_TV7YKG4TXTFwmr",     // 50€
       };
 
       const response = await fetch("/api/checkout", {
@@ -101,7 +100,7 @@ export default function Dashboard() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId,
-          priceId: priceIds[packageType],
+          productId: productIds[packageType],
         }),
       });
 

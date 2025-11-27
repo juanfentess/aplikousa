@@ -10,6 +10,15 @@ export class StripeService {
     });
   }
 
+  async getPriceFromProduct(productId: string) {
+    const stripe = await getUncachableStripeClient();
+    const prices = await stripe.prices.list({ product: productId, limit: 1 });
+    if (prices.data.length === 0) {
+      throw new Error(`No prices found for product ${productId}`);
+    }
+    return prices.data[0].id;
+  }
+
   async createCheckoutSession(customerId: string, priceId: string, successUrl: string, cancelUrl: string) {
     const stripe = await getUncachableStripeClient();
     return await stripe.checkout.sessions.create({
