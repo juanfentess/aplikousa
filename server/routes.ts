@@ -209,6 +209,77 @@ export async function registerRoutes(httpServer: HTTPServer, app: Express): Prom
     next();
   });
 
+  // Register endpoint (simple registration with just basic info)
+  app.post("/api/auth/register", async (req: Request, res: Response) => {
+    try {
+      const { firstName, lastName, email, password } = req.body;
+
+      if (!firstName || !lastName || !email || !password) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(400).json({ error: "Email already registered" });
+      }
+
+      const user = await storage.createUser({
+        firstName,
+        lastName,
+        email,
+        password,
+      });
+
+      // Generate verification code
+      const code = Math.random().toString().slice(2, 8);
+      await storage.createVerificationCode({
+        userId: user.id,
+        code,
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      });
+
+      const verificationUrl = `https://${req.get("host")}/verify-email?userId=${user.id}&code=${code}`;
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: Arial, sans-serif; background-color: #f5f5f5; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; background-color: white; border-radius: 8px; }
+            h1 { color: #0B1B3B; text-align: center; }
+            p { color: #555; line-height: 1.6; }
+            .button { display: inline-block; padding: 12px 30px; margin: 20px auto; background-color: #E63946; color: white; text-decoration: none; border-radius: 5px; text-align: center; }
+            .code { font-size: 24px; font-weight: bold; color: #0B1B3B; text-align: center; letter-spacing: 5px; margin: 20px 0; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h1>AplikoUSA - Verifikoni Email-in</h1>
+            <p>Përshëndetje ${firstName},</p>
+            <p>Faleminderit që regjistroheni në AplikoUSA. Për të verifikuar email-in tuaj, përdorni kodin më poshtë:</p>
+            <div class="code">${code}</div>
+            <p>Ky kod skadohet brenda 24 orësh.</p>
+            <p>Nëse nuk keni regjistruar këtë llogari, ju lutem injoroni këtë mesazh.</p>
+            <p>Përshëndetje,<br>AplikoUSA Team</p>
+          </div>
+        </body>
+        </html>
+      `;
+
+      await sendTemplateEmail(
+        email,
+        `Verifikoni Email-in - AplikoUSA`,
+        htmlContent
+      );
+
+      res.json({ userId: user.id });
+    } catch (error: any) {
+      console.error("Register error:", error);
+      res.status(500).json({ error: error.message || "Registration failed" });
+    }
+  });
+
   // Login and signup routes
   app.post("/api/auth/signup", async (req: Request, res: Response) => {
     try {
