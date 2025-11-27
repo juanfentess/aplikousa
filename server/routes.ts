@@ -734,6 +734,54 @@ export async function registerRoutes(
     }
   });
 
+  // Get application confirmation document (HTML for PDF)
+  app.get("/api/documents/:userId/confirmation", async (req, res) => {
+    try {
+      const { userId } = req.params as { userId: string };
+      
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      const application = await storage.getApplication(userId);
+      if (!application) {
+        return res.status(404).json({ error: "Application not found" });
+      }
+
+      const html = generateApplicationConfirmationHTML(user, application, application.photoUrl);
+      res.setHeader("Content-Type", "text/html; charset=utf-8");
+      res.send(html);
+    } catch (error) {
+      console.error("Error generating confirmation:", error);
+      res.status(500).json({ error: "Failed to generate document" });
+    }
+  });
+
+  // Get declaration document (HTML for PDF)
+  app.get("/api/documents/:userId/declaration", async (req, res) => {
+    try {
+      const { userId } = req.params as { userId: string };
+      
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      const application = await storage.getApplication(userId);
+      if (!application) {
+        return res.status(404).json({ error: "Application not found" });
+      }
+
+      const html = generateDeclarationHTML(user, application);
+      res.setHeader("Content-Type", "text/html; charset=utf-8");
+      res.send(html);
+    } catch (error) {
+      console.error("Error generating declaration:", error);
+      res.status(500).json({ error: "Failed to generate document" });
+    }
+  });
+
   // Stripe Checkout
   app.post("/api/checkout", async (req, res) => {
     try {

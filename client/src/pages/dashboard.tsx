@@ -195,10 +195,22 @@ export default function Dashboard() {
     { id: 5, title: "Dorëzimi Zyrtar", status: "pending", date: "Pritet" },
   ];
 
+  const userId = localStorage.getItem("userId");
   const documents = [
-    { id: 1, name: "Konfirmimi i Aplikimit", type: "PDF", size: "1.2 MB", icon: "red" },
-    { id: 2, name: "Fotoja e Aplikimit", type: "JPG", size: "2.4 MB", icon: "blue" },
-    { id: 3, name: "Deklarata e Saktësisë", type: "PDF", size: "0.8 MB", icon: "purple" },
+    { 
+      id: 1, 
+      name: "Konfirmimi i Aplikimit", 
+      type: "PDF", 
+      icon: "red",
+      url: `/api/documents/${userId}/confirmation`
+    },
+    { 
+      id: 3, 
+      name: "Deklarata e Saktësisë", 
+      type: "PDF", 
+      icon: "purple",
+      url: `/api/documents/${userId}/declaration`
+    },
   ];
 
   const progress = 60;
@@ -253,30 +265,14 @@ export default function Dashboard() {
     toast.success("Fjalëkalimi u ndryshua me sukses!");
   };
 
-  const downloadDocument = (docName: string) => {
+  const downloadDocument = (docUrl: string, docName: string) => {
     try {
-      // Create a simple document content
-      const content = `${docName}\n\nAplikoUSA - Shërbimi i Aplikimit për Green Card DV Lottery\n\nData: ${new Date().toLocaleDateString('sq-AL')}\nOra: ${new Date().toLocaleTimeString('sq-AL')}\n\nKy dokumenti është një kopje e sigurt e aplikimit tuaj.\n\nMë shumë informacion: www.aplikousa.com`;
-      
-      // Create blob
-      const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
-      
-      // Create and trigger download
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `${docName.toLowerCase().replace(/\s+/g, "-")}.txt`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      // Cleanup
-      setTimeout(() => URL.revokeObjectURL(url), 100);
-      
-      toast.success(`${docName} u shkarkua me sukses!`);
+      // Open the document URL in a new window for viewing/saving
+      window.open(docUrl, '_blank');
+      toast.success(`${docName} po hapet...`);
     } catch (error) {
       console.error("Download error:", error);
-      toast.error("Gabim gjatë shkarkimit të dokumentit");
+      toast.error("Gabim gjatë hapjes të dokumentit");
     }
   };
 
@@ -623,13 +619,13 @@ export default function Dashboard() {
                               </div>
                               <div>
                                 <p className="font-semibold text-gray-900">{doc.name}</p>
-                                <p className="text-xs text-gray-500">{doc.type} • {doc.size}</p>
+                                <p className="text-xs text-gray-500">{doc.type}</p>
                               </div>
                             </div>
                             <Button 
                               variant="ghost" 
                               size="icon"
-                              onClick={() => downloadDocument(doc.name)}
+                              onClick={() => downloadDocument(doc.url, doc.name)}
                               data-testid={`button-download-${doc.id}`}
                             >
                               <Download className="w-5 h-5" />
