@@ -79,7 +79,7 @@ export default function Dashboard() {
   useEffect(() => {
     const userId = localStorage.getItem("userId");
     if (userId) {
-      // Check if returning from payment success
+      // Check if returning from payment success or failure
       const params = new URLSearchParams(window.location.search);
       if (params.get("payment") === "success") {
         const packageType = localStorage.getItem("selectedPackage") || "individual";
@@ -112,6 +112,12 @@ export default function Dashboard() {
             }
           })
           .catch(err => console.error("Error updating payment:", err));
+      } else if (params.get("payment") === "cancelled") {
+        // Show error message for declined/cancelled payment
+        toast.error("Pagesa u anulua ose u refuzua. Ju lutem provoni përsëri.");
+        localStorage.removeItem("selectedPackage");
+        // Clean URL
+        window.history.replaceState({}, document.title, "/dashboard");
       }
 
       // Fetch user data from API
@@ -578,7 +584,7 @@ export default function Dashboard() {
                           <Card className="border-2 border-gray-200 hover:border-primary hover:shadow-lg transition-all">
                             <CardContent className="p-6 text-center">
                               <h3 className="font-bold text-lg mb-2">Familjare</h3>
-                              <p className="text-sm text-gray-600 mb-4">Për paketet e familje</p>
+                              <p className="text-sm text-gray-600 mb-4">Për prindërit dhe fëmijët</p>
                               <div className="text-3xl font-bold text-primary mb-4">50€</div>
                               <Button 
                                 className="w-full bg-primary hover:bg-primary/90" 
