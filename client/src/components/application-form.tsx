@@ -184,7 +184,7 @@ export function ApplicationForm() {
 
       if (!response.ok) {
         const error = await response.json();
-        alert(error.error || "Registration failed");
+        alert(error.error || "Regjistrimi dështoi");
         setCreatingAccount(false);
         return;
       }

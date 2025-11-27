@@ -25,7 +25,7 @@ export async function registerRoutes(
       // Check if user exists
       const existing = await storage.getUserByEmail(validData.email);
       if (existing) {
-        return res.status(400).json({ error: "Email już zarejestrowany" });
+        return res.status(400).json({ error: "Ky email është tashmë i regjistruar. Ju lutem përdorni një email të ndryshëm." });
       }
 
       // Hash password
