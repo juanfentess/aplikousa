@@ -9,6 +9,10 @@ import Terms from "@/pages/terms";
 import Privacy from "@/pages/privacy";
 import Refunds from "@/pages/refunds";
 
+import Login from "@/pages/login";
+import Register from "@/pages/register";
+import Dashboard from "@/pages/dashboard";
+
 function Router() {
   return (
     <Switch>
@@ -16,6 +20,9 @@ function Router() {
       <Route path="/terms" component={Terms} />
       <Route path="/privacy" component={Privacy} />
       <Route path="/refunds" component={Refunds} />
+      <Route path="/login" component={Login} />
+      <Route path="/register" component={Register} />
+      <Route path="/dashboard" component={Dashboard} />
       <Route component={NotFound} />
     </Switch>
   );

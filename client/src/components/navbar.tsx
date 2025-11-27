@@ -1,6 +1,5 @@
-import { useState, useEffect } from "react";
 import { Link } from "wouter";
-import { Menu, X, Flag } from "lucide-react";
+import { Menu, X, Flag, User } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -21,6 +20,9 @@ export function Navbar() {
     const element = document.getElementById(id);
     if (element) {
       element.scrollIntoView({ behavior: "smooth" });
+    } else {
+      // If not on home page, navigate to home then scroll
+      window.location.href = `/#${id}`;
     }
     setIsOpen(false);
   };
@@ -43,14 +45,14 @@ export function Navbar() {
       )}
     >
       <div className="container mx-auto px-4 md:px-6 flex items-center justify-between">
-        <a href="#" className="flex items-center gap-2 group" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+        <Link href="/" className="flex items-center gap-2 group">
           <div className="relative w-8 h-8 flex items-center justify-center bg-primary rounded-full text-white overflow-hidden group-hover:scale-105 transition-transform">
             <Flag className="w-4 h-4 fill-current" />
           </div>
           <span className={cn("text-xl font-bold font-heading", scrolled ? "text-primary" : "text-white")}>
             Apliko<span className="text-secondary">USA</span>
           </span>
-        </a>
+        </Link>
 
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center gap-8">
@@ -66,6 +68,20 @@ export function Navbar() {
               {link.name}
             </button>
           ))}
+          
+          <Link href="/login">
+            <Button 
+              variant="ghost" 
+              className={cn(
+                "gap-2 hover:bg-white/10", 
+                scrolled ? "text-foreground hover:text-primary hover:bg-gray-100" : "text-white hover:text-white"
+              )}
+            >
+              <User className="w-4 h-4" />
+              Hyr
+            </Button>
+          </Link>
+
           <Button 
             onClick={() => scrollToSection("apply")}
             className="bg-secondary hover:bg-secondary/90 text-white font-semibold shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5"
@@ -102,6 +118,12 @@ export function Navbar() {
                   {link.name}
                 </button>
               ))}
+              <Link href="/login">
+                <Button variant="outline" className="w-full justify-start gap-2">
+                  <User className="w-4 h-4" />
+                  Hyr në llogari
+                </Button>
+              </Link>
               <Button 
                 onClick={() => scrollToSection("apply")}
                 className="w-full bg-secondary hover:bg-secondary/90 text-white"
