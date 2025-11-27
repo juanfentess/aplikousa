@@ -48,6 +48,8 @@ export default function Dashboard() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showPaymentSuccessDialog, setShowPaymentSuccessDialog] = useState(false);
+  const [showReviewDataDialog, setShowReviewDataDialog] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
   const [userPaymentStatus, setUserPaymentStatus] = useState("pending");
 
   // State for profile form
@@ -264,6 +266,17 @@ export default function Dashboard() {
     setShowPasswordDialog(false);
     setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
     toast.success("Fjalëkalimi u ndryshua me sukses!");
+  };
+
+  const handleReviewData = (transaction: any) => {
+    setSelectedTransaction(transaction);
+    setShowReviewDataDialog(true);
+  };
+
+  const handleConfirmData = async () => {
+    toast.success("Të dhënat u konfirmuan me sukses!");
+    setShowReviewDataDialog(false);
+    setSelectedTransaction(null);
   };
 
   const downloadDocument = (docUrl: string, docName: string) => {
@@ -938,6 +951,17 @@ export default function Dashboard() {
                                       {statusInfo.label}
                                     </Badge>
                                   </div>
+                                  {transaction.status === "completed" && (
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => handleReviewData(transaction)}
+                                      className="ml-4"
+                                      data-testid={`button-review-${transaction.id}`}
+                                    >
+                                      Rishiko
+                                    </Button>
+                                  )}
                                 </div>
                               </div>
                             );
@@ -1060,6 +1084,89 @@ export default function Dashboard() {
               data-testid="button-confirm-password"
             >
               Ndryshoni Fjalëkalimin
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Review Data Dialog */}
+      <Dialog open={showReviewDataDialog} onOpenChange={setShowReviewDataDialog}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-green-600" />
+              Rishikoni Të Dhënat Tuaja
+            </DialogTitle>
+            <DialogDescription>
+              Ju lutem verifikoni se të gjithë të dhënat tuaja janë të sakta përpara se të vazhdoni me aplikimin
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4 max-h-96 overflow-y-auto">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold text-gray-600">Emër i Parë</Label>
+                <p className="text-sm font-medium text-gray-900">{profileData.firstName || "—"}</p>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold text-gray-600">Emër i Dytë</Label>
+                <p className="text-sm font-medium text-gray-900">{profileData.lastName || "—"}</p>
+              </div>
+              <div className="space-y-2 col-span-2">
+                <Label className="text-xs font-semibold text-gray-600">Email</Label>
+                <p className="text-sm font-medium text-gray-900">{profileData.email || "—"}</p>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold text-gray-600">Telefon</Label>
+                <p className="text-sm font-medium text-gray-900">{profileData.phone || "—"}</p>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold text-gray-600">Qytet</Label>
+                <p className="text-sm font-medium text-gray-900">{profileData.city || "—"}</p>
+              </div>
+              <div className="space-y-2 col-span-2">
+                <Label className="text-xs font-semibold text-gray-600">Vendi i Lindjes</Label>
+                <p className="text-sm font-medium text-gray-900">{profileData.birthCountry || "—"}</p>
+              </div>
+              <div className="space-y-2 col-span-2">
+                <Label className="text-xs font-semibold text-gray-600">Paketa e Zgjedhur</Label>
+                <p className="text-sm font-medium text-gray-900">
+                  {selectedTransaction ? (
+                    selectedTransaction.packageType === "individual" ? "Paket Individuale" :
+                    selectedTransaction.packageType === "couple" ? "Paket për Çifte" :
+                    "Paket Familjare"
+                  ) : "—"}
+                </p>
+              </div>
+              <div className="space-y-2 col-span-2">
+                <Label className="text-xs font-semibold text-gray-600">Shuma e Paguar</Label>
+                <p className="text-sm font-medium text-gray-900">
+                  {selectedTransaction ? `€${parseFloat(selectedTransaction.amount).toFixed(2)}` : "—"}
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-4">
+              <p className="text-sm text-blue-800">
+                <strong>Shënim:</strong> Nëse keni nevojë të bëni ndryshime në të dhënat tuaja, ju lutem shkoni në seksionin "Profili" dhe përditësoni informacionin.
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter className="gap-3">
+            <Button 
+              variant="outline"
+              onClick={() => setShowReviewDataDialog(false)}
+              data-testid="button-cancel-review"
+            >
+              Anulo
+            </Button>
+            <Button 
+              onClick={handleConfirmData}
+              className="bg-green-600 hover:bg-green-700 text-white"
+              data-testid="button-confirm-review"
+            >
+              ✓ Konfirmo Të Dhënat
             </Button>
           </DialogFooter>
         </DialogContent>
