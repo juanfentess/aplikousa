@@ -16,6 +16,7 @@ import {
   CheckCircle,
   Clock,
   AlertCircle,
+  PenTool,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -56,6 +57,11 @@ export default function AdminDashboard() {
   const [sendEmailData, setSendEmailData] = useState({
     recipientEmail: "",
     templateId: "",
+  });
+  const [customEmailData, setCustomEmailData] = useState({
+    recipientEmail: "",
+    subject: "",
+    htmlContent: "",
   });
 
   useEffect(() => {
@@ -184,6 +190,43 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleSendCustomEmail = async () => {
+    if (!customEmailData.recipientEmail || !customEmailData.subject || !customEmailData.htmlContent) {
+      toast.error("Plotësoni të gjitha fushat");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      console.log("Sending custom email:", customEmailData);
+      const response = await fetch("/api/admin/send-custom-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          toEmail: customEmailData.recipientEmail,
+          subject: customEmailData.subject,
+          htmlContent: customEmailData.htmlContent,
+        }),
+      });
+
+      const data = await response.json();
+      console.log("Custom email response:", data, response.status);
+      
+      if (response.ok) {
+        toast.success("✅ Email Custom dërguar me sukses!", { duration: 3000 });
+        setCustomEmailData({ recipientEmail: "", subject: "", htmlContent: "" });
+        setTimeout(() => setActiveTab("dashboard"), 1500);
+      } else {
+        toast.error("❌ " + (data.error || "Gabim në dërgim"), { duration: 3000 });
+      }
+    } catch (err) {
+      toast.error("❌ Gabim gjatë dërgimit të emailit", { duration: 3000 });
+      console.error("Send custom email error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem("adminId");
     setLocation("/admin/login");
@@ -200,6 +243,7 @@ export default function AdminDashboard() {
     { id: "applications", label: "Aplikime", icon: Users },
     { id: "templates", label: "Email Templates", icon: Mail },
     { id: "send-email", label: "Dërgo Email", icon: Send },
+    { id: "custom-email", label: "Email Custom", icon: PenTool },
   ];
 
   return (
@@ -530,6 +574,82 @@ export default function AdminDashboard() {
                         <>
                           <Send className="w-4 h-4 mr-2" />
                           Dërgo Email
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+
+          {/* Custom Email Tab */}
+          {activeTab === "custom-email" && (
+            <motion.div
+              key="custom-email"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="space-y-6"
+            >
+              <div>
+                <h2 className="text-3xl font-bold text-gray-900">Dërgo Email Custom</h2>
+                <p className="text-gray-600 mt-2">Shkruani dhe dërgoni email-e të personalizuara drejtpërdrejt</p>
+              </div>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="space-y-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="custom-email">Email i Klientit</Label>
+                      <Input
+                        id="custom-email"
+                        type="email"
+                        placeholder="client@example.com"
+                        value={customEmailData.recipientEmail}
+                        onChange={(e) => setCustomEmailData({ ...customEmailData, recipientEmail: e.target.value })}
+                        data-testid="input-custom-recipient-email"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="custom-subject">Subjekti i Emailit</Label>
+                      <Input
+                        id="custom-subject"
+                        placeholder="Shkruani subjektin..."
+                        value={customEmailData.subject}
+                        onChange={(e) => setCustomEmailData({ ...customEmailData, subject: e.target.value })}
+                        data-testid="input-custom-subject"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="custom-content">Përmbajtja e Emailit (HTML)</Label>
+                      <Textarea
+                        id="custom-content"
+                        placeholder="Shkruani përmbajtjen e emailit këtu... Mund të përdorni HTML për formatim"
+                        value={customEmailData.htmlContent}
+                        onChange={(e) => setCustomEmailData({ ...customEmailData, htmlContent: e.target.value })}
+                        rows={10}
+                        data-testid="input-custom-content"
+                      />
+                    </div>
+
+                    <Button
+                      onClick={handleSendCustomEmail}
+                      disabled={loading}
+                      className="bg-primary hover:bg-primary/90 text-white w-full"
+                      data-testid="button-send-custom-email"
+                    >
+                      {loading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Duke dërguar...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-4 h-4 mr-2" />
+                          Dërgo Email Custom
                         </>
                       )}
                     </Button>

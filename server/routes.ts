@@ -257,5 +257,32 @@ export async function registerRoutes(
     }
   });
 
+  // Send custom email
+  app.post("/api/admin/send-custom-email", async (req, res) => {
+    try {
+      const { toEmail, subject, htmlContent } = req.body;
+
+      if (!toEmail || !subject || !htmlContent) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+
+      const success = await sendTemplateEmail(
+        toEmail,
+        htmlContent,
+        subject,
+        "Klient"
+      );
+
+      if (success) {
+        res.json({ success: true, message: "Email sent successfully" });
+      } else {
+        res.status(500).json({ error: "Failed to send email" });
+      }
+    } catch (error) {
+      console.error("Error sending custom email:", error);
+      res.status(500).json({ error: "Failed to send email" });
+    }
+  });
+
   return httpServer;
 }
