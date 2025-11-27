@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, Loader2, ArrowRight } from "lucide-react";
@@ -14,6 +14,14 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [, setLocation] = useLocation();
+
+  // Redirect to dashboard if already logged in
+  useEffect(() => {
+    const userId = localStorage.getItem("userId");
+    if (userId) {
+      setLocation("/dashboard");
+    }
+  }, [setLocation]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -16,18 +16,22 @@ export default function VerifyEmail() {
   const [error, setError] = useState("");
 
   const searchParams = new URLSearchParams(window.location.search);
-  const userId = searchParams.get("userId");
+  const urlUserId = searchParams.get("userId");
   const prefilledCode = searchParams.get("code");
+  const storedUserId = localStorage.getItem("userId");
 
   useEffect(() => {
-    if (!userId) {
+    // Use stored userId from localStorage (most reliable)
+    const finalUserId = storedUserId || urlUserId;
+    
+    if (!finalUserId) {
       setLocation("/");
     }
     // Pre-fill code if provided in URL
     if (prefilledCode) {
       setCode(prefilledCode);
     }
-  }, [userId, setLocation, prefilledCode]);
+  }, [storedUserId, urlUserId, setLocation, prefilledCode]);
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,10 +44,11 @@ export default function VerifyEmail() {
     setError("");
 
     try {
+      const finalUserId = storedUserId || urlUserId;
       const response = await fetch("/api/auth/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, code }),
+        body: JSON.stringify({ userId: finalUserId, code }),
       });
 
       if (!response.ok) {
