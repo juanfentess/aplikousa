@@ -24,6 +24,7 @@ import {
   Download,
   History,
   CreditCard,
+  Settings,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -104,12 +105,23 @@ export default function AdminDashboard() {
   const [allTransactions, setAllTransactions] = useState<any[]>([]);
   const [activityLogs, setActivityLogs] = useState<any[]>([]);
   const [emailLogs, setEmailLogs] = useState<any[]>([]);
+  const [adminSettings, setAdminSettings] = useState<any>(null);
 
   // Filtering
   const [searchQuery, setSearchQuery] = useState("");
   const [filterPaymentStatus, setFilterPaymentStatus] = useState("all");
   const [filterPackageType, setFilterPackageType] = useState("all");
   const [selectedClientIds, setSelectedClientIds] = useState<string[]>([]);
+  const [settingsForm, setSettingsForm] = useState({
+    stripeBillingName: "",
+    stripeProductDescription: "",
+    companyName: "",
+    companyPhone: "",
+    companyEmail: "",
+    supportUrl: "",
+    privacyPolicyUrl: "",
+    customLogoUrl: "",
+  });
 
   useEffect(() => {
     const adminId = localStorage.getItem("adminId") || localStorage.getItem("admin");
@@ -124,6 +136,7 @@ export default function AdminDashboard() {
     loadTransactions();
     loadActivityLogs();
     loadEmailLogs();
+    loadAdminSettings();
   }, [setLocation]);
 
   const loadTemplates = async () => {
@@ -210,6 +223,49 @@ export default function AdminDashboard() {
       }
     } catch (err) {
       console.error("Email logs error:", err);
+    }
+  };
+
+  const loadAdminSettings = async () => {
+    try {
+      const response = await fetch("/api/admin/settings");
+      if (response.ok) {
+        const data = await response.json();
+        setAdminSettings(data);
+        setSettingsForm({
+          stripeBillingName: data.stripeBillingName || "",
+          stripeProductDescription: data.stripeProductDescription || "",
+          companyName: data.companyName || "",
+          companyPhone: data.companyPhone || "",
+          companyEmail: data.companyEmail || "",
+          supportUrl: data.supportUrl || "",
+          privacyPolicyUrl: data.privacyPolicyUrl || "",
+          customLogoUrl: data.customLogoUrl || "",
+        });
+      }
+    } catch (err) {
+      console.error("Settings error:", err);
+    }
+  };
+
+  const handleSaveSettings = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(settingsForm),
+      });
+      if (response.ok) {
+        toast.success("⚙️ Rregullimet u ruajtën me sukses!");
+        loadAdminSettings();
+      } else {
+        toast.error("❌ Gabim gjatë ruajtjes");
+      }
+    } catch (err) {
+      toast.error("❌ Gabim gjatë ruajtjes");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -503,6 +559,7 @@ export default function AdminDashboard() {
     { id: "templates", label: "Email Templates", icon: Mail },
     { id: "send-email", label: "Dërgo Email", icon: Send },
     { id: "custom-email", label: "Email Custom", icon: PenTool },
+    { id: "settings", label: "Rregullimet", icon: Settings },
   ];
 
   const handleBulkSelect = (clientId: string) => {

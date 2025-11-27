@@ -9,6 +9,7 @@ import {
   transactions,
   activityLogs,
   emailLogs,
+  adminSettings,
 } from "@shared/schema";
 import {
   type User,
@@ -27,6 +28,8 @@ import {
   type InsertActivityLog,
   type EmailLog,
   type InsertEmailLog,
+  type AdminSettings,
+  type InsertAdminSettings,
 } from "@shared/schema";
 import { eq, and, desc, gt } from "drizzle-orm";
 import bcrypt from "bcrypt";
@@ -91,6 +94,10 @@ export interface IStorage {
   // Analytics
   getAnalytics(): Promise<any>;
   getAllTransactions(): Promise<Transaction[]>;
+
+  // Admin settings
+  getAdminSettings(): Promise<AdminSettings | undefined>;
+  updateAdminSettings(settings: Partial<InsertAdminSettings>): Promise<AdminSettings>;
 }
 
 export class Storage implements IStorage {
@@ -362,6 +369,23 @@ export class Storage implements IStorage {
 
   async getAllTransactions(): Promise<Transaction[]> {
     return await db.select().from(transactions).orderBy(desc(transactions.createdAt));
+  }
+
+  // Admin settings
+  async getAdminSettings(): Promise<AdminSettings | undefined> {
+    const result = await db.select().from(adminSettings).limit(1);
+    return result[0];
+  }
+
+  async updateAdminSettings(settings: Partial<InsertAdminSettings>): Promise<AdminSettings> {
+    const existing = await this.getAdminSettings();
+    if (existing) {
+      const result = await db.update(adminSettings).set(settings).where(eq(adminSettings.id, existing.id)).returning();
+      return result[0];
+    } else {
+      const result = await db.insert(adminSettings).values(settings as InsertAdminSettings).returning();
+      return result[0];
+    }
   }
 }
 

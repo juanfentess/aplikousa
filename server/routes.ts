@@ -679,6 +679,43 @@ export async function registerRoutes(httpServer: HTTPServer, app: Express): Prom
     }
   });
 
+  // Get admin settings
+  app.get("/api/admin/settings", async (req: Request, res: Response) => {
+    try {
+      let settings = await storage.getAdminSettings();
+      if (!settings) {
+        settings = await storage.updateAdminSettings({
+          stripeBillingName: "AplikoUSA",
+          stripeProductDescription: "Green Card DV Lottery Application",
+          companyName: "AplikoUSA",
+          companyPhone: "+383 49 771 673",
+          companyEmail: "info@aplikousa.com",
+        });
+      }
+      res.json(settings);
+    } catch (error: any) {
+      console.error("Get settings error:", error);
+      res.status(500).json({ error: error.message || "Failed to fetch settings" });
+    }
+  });
+
+  // Update admin settings
+  app.post("/api/admin/settings", async (req: Request, res: Response) => {
+    try {
+      const settings = await storage.updateAdminSettings(req.body);
+      await storage.createActivityLog({
+        action: "update_settings",
+        targetType: "settings",
+        targetId: settings.id,
+        details: req.body,
+      });
+      res.json(settings);
+    } catch (error: any) {
+      console.error("Update settings error:", error);
+      res.status(500).json({ error: error.message || "Failed to update settings" });
+    }
+  });
+
   // Update application steps
   app.post(
     "/api/admin/applications/:id/update-steps",
