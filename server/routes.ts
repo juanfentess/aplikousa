@@ -579,6 +579,58 @@ export async function registerRoutes(
     }
   });
 
+  // Get all clients
+  app.get("/api/admin/clients", async (req, res) => {
+    try {
+      const clients = await storage.getAllUsers();
+      res.json(clients);
+    } catch (error) {
+      console.error("Error fetching clients:", error);
+      res.status(500).json({ error: "Failed to fetch clients" });
+    }
+  });
+
+  // Get single client
+  app.get("/api/admin/clients/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const client = await storage.getUser(id);
+      if (!client) {
+        return res.status(404).json({ error: "Client not found" });
+      }
+      res.json(client);
+    } catch (error) {
+      console.error("Error fetching client:", error);
+      res.status(500).json({ error: "Failed to fetch client" });
+    }
+  });
+
+  // Update client
+  app.patch("/api/admin/clients/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+
+      const client = await storage.updateUser(id, updates);
+      res.json(client);
+    } catch (error) {
+      console.error("Error updating client:", error);
+      res.status(500).json({ error: "Failed to update client" });
+    }
+  });
+
+  // Delete client
+  app.delete("/api/admin/clients/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteUser(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting client:", error);
+      res.status(500).json({ error: "Failed to delete client" });
+    }
+  });
+
   // Stripe Checkout
   app.post("/api/checkout", async (req, res) => {
     try {

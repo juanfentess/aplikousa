@@ -28,8 +28,11 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   getUserByEmail(email: string): Promise<User | undefined>;
   getUser(id: string): Promise<User | undefined>;
+  getAllUsers(): Promise<User[]>;
   updateUserVerification(userId: string): Promise<void>;
   updateUserStripeInfo(userId: string, stripeInfo: { stripeCustomerId?: string; stripeSubscriptionId?: string; paymentStatus?: string }): Promise<User>;
+  updateUser(userId: string, updates: Partial<User>): Promise<User>;
+  deleteUser(userId: string): Promise<void>;
 
   // Verification codes
   createVerificationCode(code: InsertVerificationCode): Promise<VerificationCode>;
@@ -88,6 +91,19 @@ export class Storage implements IStorage {
   async updateUserStripeInfo(userId: string, stripeInfo: { stripeCustomerId?: string; stripeSubscriptionId?: string; paymentStatus?: string }): Promise<User> {
     const result = await db.update(users).set(stripeInfo).where(eq(users.id, userId)).returning();
     return result[0];
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return await db.select().from(users).orderBy(desc(users.createdAt));
+  }
+
+  async updateUser(userId: string, updates: Partial<User>): Promise<User> {
+    const result = await db.update(users).set(updates).where(eq(users.id, userId)).returning();
+    return result[0];
+  }
+
+  async deleteUser(userId: string): Promise<void> {
+    await db.delete(users).where(eq(users.id, userId));
   }
 
   // Verification codes

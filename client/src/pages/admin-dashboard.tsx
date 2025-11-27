@@ -45,14 +45,27 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [templates, setTemplates] = useState<any[]>([]);
   const [applications, setApplications] = useState<any[]>([]);
+  const [clients, setClients] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [showTemplateDialog, setShowTemplateDialog] = useState(false);
   const [showSendEmailDialog, setShowSendEmailDialog] = useState(false);
+  const [showClientDialog, setShowClientDialog] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<any>(null);
+  const [editingClient, setEditingClient] = useState<any>(null);
   const [formData, setFormData] = useState({
     name: "",
     subject: "",
     htmlContent: "",
+  });
+  const [clientFormData, setClientFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    birthCountry: "",
+    city: "",
+    paymentStatus: "",
+    package: "",
   });
   const [sendEmailData, setSendEmailData] = useState({
     recipientEmail: "",
@@ -72,6 +85,7 @@ export default function AdminDashboard() {
     }
     loadTemplates();
     loadApplications();
+    loadClients();
   }, [setLocation]);
 
   const loadTemplates = async () => {
@@ -97,6 +111,19 @@ export default function AdminDashboard() {
     } catch (err) {
       console.error(err);
       toast.error("Gabim në ngarkim të aplikimeve");
+    }
+  };
+
+  const loadClients = async () => {
+    try {
+      const response = await fetch("/api/admin/clients");
+      if (response.ok) {
+        const data = await response.json();
+        setClients(data);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Gabim në ngarkim të klientëve");
     }
   };
 
@@ -227,20 +254,61 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleUpdateClient = async () => {
+    if (!editingClient) return;
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/admin/clients/${editingClient.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(clientFormData),
+      });
+
+      if (response.ok) {
+        toast.success("Klienti përditësuar me sukses");
+        setShowClientDialog(false);
+        loadClients();
+      }
+    } catch (err) {
+      toast.error("Gabim gjatë përditësimit");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteClient = async (id: string) => {
+    if (!confirm("A jeni i sigurt se doni të fshirot këtë klient?")) return;
+    try {
+      const response = await fetch(`/api/admin/clients/${id}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        toast.success("Klienti fshirë me sukses");
+        loadClients();
+      }
+    } catch (err) {
+      toast.error("Gabim gjatë fshirjes");
+      console.error(err);
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem("adminId");
     setLocation("/admin/login");
   };
 
   const stats = [
-    { label: "Gjithsej Aplikime", value: applications.length, icon: Users, color: "bg-blue-100" },
-    { label: "Në Pritje", value: applications.filter(a => a.status === "pending").length, icon: Clock, color: "bg-yellow-100" },
-    { label: "Aprovuar", value: applications.filter(a => a.status === "approved").length, icon: CheckCircle, color: "bg-green-100" },
+    { label: "Gjithsej Klientë", value: clients.length, icon: Users, color: "bg-blue-100" },
+    { label: "Pagesa të Përfunduara", value: clients.filter(c => c.paymentStatus === "completed").length, icon: CheckCircle, color: "bg-green-100" },
+    { label: "Në Pritje Pagese", value: clients.filter(c => c.paymentStatus === "pending").length, icon: Clock, color: "bg-yellow-100" },
   ];
 
   const navItems = [
     { id: "dashboard", label: "Dashboard", icon: TrendingUp },
-    { id: "applications", label: "Aplikime", icon: Users },
+    { id: "clients", label: "Klientët", icon: Users },
+    { id: "applications", label: "Aplikime", icon: FileText },
     { id: "templates", label: "Email Templates", icon: Mail },
     { id: "send-email", label: "Dërgo Email", icon: Send },
     { id: "custom-email", label: "Email Custom", icon: PenTool },
@@ -355,6 +423,107 @@ export default function AdminDashboard() {
                   ) : (
                     <p className="text-gray-500">Nuk ka aktivitet të fundit</p>
                   )}
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+
+          {/* Clients Tab */}
+          {activeTab === "clients" && (
+            <motion.div
+              key="clients"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="space-y-6"
+            >
+              <div>
+                <h2 className="text-3xl font-bold text-gray-900">Klientët</h2>
+                <p className="text-gray-600 mt-2">Menaxhoni të gjithë klientët tuaj</p>
+              </div>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Lista e Klientëve ({clients.length})</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="text-left py-3 px-4 font-semibold text-gray-700">Emër</th>
+                          <th className="text-left py-3 px-4 font-semibold text-gray-700">Email</th>
+                          <th className="text-left py-3 px-4 font-semibold text-gray-700">Paketa</th>
+                          <th className="text-left py-3 px-4 font-semibold text-gray-700">Pagesa</th>
+                          <th className="text-left py-3 px-4 font-semibold text-gray-700">Veprime</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {clients.length > 0 ? (
+                          clients.map((client) => (
+                            <tr key={client.id} className="border-b hover:bg-gray-50 transition">
+                              <td className="py-3 px-4">{client.firstName} {client.lastName}</td>
+                              <td className="py-3 px-4 text-sm text-gray-600">{client.email}</td>
+                              <td className="py-3 px-4">
+                                <span className="text-sm px-2 py-1 bg-blue-100 text-blue-800 rounded">
+                                  {client.package || "—"}
+                                </span>
+                              </td>
+                              <td className="py-3 px-4">
+                                <span className={`text-sm px-2 py-1 rounded ${
+                                  client.paymentStatus === "completed" 
+                                    ? "bg-green-100 text-green-800" 
+                                    : "bg-yellow-100 text-yellow-800"
+                                }`}>
+                                  {client.paymentStatus === "completed" ? "✓ Paguar" : "⏳ Në Pritje"}
+                                </span>
+                              </td>
+                              <td className="py-3 px-4">
+                                <div className="flex gap-2">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => {
+                                      setEditingClient(client);
+                                      setClientFormData({
+                                        firstName: client.firstName,
+                                        lastName: client.lastName,
+                                        email: client.email,
+                                        phone: client.phone || "",
+                                        birthCountry: client.birthCountry || "",
+                                        city: client.city || "",
+                                        paymentStatus: client.paymentStatus,
+                                        package: client.package || "",
+                                      });
+                                      setShowClientDialog(true);
+                                    }}
+                                    data-testid={`button-edit-client-${client.id}`}
+                                  >
+                                    <Edit2 className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="text-red-600 hover:text-red-700"
+                                    onClick={() => handleDeleteClient(client.id)}
+                                    data-testid={`button-delete-client-${client.id}`}
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr>
+                            <td colSpan={5} className="py-8 text-center text-gray-500">
+                              Nuk ka klientë
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 </CardContent>
               </Card>
             </motion.div>
@@ -727,6 +896,108 @@ export default function AdminDashboard() {
               ) : (
                 "Ruaj"
               )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Client Edit Dialog */}
+      <Dialog open={showClientDialog} onOpenChange={setShowClientDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Redakto Klientin</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="firstName">Emër</Label>
+                <Input
+                  id="firstName"
+                  value={clientFormData.firstName}
+                  onChange={(e) => setClientFormData({...clientFormData, firstName: e.target.value})}
+                  placeholder="Emër"
+                />
+              </div>
+              <div>
+                <Label htmlFor="lastName">Mbiemër</Label>
+                <Input
+                  id="lastName"
+                  value={clientFormData.lastName}
+                  onChange={(e) => setClientFormData({...clientFormData, lastName: e.target.value})}
+                  placeholder="Mbiemër"
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                value={clientFormData.email}
+                onChange={(e) => setClientFormData({...clientFormData, email: e.target.value})}
+                placeholder="Email"
+              />
+            </div>
+            <div>
+              <Label htmlFor="phone">Telefon</Label>
+              <Input
+                id="phone"
+                value={clientFormData.phone}
+                onChange={(e) => setClientFormData({...clientFormData, phone: e.target.value})}
+                placeholder="Telefon"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="birthCountry">Vendi i Lindjes</Label>
+                <Input
+                  id="birthCountry"
+                  value={clientFormData.birthCountry}
+                  onChange={(e) => setClientFormData({...clientFormData, birthCountry: e.target.value})}
+                  placeholder="Vendi"
+                />
+              </div>
+              <div>
+                <Label htmlFor="city">Qytet</Label>
+                <Input
+                  id="city"
+                  value={clientFormData.city}
+                  onChange={(e) => setClientFormData({...clientFormData, city: e.target.value})}
+                  placeholder="Qytet"
+                />
+              </div>
+            </div>
+            <div>
+              <Label>Statusi Pagese</Label>
+              <Select value={clientFormData.paymentStatus} onValueChange={(value) => setClientFormData({...clientFormData, paymentStatus: value})}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pending">Në Pritje</SelectItem>
+                  <SelectItem value="completed">Paguar</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Paketa</Label>
+              <Select value={clientFormData.package} onValueChange={(value) => setClientFormData({...clientFormData, package: value})}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="individual">Paket Individuale</SelectItem>
+                  <SelectItem value="couple">Paket për Çifte</SelectItem>
+                  <SelectItem value="family">Paket Familjare</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowClientDialog(false)}>
+              Anulo
+            </Button>
+            <Button onClick={handleUpdateClient} disabled={loading}>
+              {loading ? "Duke u ruajtur..." : "Ruaj Ndryshimet"}
             </Button>
           </DialogFooter>
         </DialogContent>
