@@ -159,8 +159,9 @@ export default function AdminDashboard() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          recipientEmail: sendEmailData.recipientEmail,
+          toEmail: sendEmailData.recipientEmail,
           templateId: sendEmailData.templateId,
+          recipientName: "Klient",
         }),
       });
 

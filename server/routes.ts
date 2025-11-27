@@ -233,8 +233,8 @@ export async function registerRoutes(
         return res.status(400).json({ error: "Missing required fields" });
       }
 
-      // Get template
-      const template = await storage.getEmailTemplate(templateId);
+      // Get template by ID
+      const template = await storage.getEmailTemplateById(templateId);
       if (!template) {
         return res.status(404).json({ error: "Template not found" });
       }
@@ -243,7 +243,7 @@ export async function registerRoutes(
         toEmail,
         template.htmlContent,
         template.subject,
-        recipientName
+        recipientName || "Klient"
       );
 
       if (success) {

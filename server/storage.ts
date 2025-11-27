@@ -35,6 +35,7 @@ export interface IStorage {
   // Email templates
   createEmailTemplate(template: InsertEmailTemplate): Promise<EmailTemplate>;
   getEmailTemplate(name: string): Promise<EmailTemplate | undefined>;
+  getEmailTemplateById(id: string): Promise<EmailTemplate | undefined>;
   getEmailTemplates(): Promise<EmailTemplate[]>;
   updateEmailTemplate(id: string, template: Partial<InsertEmailTemplate>): Promise<EmailTemplate>;
   deleteEmailTemplate(id: string): Promise<void>;
@@ -97,6 +98,11 @@ export class Storage implements IStorage {
 
   async getEmailTemplate(name: string): Promise<EmailTemplate | undefined> {
     const result = await db.select().from(emailTemplates).where(eq(emailTemplates.name, name));
+    return result[0];
+  }
+
+  async getEmailTemplateById(id: string): Promise<EmailTemplate | undefined> {
+    const result = await db.select().from(emailTemplates).where(eq(emailTemplates.id, id));
     return result[0];
   }
 
