@@ -231,8 +231,11 @@ export async function registerRoutes(
         status: "completed",
       });
 
-      // Update payment status
-      await storage.updateUserStripeInfo(userId, { paymentStatus: "completed" });
+      // Update payment status and package
+      await storage.updateUserStripeInfo(userId, { 
+        paymentStatus: "completed",
+        package: packageType
+      });
 
       // Send payment success email
       const htmlContent = `

@@ -70,6 +70,7 @@ export default function Dashboard() {
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [userData, setUserData] = useState<any>(null);
   const [transactions, setTransactions] = useState<any[]>([]);
+  const [purchasedPackage, setPurchasedPackage] = useState<string | null>(null);
 
   // Load user data on mount
   useEffect(() => {
