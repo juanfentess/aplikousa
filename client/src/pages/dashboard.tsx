@@ -52,12 +52,12 @@ export default function Dashboard() {
 
   // State for profile form
   const [profileData, setProfileData] = useState({
-    firstName: "Arben",
-    lastName: "Berisha",
-    email: "arben.berisha@example.com",
-    phone: "+383 44 123 456",
-    birthCountry: "Kosovë",
-    city: "Prishtinë",
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    birthCountry: "",
+    city: "",
   });
 
   // State for password form
@@ -181,8 +181,8 @@ export default function Dashboard() {
 
   // Mock data
   const user = {
-    name: `${profileData.firstName} ${profileData.lastName}`,
-    email: profileData.email,
+    name: profileData.firstName && profileData.lastName ? `${profileData.firstName} ${profileData.lastName}` : "Përdoruesi",
+    email: profileData.email || "user@example.com",
     avatar: "",
     status: "pending_review"
   };
@@ -570,7 +570,7 @@ export default function Dashboard() {
                         <div className="space-y-3">
                           <div>
                             <p className="text-xs text-gray-500 font-medium">EMRI PLOTË</p>
-                            <p className="text-lg font-semibold text-gray-900">{user.name}</p>
+                            <p className="text-lg font-semibold text-gray-900">{profileData.firstName} {profileData.lastName}</p>
                           </div>
                           <div>
                             <p className="text-xs text-gray-500 font-medium">EMAIL</p>
