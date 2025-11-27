@@ -19,6 +19,11 @@ import {
   PenTool,
   Eye,
   Eye as EyeIcon,
+  BarChart3,
+  Filter,
+  Download,
+  History,
+  CreditCard,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -94,6 +99,18 @@ export default function AdminDashboard() {
     sendToAll: false,
   });
 
+  // Analytics, Logs, Transactions
+  const [analytics, setAnalytics] = useState<any>(null);
+  const [allTransactions, setAllTransactions] = useState<any[]>([]);
+  const [activityLogs, setActivityLogs] = useState<any[]>([]);
+  const [emailLogs, setEmailLogs] = useState<any[]>([]);
+
+  // Filtering
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterPaymentStatus, setFilterPaymentStatus] = useState("all");
+  const [filterPackageType, setFilterPackageType] = useState("all");
+  const [selectedClientIds, setSelectedClientIds] = useState<string[]>([]);
+
   useEffect(() => {
     const adminId = localStorage.getItem("adminId") || localStorage.getItem("admin");
     if (!adminId) {
@@ -103,6 +120,10 @@ export default function AdminDashboard() {
     loadTemplates();
     loadApplications();
     loadClients();
+    loadAnalytics();
+    loadTransactions();
+    loadActivityLogs();
+    loadEmailLogs();
   }, [setLocation]);
 
   const loadTemplates = async () => {
@@ -141,6 +162,54 @@ export default function AdminDashboard() {
     } catch (err) {
       console.error(err);
       toast.error("Gabim në ngarkim të klientëve");
+    }
+  };
+
+  const loadAnalytics = async () => {
+    try {
+      const response = await fetch("/api/admin/analytics");
+      if (response.ok) {
+        const data = await response.json();
+        setAnalytics(data);
+      }
+    } catch (err) {
+      console.error("Analytics error:", err);
+    }
+  };
+
+  const loadTransactions = async () => {
+    try {
+      const response = await fetch("/api/admin/transactions");
+      if (response.ok) {
+        const data = await response.json();
+        setAllTransactions(data);
+      }
+    } catch (err) {
+      console.error("Transactions error:", err);
+    }
+  };
+
+  const loadActivityLogs = async () => {
+    try {
+      const response = await fetch("/api/admin/logs/activity");
+      if (response.ok) {
+        const data = await response.json();
+        setActivityLogs(data);
+      }
+    } catch (err) {
+      console.error("Activity logs error:", err);
+    }
+  };
+
+  const loadEmailLogs = async () => {
+    try {
+      const response = await fetch("/api/admin/logs/email");
+      if (response.ok) {
+        const data = await response.json();
+        setEmailLogs(data);
+      }
+    } catch (err) {
+      console.error("Email logs error:", err);
     }
   };
 
@@ -404,20 +473,116 @@ export default function AdminDashboard() {
     setLocation("/admin/login");
   };
 
+  // Filtered clients based on search and filters
+  const filteredClients = clients.filter(client => {
+    const matchesSearch = !searchQuery || 
+      client.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      client.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      client.email.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesPayment = filterPaymentStatus === "all" || client.paymentStatus === filterPaymentStatus;
+    const matchesPackage = filterPackageType === "all" || client.package === filterPackageType;
+    
+    return matchesSearch && matchesPayment && matchesPackage;
+  });
+
   const stats = [
-    { label: "Gjithsej Klientë", value: clients.length, icon: Users, color: "bg-blue-100" },
-    { label: "Pagesa të Përfunduara", value: clients.filter(c => c.paymentStatus === "completed").length, icon: CheckCircle, color: "bg-green-100" },
-    { label: "Në Pritje Pagese", value: clients.filter(c => c.paymentStatus === "pending").length, icon: Clock, color: "bg-yellow-100" },
+    { label: "Gjithsej Klientë", value: analytics?.totalClients || 0, icon: Users, color: "bg-blue-100" },
+    { label: "Pagesa të Përfunduara", value: analytics?.paidClients || 0, icon: CheckCircle, color: "bg-green-100" },
+    { label: "Në Pritje Pagese", value: analytics?.pendingClients || 0, icon: Clock, color: "bg-yellow-100" },
+    { label: "Conversion Rate", value: (analytics?.conversionRate || "0") + "%", icon: TrendingUp, color: "bg-purple-100" },
   ];
 
   const navItems = [
     { id: "dashboard", label: "Dashboard", icon: TrendingUp },
+    { id: "analytics", label: "Analytics", icon: BarChart3 },
     { id: "clients", label: "Klientët", icon: Users },
     { id: "applications", label: "Aplikime", icon: FileText },
+    { id: "transactions", label: "Transaksionet", icon: CreditCard },
+    { id: "logs", label: "Regjistrat", icon: History },
     { id: "templates", label: "Email Templates", icon: Mail },
     { id: "send-email", label: "Dërgo Email", icon: Send },
     { id: "custom-email", label: "Email Custom", icon: PenTool },
   ];
+
+  const handleBulkSelect = (clientId: string) => {
+    setSelectedClientIds(prev => 
+      prev.includes(clientId) ? prev.filter(id => id !== clientId) : [...prev, clientId]
+    );
+  };
+
+  const handleBulkSelectAll = () => {
+    setSelectedClientIds(selectedClientIds.length === filteredClients.length ? [] : filteredClients.map(c => c.id));
+  };
+
+  const handleBulkUpdatePayment = async (status: "pending" | "completed") => {
+    if (selectedClientIds.length === 0) {
+      toast.error("Zgjedhni të paktën një klient");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      for (const clientId of selectedClientIds) {
+        await fetch(`/api/admin/clients/${clientId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ paymentStatus: status }),
+        });
+      }
+      toast.success(`✅ Përditësimi i ${selectedClientIds.length} klientit(ëve) me sukses!`);
+      setSelectedClientIds([]);
+      loadClients();
+    } catch (err) {
+      toast.error("❌ Gabim gjatë përditësimit");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedClientIds.length === 0) {
+      toast.error("Zgjedhni të paktën një klient");
+      return;
+    }
+
+    if (!confirm(`A jeni i sigurt se doni të fshini ${selectedClientIds.length} klient(ë)?`)) return;
+
+    setLoading(true);
+    try {
+      for (const clientId of selectedClientIds) {
+        await fetch(`/api/admin/clients/${clientId}`, { method: "DELETE" });
+      }
+      toast.success(`✅ ${selectedClientIds.length} klient(ë) fshirë me sukses!`);
+      setSelectedClientIds([]);
+      loadClients();
+    } catch (err) {
+      toast.error("❌ Gabim gjatë fshirjes");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const downloadTransactionReport = () => {
+    const csv = [
+      ["Email", "Lloji i Paketës", "Shuma", "Status", "Data"].join(","),
+      ...allTransactions.map(t => [
+        t.userId,
+        t.packageType,
+        t.amount,
+        t.status,
+        new Date(t.createdAt).toLocaleDateString("sq-AL")
+      ].join(","))
+    ].join("\n");
+
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "transaksionet.csv";
+    a.click();
+    toast.success("✅ Raporti u shkarkua!");
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
