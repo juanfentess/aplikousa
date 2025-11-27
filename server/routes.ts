@@ -635,6 +635,50 @@ export async function registerRoutes(httpServer: HTTPServer, app: Express): Prom
     }
   });
 
+  // Get analytics data
+  app.get("/api/admin/analytics", async (req: Request, res: Response) => {
+    try {
+      const analytics = await storage.getAnalytics();
+      res.json(analytics);
+    } catch (error: any) {
+      console.error("Analytics error:", error);
+      res.status(500).json({ error: error.message || "Failed to fetch analytics" });
+    }
+  });
+
+  // Get all transactions
+  app.get("/api/admin/transactions", async (req: Request, res: Response) => {
+    try {
+      const transactions = await storage.getAllTransactions();
+      res.json(transactions);
+    } catch (error: any) {
+      console.error("Get transactions error:", error);
+      res.status(500).json({ error: error.message || "Failed to fetch transactions" });
+    }
+  });
+
+  // Get activity logs
+  app.get("/api/admin/logs/activity", async (req: Request, res: Response) => {
+    try {
+      const logs = await storage.getActivityLogs(100);
+      res.json(logs);
+    } catch (error: any) {
+      console.error("Get activity logs error:", error);
+      res.status(500).json({ error: error.message || "Failed to fetch logs" });
+    }
+  });
+
+  // Get email logs
+  app.get("/api/admin/logs/email", async (req: Request, res: Response) => {
+    try {
+      const logs = await storage.getEmailLogs(100);
+      res.json(logs);
+    } catch (error: any) {
+      console.error("Get email logs error:", error);
+      res.status(500).json({ error: error.message || "Failed to fetch email logs" });
+    }
+  });
+
   // Update application steps
   app.post(
     "/api/admin/applications/:id/update-steps",

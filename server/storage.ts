@@ -7,6 +7,8 @@ import {
   admins,
   applications,
   transactions,
+  activityLogs,
+  emailLogs,
 } from "@shared/schema";
 import {
   type User,
@@ -21,6 +23,10 @@ import {
   type InsertApplication,
   type Transaction,
   type InsertTransaction,
+  type ActivityLog,
+  type InsertActivityLog,
+  type EmailLog,
+  type InsertEmailLog,
 } from "@shared/schema";
 import { eq, and, desc, gt } from "drizzle-orm";
 import bcrypt from "bcrypt";
@@ -73,6 +79,18 @@ export interface IStorage {
   // Stripe
   getProduct(productId: string): Promise<any>;
   getSubscription(subscriptionId: string): Promise<any>;
+
+  // Activity logs
+  createActivityLog(log: InsertActivityLog): Promise<ActivityLog>;
+  getActivityLogs(limit?: number): Promise<ActivityLog[]>;
+
+  // Email logs
+  createEmailLog(log: InsertEmailLog): Promise<EmailLog>;
+  getEmailLogs(limit?: number): Promise<EmailLog[]>;
+
+  // Analytics
+  getAnalytics(): Promise<any>;
+  getAllTransactions(): Promise<Transaction[]>;
 }
 
 export class Storage implements IStorage {
@@ -289,6 +307,61 @@ export class Storage implements IStorage {
     } catch {
       return null;
     }
+  }
+
+  // Activity logs
+  async createActivityLog(log: InsertActivityLog): Promise<ActivityLog> {
+    const result = await db.insert(activityLogs).values(log).returning();
+    return result[0];
+  }
+
+  async getActivityLogs(limit = 100): Promise<ActivityLog[]> {
+    return await db.select().from(activityLogs).orderBy(desc(activityLogs.createdAt)).limit(limit);
+  }
+
+  // Email logs
+  async createEmailLog(log: InsertEmailLog): Promise<EmailLog> {
+    const result = await db.insert(emailLogs).values(log).returning();
+    return result[0];
+  }
+
+  async getEmailLogs(limit = 100): Promise<EmailLog[]> {
+    return await db.select().from(emailLogs).orderBy(desc(emailLogs.createdAt)).limit(limit);
+  }
+
+  // Analytics
+  async getAnalytics(): Promise<any> {
+    const totalUsers = await db.select().from(users);
+    const paidUsers = totalUsers.filter(u => u.paymentStatus === "completed");
+    const allTransactions = await db.select().from(transactions).where(eq(transactions.status, "completed"));
+    
+    const revenueByPackage = {
+      individual: allTransactions.filter(t => t.packageType === "individual").reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0),
+      couple: allTransactions.filter(t => t.packageType === "couple").reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0),
+      family: allTransactions.filter(t => t.packageType === "family").reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0),
+    };
+
+    const appList = await db.select().from(applications);
+    const applicationsByStatus = {
+      pending: appList.filter(a => a.submissionStatus === "pending").length,
+      inProgress: appList.filter(a => a.submissionStatus === "in_progress").length,
+      completed: appList.filter(a => a.submissionStatus === "completed").length,
+    };
+
+    return {
+      totalClients: totalUsers.length,
+      paidClients: paidUsers.length,
+      pendingClients: totalUsers.filter(u => u.paymentStatus === "pending").length,
+      conversionRate: totalUsers.length > 0 ? ((paidUsers.length / totalUsers.length) * 100).toFixed(2) : "0",
+      totalRevenue: Object.values(revenueByPackage).reduce((a, b) => a + b, 0),
+      revenueByPackage,
+      applicationsByStatus,
+      transactionCount: allTransactions.length,
+    };
+  }
+
+  async getAllTransactions(): Promise<Transaction[]> {
+    return await db.select().from(transactions).orderBy(desc(transactions.createdAt));
   }
 }
 
