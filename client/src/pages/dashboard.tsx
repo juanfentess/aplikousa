@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -15,7 +15,8 @@ import {
   Eye,
   EyeOff,
   Save,
-  X
+  X,
+  CreditCard
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -46,6 +47,7 @@ export default function Dashboard() {
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
+  const [userPaymentStatus, setUserPaymentStatus] = useState("pending");
 
   // State for profile form
   const [profileData, setProfileData] = useState({
@@ -64,6 +66,17 @@ export default function Dashboard() {
     confirmPassword: "",
   });
 
+  // Load user payment status on mount
+  useEffect(() => {
+    const userId = localStorage.getItem("userId");
+    if (userId) {
+      // In a real app, you'd fetch from API
+      // For now, just check localStorage
+      const savedStatus = localStorage.getItem("paymentStatus") || "pending";
+      setUserPaymentStatus(savedStatus);
+    }
+  }, []);
+
   // Mock data
   const user = {
     name: `${profileData.firstName} ${profileData.lastName}`,
@@ -74,9 +87,9 @@ export default function Dashboard() {
 
   const applicationSteps = [
     { id: 1, title: "Regjistrimi", status: "completed", date: "27 Nëntor 2025" },
-    { id: 2, title: "Pagesa", status: "completed", date: "27 Nëntor 2025" },
-    { id: 3, title: "Plotësimi i Formularit", status: "completed", date: "27 Nëntor 2025" },
-    { id: 4, title: "Kontrolli i Fotos", status: "in_progress", date: "Në proces" },
+    { id: 2, title: "Pagesa", status: userPaymentStatus === "completed" ? "completed" : "pending", date: userPaymentStatus === "completed" ? "27 Nëntor 2025" : "Pritet" },
+    { id: 3, title: "Plotësimi i Formularit", status: userPaymentStatus === "completed" ? "completed" : "pending", date: userPaymentStatus === "completed" ? "27 Nëntor 2025" : "Pritet" },
+    { id: 4, title: "Kontrolli i Fotos", status: "pending", date: "Pritet" },
     { id: 5, title: "Dorëzimi Zyrtar", status: "pending", date: "Pritet" },
   ];
 
@@ -255,16 +268,84 @@ export default function Dashboard() {
                   exit={{ opacity: 0, y: -10 }}
                   className="space-y-6"
                 >
-                  {/* Welcome Banner */}
-                  <Card className="bg-primary text-white border-none shadow-lg overflow-hidden relative">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-16 -mt-16 blur-3xl"></div>
-                    <CardContent className="p-8 relative z-10">
-                      <h2 className="text-2xl font-bold mb-2">Mirësevini në panelin tuaj, {user.name.split(' ')[0]}! 👋</h2>
-                      <p className="text-white/80 max-w-xl">
-                        Aplikimi juaj është duke u përpunuar nga ekipi ynë. Ne po kontrollojmë çdo detaj për të siguruar që gjithçka është në rregull.
-                      </p>
-                    </CardContent>
-                  </Card>
+                  {/* Welcome Banner or Payment Required */}
+                  {userPaymentStatus === "pending" ? (
+                    <Card className="bg-red-50 border-red-200 shadow-lg overflow-hidden relative">
+                      <CardContent className="p-8">
+                        <div className="flex items-start gap-4">
+                          <AlertCircle className="h-6 w-6 text-red-600 flex-shrink-0 mt-1" />
+                          <div>
+                            <h2 className="text-2xl font-bold mb-2 text-red-900">Pagesa e Kërkuar 💳</h2>
+                            <p className="text-red-700 max-w-xl">
+                              Për të vazhduar me aplikimin tuaj, ju duhet të përfundoni pagesën. Zgjidhni paketën tuaj më poshtë.
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <Card className="bg-primary text-white border-none shadow-lg overflow-hidden relative">
+                      <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-16 -mt-16 blur-3xl"></div>
+                      <CardContent className="p-8 relative z-10">
+                        <h2 className="text-2xl font-bold mb-2">Mirësevini në panelin tuaj, {user.name.split(' ')[0]}! 👋</h2>
+                        <p className="text-white/80 max-w-xl">
+                          Aplikimi juaj është duke u përpunuar nga ekipi ynë. Ne po kontrollojmë çdo detaj për të siguruar që gjithçka është në rregull.
+                        </p>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Payment Section - Show if payment pending */}
+                  {userPaymentStatus === "pending" && (
+                    <Card className="border-2 border-primary/20 shadow-md">
+                      <CardHeader className="bg-primary/5 pb-4">
+                        <div className="flex items-center gap-2">
+                          <CreditCard className="h-5 w-5 text-primary" />
+                          <CardTitle>Zgjidhni Paketën tuaj</CardTitle>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="p-6">
+                        <div className="grid md:grid-cols-3 gap-4">
+                          {/* Individual Package */}
+                          <Card className="border-2 border-gray-200 hover:border-primary hover:shadow-lg transition-all cursor-pointer">
+                            <CardContent className="p-6 text-center">
+                              <h3 className="font-bold text-lg mb-2">Individual</h3>
+                              <p className="text-sm text-gray-600 mb-4">Për një person</p>
+                              <div className="text-3xl font-bold text-primary mb-4">$150</div>
+                              <Button className="w-full bg-primary hover:bg-primary/90" data-testid="button-pay-individual">
+                                Paguaj Tani
+                              </Button>
+                            </CardContent>
+                          </Card>
+
+                          {/* Couple Package */}
+                          <Card className="border-2 border-primary relative">
+                            <div className="absolute -top-2 right-4 bg-primary text-white px-3 py-1 rounded-full text-xs font-bold">POPULAR</div>
+                            <CardContent className="p-6 text-center">
+                              <h3 className="font-bold text-lg mb-2">Couple</h3>
+                              <p className="text-sm text-gray-600 mb-4">Për dy persona</p>
+                              <div className="text-3xl font-bold text-primary mb-4">$250</div>
+                              <Button className="w-full bg-primary hover:bg-primary/90" data-testid="button-pay-couple">
+                                Paguaj Tani
+                              </Button>
+                            </CardContent>
+                          </Card>
+
+                          {/* Family Package */}
+                          <Card className="border-2 border-gray-200 hover:border-primary hover:shadow-lg transition-all cursor-pointer">
+                            <CardContent className="p-6 text-center">
+                              <h3 className="font-bold text-lg mb-2">Family</h3>
+                              <p className="text-sm text-gray-600 mb-4">Për familje</p>
+                              <div className="text-3xl font-bold text-primary mb-4">$350</div>
+                              <Button className="w-full bg-primary hover:bg-primary/90" data-testid="button-pay-family">
+                                Paguaj Tani
+                              </Button>
+                            </CardContent>
+                          </Card>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
 
                   {/* Status Cards */}
                   <div className="grid md:grid-cols-3 gap-6">
