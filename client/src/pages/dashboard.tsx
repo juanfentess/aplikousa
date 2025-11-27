@@ -16,7 +16,8 @@ import {
   EyeOff,
   Save,
   X,
-  CreditCard
+  CreditCard,
+  Wallet
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -67,6 +68,7 @@ export default function Dashboard() {
 
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [userData, setUserData] = useState<any>(null);
+  const [transactions, setTransactions] = useState<any[]>([]);
 
   // Load user data on mount
   useEffect(() => {
@@ -114,6 +116,16 @@ export default function Dashboard() {
           }
         })
         .catch(err => console.error("Error loading user data:", err));
+
+      // Fetch transactions
+      fetch(`/api/transactions/${userId}`)
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            setTransactions(data);
+          }
+        })
+        .catch(err => console.error("Error loading transactions:", err));
     }
   }, []);
 
@@ -321,6 +333,15 @@ export default function Dashboard() {
                   >
                     <Settings className="mr-2 h-4 w-4" />
                     Cilësimet
+                  </Button>
+                  <Button 
+                    variant={activeTab === "transactions" ? "secondary" : "ghost"} 
+                    className="w-full justify-start"
+                    onClick={() => setActiveTab("transactions")}
+                    data-testid="tab-transactions"
+                  >
+                    <Wallet className="mr-2 h-4 w-4" />
+                    Transaksionet
                   </Button>
                 </nav>
                 

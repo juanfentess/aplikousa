@@ -179,6 +179,29 @@ export class Storage implements IStorage {
     return result[0];
   }
 
+  // Transactions
+  async createTransaction(transaction: InsertTransaction): Promise<Transaction> {
+    const result = await db.insert(transactions).values(transaction).returning();
+    return result[0];
+  }
+
+  async getTransactions(userId: string): Promise<Transaction[]> {
+    return await db
+      .select()
+      .from(transactions)
+      .where(eq(transactions.userId, userId))
+      .orderBy(desc(transactions.createdAt));
+  }
+
+  async updateTransactionStatus(id: string, status: string): Promise<Transaction> {
+    const result = await db
+      .update(transactions)
+      .set({ status })
+      .where(eq(transactions.id, id))
+      .returning();
+    return result[0];
+  }
+
   // Stripe operations - query from stripe schema
   async getProduct(productId: string): Promise<any> {
     try {

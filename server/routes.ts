@@ -222,6 +222,15 @@ export async function registerRoutes(
 
       const pkg = packages[packageType] || packages.individual;
 
+      // Create transaction record
+      await storage.createTransaction({
+        userId,
+        amount: pkg.amount.toString(),
+        currency: "EUR",
+        packageType,
+        status: "completed",
+      });
+
       // Update payment status
       await storage.updateUserStripeInfo(userId, { paymentStatus: "completed" });
 
@@ -373,6 +382,23 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Payment success error:", error);
       res.status(500).json({ error: "Failed to process payment success" });
+    }
+  });
+
+  // Get transactions
+  app.get("/api/transactions/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+
+      if (!userId) {
+        return res.status(400).json({ error: "Missing user ID" });
+      }
+
+      const transactions = await storage.getTransactions(userId);
+      res.json(transactions);
+    } catch (error) {
+      console.error("Error fetching transactions:", error);
+      res.status(500).json({ error: "Failed to fetch transactions" });
     }
   });
 
