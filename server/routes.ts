@@ -644,6 +644,22 @@ export async function registerRoutes(httpServer: HTTPServer, app: Express): Prom
         const steps = req.body;
 
         const application = await storage.updateApplicationSteps(id, steps);
+        
+        // If submission status is completed, send professional email to client
+        if (steps.submissionStatus === "completed") {
+          const client = await storage.getUser(application.userId);
+          if (client && client.email) {
+            const { sendOfficialSubmissionEmail } = await import("./email");
+            await sendOfficialSubmissionEmail(client.email, client.firstName, {
+              firstName: client.firstName,
+              lastName: client.lastName,
+              email: client.email,
+              package: client.package,
+            });
+            console.log("[Update Steps] Official submission email sent to:", client.email);
+          }
+        }
+
         res.json(application);
       } catch (error: any) {
         console.error("Update steps error:", error);

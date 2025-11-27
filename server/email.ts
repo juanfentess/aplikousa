@@ -265,3 +265,133 @@ export async function sendPasswordResetEmail(
     return false;
   }
 }
+
+export async function sendOfficialSubmissionEmail(
+  toEmail: string,
+  userName: string,
+  applicationData: {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    package?: string;
+    createdAt?: string;
+  }
+): Promise<boolean> {
+  try {
+    const { client, fromEmail } = await getResendClient();
+
+    const packageName = applicationData.package === "individual" ? "Individuale" : 
+                       applicationData.package === "couple" ? "Çifti" : 
+                       applicationData.package === "family" ? "Familja" : "Pakete e Zgjedhur";
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+          body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; }
+          .container { max-width: 600px; margin: 0 auto; background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+          .header { background: linear-gradient(135deg, #0B1B3B 0%, #E63946 100%); padding: 40px 20px; text-align: center; color: white; }
+          .header h1 { margin: 0; font-size: 32px; font-weight: bold; }
+          .content { padding: 40px 20px; }
+          .content h2 { color: #0B1B3B; font-size: 22px; margin: 0 0 20px 0; }
+          .status-box { background: linear-gradient(135deg, rgba(11, 27, 59, 0.05) 0%, rgba(230, 57, 70, 0.05) 100%); border-left: 4px solid #0B1B3B; padding: 20px; margin: 20px 0; border-radius: 4px; }
+          .status-badge { display: inline-block; background-color: #0B1B3B; color: white; padding: 8px 16px; border-radius: 20px; font-weight: bold; font-size: 12px; }
+          .details-table { width: 100%; border-collapse: collapse; margin: 25px 0; }
+          .details-table td { padding: 12px; border-bottom: 1px solid #eee; }
+          .details-table td:first-child { width: 35%; font-weight: bold; color: #0B1B3B; }
+          .checkmark { display: inline-block; width: 24px; height: 24px; background-color: #28a745; color: white; border-radius: 50%; text-align: center; line-height: 24px; margin-right: 10px; font-weight: bold; }
+          .footer { background-color: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #eee; color: #666; font-size: 12px; }
+          .button { display: inline-block; background-color: #0B1B3B; color: white; padding: 12px 30px; text-decoration: none; border-radius: 4px; font-weight: bold; margin: 20px 0; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>🎉 Dorëzim i Përfunduar</h1>
+            <p style="margin: 10px 0 0 0; font-size: 14px;">Aplikimi juaj është dorëzuar zyrtarisht</p>
+          </div>
+
+          <div class="content">
+            <h2>Përshëndetje ${userName}!</h2>
+            
+            <p style="color: #555; font-size: 16px; line-height: 1.6; margin: 0 0 30px 0;">
+              Këtë email ju dërgojmë për të konfirmuar që aplikimi juaj për Green Card DV Lottery është dorëzuar me sukses zyrtarisht. 
+              Jemi të përqendruar të përfundojmë këtë proces me sukses për ju.
+            </p>
+
+            <div class="status-box">
+              <p style="margin: 0 0 15px 0;">
+                <span class="checkmark">✓</span>
+                <strong>Statusi i Dorëzimit:</strong>
+              </p>
+              <div style="margin-left: 34px;">
+                <p style="margin: 8px 0; color: #0B1B3B;">
+                  <span class="status-badge">DORËZIM I ZYRTARISHT PËRFUNDUAR</span>
+                </p>
+              </div>
+            </div>
+
+            <h3 style="color: #0B1B3B; margin: 30px 0 15px 0; font-size: 16px;">Detajet e Aplikimit</h3>
+            <table class="details-table">
+              <tr>
+                <td>Emri Plotë:</td>
+                <td>${applicationData.firstName || ''} ${applicationData.lastName || ''}</td>
+              </tr>
+              <tr>
+                <td>Paketa e Zgjedhur:</td>
+                <td>${packageName}</td>
+              </tr>
+              <tr>
+                <td>Email Kontakti:</td>
+                <td>${toEmail}</td>
+              </tr>
+              <tr>
+                <td>Data e Dorëzimit:</td>
+                <td>${new Date().toLocaleDateString('sq-AL', { year: 'numeric', month: 'long', day: 'numeric' })}</td>
+              </tr>
+            </table>
+
+            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 4px; margin: 30px 0;">
+              <h4 style="color: #0B1B3B; margin: 0 0 10px 0;">Çfarë ndodh tani?</h4>
+              <ul style="margin: 0; padding-left: 20px; color: #555; line-height: 1.8;">
+                <li>Ekipi ynë do të rishikojë aplikimin tuaj me kujdes</li>
+                <li>Mund të kontaktohemi me pyetje ose për informacione shtesë</li>
+                <li>Ju do të informoheni për çdo azhurnim të aplikimit tuaj</li>
+                <li>Procesi tipikisht përfundon brenda 30-60 ditësh</li>
+              </ul>
+            </div>
+
+            <p style="color: #0B1B3B; font-size: 14px; font-weight: bold; text-align: center; margin: 30px 0 0 0;">
+              Faleminderit për zgjedhjen e AplikoUSA!
+            </p>
+          </div>
+
+          <div class="footer">
+            <p style="margin: 0 0 10px 0;"><strong>AplikoUSA</strong></p>
+            <p style="margin: 0 0 10px 0;">Green Card DV Lottery Application Services</p>
+            <p style="margin: 0 0 10px 0;">📧 info@aplikousa.com | 📞 +383 49 771 673</p>
+            <p style="margin: 10px 0 0 0; color: #999;">© 2025 AplikoUSA. Të gjitha të drejtat e rezervuara.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    const response = await client.emails.send({
+      from: `AplikoUSA <${fromEmail}>`,
+      to: toEmail,
+      subject: "✅ Dorëzim i Përfunduar - Aplikimi Juaj është Dorëzuar Zyrtarisht",
+      html: htmlContent,
+      replyTo: "info@aplikousa.com",
+    });
+
+    console.log("[Official Submission Email] Sent to:", toEmail);
+    return !!response.data?.id;
+  } catch (error) {
+    console.error("Error sending official submission email:", error);
+    return false;
+  }
+}
