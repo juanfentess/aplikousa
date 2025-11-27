@@ -96,6 +96,17 @@ export default function Dashboard() {
               localStorage.setItem("paymentStatus", "completed");
               localStorage.removeItem("selectedPackage");
               setShowPaymentSuccessDialog(true);
+              
+              // Reload application data after payment
+              fetch(`/api/applications/${userId}`)
+                .then(res => res.json())
+                .then(appData => {
+                  if (appData) {
+                    setUserApplication(appData);
+                  }
+                })
+                .catch(err => console.error("Error reloading application:", err));
+              
               // Clean URL
               window.history.replaceState({}, document.title, "/dashboard");
             }
