@@ -84,12 +84,14 @@ export default function AdminDashboard() {
     recipientEmail: "",
     templateId: "",
     emailMode: "select", // "select" or "manual"
+    sendToAll: false,
   });
   const [customEmailData, setCustomEmailData] = useState({
     recipientEmail: "",
     subject: "",
     htmlContent: "",
     emailMode: "select", // "select" or "manual"
+    sendToAll: false,
   });
 
   useEffect(() => {
@@ -196,34 +198,48 @@ export default function AdminDashboard() {
   };
 
   const handleSendEmail = async () => {
-    if (!sendEmailData.recipientEmail || !sendEmailData.templateId) {
-      toast.error("Zgjedhni templatein dhe futni email");
+    if (!sendEmailData.templateId) {
+      toast.error("Zgjedhni templatein");
+      return;
+    }
+
+    if (!sendEmailData.sendToAll && !sendEmailData.recipientEmail) {
+      toast.error("Zgjedhni klientin ose zgjidh të gjithë");
       return;
     }
 
     setLoading(true);
     try {
-      console.log("Sending email:", sendEmailData);
-      const response = await fetch("/api/admin/send-email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          toEmail: sendEmailData.recipientEmail,
-          templateId: sendEmailData.templateId,
-          recipientName: "Klient",
-        }),
-      });
-
-      const data = await response.json();
-      console.log("Email response:", data, response.status);
+      let toEmails: string[] = [];
       
-      if (response.ok) {
-        toast.success("✅ Email dërguar me sukses!", { duration: 3000 });
-        setSendEmailData({ recipientEmail: "", templateId: "" });
-        setTimeout(() => setActiveTab("dashboard"), 1500);
+      if (sendEmailData.sendToAll) {
+        toEmails = clients.map(c => c.email);
       } else {
-        toast.error("❌ " + (data.error || "Gabim në dërgim"), { duration: 3000 });
+        toEmails = [sendEmailData.recipientEmail];
       }
+
+      console.log("Sending email to:", toEmails);
+
+      for (const email of toEmails) {
+        const response = await fetch("/api/admin/send-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            toEmail: email,
+            templateId: sendEmailData.templateId,
+            recipientName: "Klient",
+          }),
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          console.error(`Failed to send email to ${email}:`, data);
+        }
+      }
+
+      toast.success(`✅ Email dërguar me sukses për ${toEmails.length} klient(ë)!`, { duration: 3000 });
+      setSendEmailData({ recipientEmail: "", templateId: "", emailMode: "select", sendToAll: false });
+      setTimeout(() => setActiveTab("dashboard"), 1500);
     } catch (err) {
       toast.error("❌ Gabim gjatë dërgimit të emailit", { duration: 3000 });
       console.error("Send email error:", err);
@@ -264,34 +280,48 @@ export default function AdminDashboard() {
   };
 
   const handleSendCustomEmail = async () => {
-    if (!customEmailData.recipientEmail || !customEmailData.subject || !customEmailData.htmlContent) {
-      toast.error("Plotësoni të gjitha fushat");
+    if (!customEmailData.subject || !customEmailData.htmlContent) {
+      toast.error("Plotësoni subjektin dhe përmbajtjen");
+      return;
+    }
+
+    if (!customEmailData.sendToAll && !customEmailData.recipientEmail) {
+      toast.error("Zgjedhni klientin ose zgjidh të gjithë");
       return;
     }
 
     setLoading(true);
     try {
-      console.log("Sending custom email:", customEmailData);
-      const response = await fetch("/api/admin/send-custom-email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          toEmail: customEmailData.recipientEmail,
-          subject: customEmailData.subject,
-          htmlContent: customEmailData.htmlContent,
-        }),
-      });
-
-      const data = await response.json();
-      console.log("Custom email response:", data, response.status);
+      let toEmails: string[] = [];
       
-      if (response.ok) {
-        toast.success("✅ Email Custom dërguar me sukses!", { duration: 3000 });
-        setCustomEmailData({ recipientEmail: "", subject: "", htmlContent: "" });
-        setTimeout(() => setActiveTab("dashboard"), 1500);
+      if (customEmailData.sendToAll) {
+        toEmails = clients.map(c => c.email);
       } else {
-        toast.error("❌ " + (data.error || "Gabim në dërgim"), { duration: 3000 });
+        toEmails = [customEmailData.recipientEmail];
       }
+
+      console.log("Sending custom email to:", toEmails);
+
+      for (const email of toEmails) {
+        const response = await fetch("/api/admin/send-custom-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            toEmail: email,
+            subject: customEmailData.subject,
+            htmlContent: customEmailData.htmlContent,
+          }),
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          console.error(`Failed to send custom email to ${email}:`, data);
+        }
+      }
+
+      toast.success(`✅ Email dërguar me sukses për ${toEmails.length} klient(ë)!`, { duration: 3000 });
+      setCustomEmailData({ recipientEmail: "", subject: "", htmlContent: "", emailMode: "select", sendToAll: false });
+      setTimeout(() => setActiveTab("dashboard"), 1500);
     } catch (err) {
       toast.error("❌ Gabim gjatë dërgimit të emailit", { duration: 3000 });
       console.error("Send custom email error:", err);
@@ -872,21 +902,35 @@ export default function AdminDashboard() {
                       </div>
 
                       {sendEmailData.emailMode === "select" ? (
-                        <Select
-                          value={sendEmailData.recipientEmail}
-                          onValueChange={(value) => setSendEmailData({ ...sendEmailData, recipientEmail: value })}
-                        >
-                          <SelectTrigger data-testid="select-client-email">
-                            <SelectValue placeholder="Zgjedhni klientin" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {clients.map((client) => (
-                              <SelectItem key={client.id} value={client.email}>
-                                {client.firstName} {client.lastName} ({client.email})
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <div className="space-y-2">
+                          <button
+                            onClick={() => setSendEmailData({ ...sendEmailData, sendToAll: !sendEmailData.sendToAll, recipientEmail: "" })}
+                            className={`w-full px-3 py-2 rounded text-sm font-medium transition-all ${
+                              sendEmailData.sendToAll
+                                ? "bg-purple-100 text-purple-700 border border-purple-300"
+                                : "bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300"
+                            }`}
+                          >
+                            ✓ Zgjidh të Gjithë Klientët ({clients.length})
+                          </button>
+                          {!sendEmailData.sendToAll && (
+                            <Select
+                              value={sendEmailData.recipientEmail}
+                              onValueChange={(value) => setSendEmailData({ ...sendEmailData, recipientEmail: value })}
+                            >
+                              <SelectTrigger data-testid="select-client-email">
+                                <SelectValue placeholder="Zgjedhni klientin" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {clients.map((client) => (
+                                  <SelectItem key={client.id} value={client.email}>
+                                    {client.firstName} {client.lastName} ({client.email})
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          )}
+                        </div>
                       ) : (
                         <Input
                           type="email"
@@ -984,21 +1028,35 @@ export default function AdminDashboard() {
                       </div>
 
                       {customEmailData.emailMode === "select" ? (
-                        <Select
-                          value={customEmailData.recipientEmail}
-                          onValueChange={(value) => setCustomEmailData({ ...customEmailData, recipientEmail: value })}
-                        >
-                          <SelectTrigger data-testid="select-client-custom-email">
-                            <SelectValue placeholder="Zgjedhni klientin" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {clients.map((client) => (
-                              <SelectItem key={client.id} value={client.email}>
-                                {client.firstName} {client.lastName} ({client.email})
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <div className="space-y-2">
+                          <button
+                            onClick={() => setCustomEmailData({ ...customEmailData, sendToAll: !customEmailData.sendToAll, recipientEmail: "" })}
+                            className={`w-full px-3 py-2 rounded text-sm font-medium transition-all ${
+                              customEmailData.sendToAll
+                                ? "bg-purple-100 text-purple-700 border border-purple-300"
+                                : "bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300"
+                            }`}
+                          >
+                            ✓ Zgjidh të Gjithë Klientët ({clients.length})
+                          </button>
+                          {!customEmailData.sendToAll && (
+                            <Select
+                              value={customEmailData.recipientEmail}
+                              onValueChange={(value) => setCustomEmailData({ ...customEmailData, recipientEmail: value })}
+                            >
+                              <SelectTrigger data-testid="select-client-custom-email">
+                                <SelectValue placeholder="Zgjedhni klientin" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {clients.map((client) => (
+                                  <SelectItem key={client.id} value={client.email}>
+                                    {client.firstName} {client.lastName} ({client.email})
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          )}
+                        </div>
                       ) : (
                         <Input
                           type="email"
