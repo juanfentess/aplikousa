@@ -137,6 +137,35 @@ export const adminSettings = pgTable("admin_settings", {
   updatedAt: timestamp("updated_at").default(sql`now()`),
 });
 
+// Blog categories table
+export const blogCategories = pgTable("blog_categories", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+  slug: varchar("slug", { length: 100 }).notNull().unique(),
+  description: text("description"),
+  createdAt: timestamp("created_at").default(sql`now()`),
+});
+
+// Blog posts table
+export const blogPosts = pgTable("blog_posts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  slug: varchar("slug", { length: 200 }).notNull().unique(),
+  content: text("content").notNull(),
+  excerpt: text("excerpt"),
+  categoryId: varchar("category_id")
+    .notNull()
+    .references(() => blogCategories.id, { onDelete: "cascade" }),
+  imageUrl: text("image_url"),
+  seoTitle: text("seo_title"),
+  seoDescription: text("seo_description"),
+  seoKeywords: text("seo_keywords"),
+  isPublished: boolean("is_published").default(false),
+  publishedAt: timestamp("published_at"),
+  createdAt: timestamp("created_at").default(sql`now()`),
+  updatedAt: timestamp("updated_at").default(sql`now()`),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -183,6 +212,17 @@ export const insertEmailLogSchema = createInsertSchema(emailLogs).omit({
 
 export const insertAdminSettingsSchema = createInsertSchema(adminSettings).omit({
   id: true,
+  updatedAt: true,
+});
+
+export const insertBlogCategorySchema = createInsertSchema(blogCategories).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertBlogPostSchema = createInsertSchema(blogPosts).omit({
+  id: true,
+  createdAt: true,
   updatedAt: true,
 });
 
