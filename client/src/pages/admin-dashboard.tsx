@@ -519,7 +519,7 @@ export default function AdminDashboard() {
   };
 
   const handleSendEmailToClient = async (clientEmail: string, clientName: string) => {
-    setSendEmailData({ recipientEmail: clientEmail, templateId: "" });
+    setSendEmailData({ recipientEmail: clientEmail, templateId: "", emailMode: "select", sendToAll: false });
     setActiveTab("send-email");
     toast.info(`Dërgim emaili për ${clientName}`);
   };
@@ -1417,6 +1417,36 @@ export default function AdminDashboard() {
                   </div>
                 </CardContent>
               </Card>
+            </motion.div>
+          )}
+
+          {/* Settings Tab */}
+          {activeTab === "settings" && (
+            <motion.div key="settings" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
+              <div><h2 className="text-3xl font-bold text-gray-900">Rregullimet e Administratorit</h2><p className="text-gray-600 mt-2">Përsonalizoni emrin e biznesit dhe përshkrimin në faqen e pagesës Stripe</p></div>
+
+              <Card><CardHeader><CardTitle>Rregullimet e Stripe</CardTitle></CardHeader><CardContent className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2"><Label>Emri në Faqen e Pagesës (Stripe)</Label><Input placeholder="AplikoUSA" value={settingsForm.stripeBillingName} onChange={(e) => setSettingsForm({...settingsForm, stripeBillingName: e.target.value})} data-testid="input-stripe-billing-name" /></div>
+                  <div className="space-y-2"><Label>Përshkrimi i Produktit (Stripe)</Label><Input placeholder="Green Card DV Lottery Application" value={settingsForm.stripeProductDescription} onChange={(e) => setSettingsForm({...settingsForm, stripeProductDescription: e.target.value})} data-testid="input-stripe-description" /></div>
+                </div>
+              </CardContent></Card>
+
+              <Card><CardHeader><CardTitle>Informacioni i Kompanisë</CardTitle></CardHeader><CardContent className="space-y-4">
+                <div className="space-y-2"><Label>Emri i Kompanisë</Label><Input placeholder="AplikoUSA" value={settingsForm.companyName} onChange={(e) => setSettingsForm({...settingsForm, companyName: e.target.value})} data-testid="input-company-name" /></div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2"><Label>Numri Telefonit</Label><Input placeholder="+383 49 771 673" value={settingsForm.companyPhone} onChange={(e) => setSettingsForm({...settingsForm, companyPhone: e.target.value})} data-testid="input-company-phone" /></div>
+                  <div className="space-y-2"><Label>Email i Kompanisë</Label><Input placeholder="info@aplikousa.com" value={settingsForm.companyEmail} onChange={(e) => setSettingsForm({...settingsForm, companyEmail: e.target.value})} data-testid="input-company-email" /></div>
+                </div>
+              </CardContent></Card>
+
+              <Card><CardHeader><CardTitle>Linqet e Mirëmbajtjes</CardTitle></CardHeader><CardContent className="space-y-4">
+                <div className="space-y-2"><Label>URL e Suportit</Label><Input placeholder="https://aplikousa.com/support" value={settingsForm.supportUrl} onChange={(e) => setSettingsForm({...settingsForm, supportUrl: e.target.value})} data-testid="input-support-url" /></div>
+                <div className="space-y-2"><Label>URL e Politikës së Privatësisë</Label><Input placeholder="https://aplikousa.com/privacy" value={settingsForm.privacyPolicyUrl} onChange={(e) => setSettingsForm({...settingsForm, privacyPolicyUrl: e.target.value})} data-testid="input-privacy-url" /></div>
+                <div className="space-y-2"><Label>URL e Logos Personalizuar</Label><Input placeholder="https://example.com/logo.png" value={settingsForm.customLogoUrl} onChange={(e) => setSettingsForm({...settingsForm, customLogoUrl: e.target.value})} data-testid="input-logo-url" /></div>
+              </CardContent></Card>
+
+              <Button onClick={handleSaveSettings} disabled={loading} className="bg-green-600 hover:bg-green-700 text-white w-full" data-testid="button-save-settings">{loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Duke ruajtur...</> : <>✓ Ruaj Rregullimet</>}</Button>
             </motion.div>
           )}
         </AnimatePresence>
