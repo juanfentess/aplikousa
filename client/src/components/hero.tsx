@@ -104,74 +104,133 @@ export function Hero() {
           transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
           className="relative hidden md:block"
         >
-          <div className="relative z-10 bg-gradient-to-br from-teal-500/40 via-blue-600/30 to-slate-900/50 backdrop-blur-xl rounded-3xl p-1 border border-white/20 shadow-2xl hover:shadow-secondary/30 transition-all duration-500">
-             <div className="aspect-[4/3] rounded-3xl bg-gradient-to-br from-teal-600/60 via-blue-700/50 to-slate-900/70 flex flex-col items-center justify-center relative overflow-hidden">
-                {/* Subtle Grid Background */}
-                <div className="absolute inset-0 opacity-10">
-                  <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_24%,rgba(255,255,255,.05)_25%,rgba(255,255,255,.05)_26%,transparent_27%,transparent_74%,rgba(255,255,255,.05)_75%,rgba(255,255,255,.05)_76%,transparent_77%,transparent),linear-gradient(0deg,transparent_24%,rgba(255,255,255,.05)_25%,rgba(255,255,255,.05)_26%,transparent_27%,transparent_74%,rgba(255,255,255,.05)_75%,rgba(255,255,255,.05)_76%,transparent_77%,transparent)] bg-[length:50px_50px]"></div>
-                </div>
-                
-                {/* Top Right Badge */}
+          {/* Outer Glow Effect */}
+          <div className="absolute -inset-4 bg-gradient-to-r from-secondary/20 via-blue-500/10 to-purple-500/10 rounded-3xl blur-2xl opacity-60"></div>
+          
+          <div className="relative z-10">
+            {/* Main Card with Premium Border */}
+            <div className="relative bg-gradient-to-br from-slate-800/40 via-blue-900/30 to-slate-900/50 backdrop-blur-xl rounded-3xl border border-white/15 shadow-[0_20px_60px_rgba(0,0,0,0.3)] overflow-hidden">
+              
+              {/* Animated Background Gradients */}
+              <div className="absolute inset-0 overflow-hidden">
                 <motion.div 
-                  animate={{ y: [0, -5, 0] }}
-                  transition={{ duration: 3, repeat: Infinity }}
-                  className="absolute top-6 right-6 bg-secondary text-white px-4 py-2 rounded-xl font-bold text-sm shadow-lg z-20"
+                  animate={{ 
+                    x: [0, 100, 0],
+                    y: [0, 50, 0]
+                  }}
+                  transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+                  className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-cyan-500/20 via-transparent to-transparent rounded-full blur-3xl"
+                />
+                <motion.div 
+                  animate={{ 
+                    x: [0, -50, 0],
+                    y: [0, -100, 0]
+                  }}
+                  transition={{ duration: 20, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+                  className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-purple-500/20 via-transparent to-transparent rounded-full blur-3xl"
+                />
+              </div>
+
+              {/* Content Container */}
+              <div className="relative aspect-[4/3] flex flex-col items-center justify-center p-8">
+                
+                {/* Top Right Premium Badge */}
+                <motion.div 
+                  animate={{ y: [0, -8, 0], rotate: [0, 2, -2, 0] }}
+                  transition={{ duration: 4, repeat: Infinity }}
+                  className="absolute top-6 right-6 z-30"
                 >
-                  <div className="flex items-center gap-2">
-                    <span>100%</span>
-                    <span className="text-xs">Pa Gabime</span>
+                  <div className="bg-gradient-to-br from-secondary to-red-600 text-white px-4 py-3 rounded-2xl font-bold text-sm shadow-[0_10px_25px_rgba(230,57,70,0.4)] border border-white/20 backdrop-blur-sm">
+                    <div className="flex flex-col items-center gap-1">
+                      <span className="text-lg">100%</span>
+                      <span className="text-xs font-medium">Pa Gabime</span>
+                    </div>
                   </div>
                 </motion.div>
-                
-                {/* Content */}
-                <div className="relative z-10 flex flex-col items-center justify-center h-full gap-6">
-                  {/* Icon - Target with Arrow */}
-                  <motion.div 
-                    animate={{ rotate: [0, 5, -5, 0] }}
-                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                    className="relative w-16 h-16"
-                  >
-                    <div className="absolute inset-0 rounded-full border-3 border-secondary/70 flex items-center justify-center">
-                      <div className="w-8 h-8 rounded-full bg-secondary/50"></div>
-                      <motion.div 
-                        animate={{ rotate: -360 }}
-                        transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-                        className="absolute w-12 h-12 border-2 border-transparent border-t-secondary border-r-secondary rounded-full"
-                      />
-                    </div>
+
+                {/* Center Content Area */}
+                <div className="flex flex-col items-center justify-center gap-8">
+                  
+                  {/* Premium Icon - Target with animated elements */}
+                  <div className="relative w-20 h-20">
+                    {/* Outer rotating circle */}
                     <motion.div 
-                      animate={{ x: [0, 3, 0], y: [0, -3, 0] }}
-                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                      className="absolute -top-2 -right-2 text-secondary text-xl"
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                      className="absolute inset-0 border-2 border-transparent border-t-secondary border-r-secondary rounded-full opacity-70"
+                    />
+                    
+                    {/* Middle pulsing circle */}
+                    <motion.div 
+                      animate={{ scale: [1, 1.2, 1], opacity: [0.4, 0.8, 0.4] }}
+                      transition={{ duration: 3, repeat: Infinity }}
+                      className="absolute inset-2 border border-secondary rounded-full opacity-60"
+                    />
+                    
+                    {/* Center target */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-4 h-4 bg-gradient-to-br from-secondary to-red-600 rounded-full shadow-lg shadow-secondary/50"></div>
+                    </div>
+                    
+                    {/* Arrow animation */}
+                    <motion.div 
+                      animate={{ x: [0, 4, 0], y: [0, -4, 0] }}
+                      transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                      className="absolute -top-1 -right-1 text-secondary text-2xl font-bold opacity-80"
                     >
                       →
                     </motion.div>
-                  </motion.div>
-                  
-                  {/* Text */}
-                  <div className="text-center space-y-3">
-                    <h3 className="text-2xl font-bold text-white font-heading tracking-tight">Green Card Lottery</h3>
-                    <p className="text-white/80 text-sm font-medium">Përfundoji në 3 hapa</p>
                   </div>
-                  
-                  {/* Steps Indicator */}
-                  <div className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-400"></div>
-                    <div className="w-2.5 h-2.5 rounded-full bg-blue-400"></div>
-                    <div className="w-2.5 h-2.5 rounded-full bg-purple-400"></div>
-                  </div>
-                </div>
-                
-                {/* Bottom White Section */}
-                <div className="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm px-6 py-4 rounded-b-3xl">
-                  <div className="space-y-1">
-                    <p className="text-xs font-bold text-primary flex items-center gap-2">
-                      <span className="text-green-600">✓</span> Zyrtar & Sigur
+
+                  {/* Text Content */}
+                  <div className="text-center space-y-4">
+                    <h3 className="text-3xl font-bold text-white font-heading tracking-tight drop-shadow-lg">
+                      Green Card Lottery
+                    </h3>
+                    <p className="text-white/90 text-sm font-medium drop-shadow">
+                      Përfundoji në 3 hapa të thjeshtë
                     </p>
-                    <p className="text-xs text-gray-600">Aplikimi direkt në USCIS</p>
+                  </div>
+
+                  {/* Steps Progress Indicator */}
+                  <div className="flex items-center gap-3">
+                    <motion.div 
+                      animate={{ scale: [1, 1.2, 1] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                      className="w-3 h-3 rounded-full bg-gradient-to-r from-emerald-400 to-teal-500 shadow-lg shadow-emerald-400/50"
+                    />
+                    <motion.div 
+                      animate={{ scale: [1, 1.2, 1] }}
+                      transition={{ duration: 2, repeat: Infinity, delay: 0.3 }}
+                      className="w-3 h-3 rounded-full bg-gradient-to-r from-blue-400 to-cyan-500 shadow-lg shadow-blue-400/50"
+                    />
+                    <motion.div 
+                      animate={{ scale: [1, 1.2, 1] }}
+                      transition={{ duration: 2, repeat: Infinity, delay: 0.6 }}
+                      className="w-3 h-3 rounded-full bg-gradient-to-r from-purple-400 to-pink-500 shadow-lg shadow-purple-400/50"
+                    />
                   </div>
                 </div>
-             </div>
+              </div>
+
+              {/* Bottom Premium Section */}
+              <div className="relative bg-gradient-to-r from-white/98 to-white/95 backdrop-blur-sm px-8 py-5 border-t border-white/30">
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                  className="space-y-2"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg text-green-600">✓</span>
+                    <p className="text-sm font-bold text-primary">Zyrtar & 100% Sigur</p>
+                  </div>
+                  <p className="text-xs text-gray-600 font-medium">
+                    Aplikimi direkt në USCIS - Nuk janë mashtrues
+                  </p>
+                </motion.div>
+              </div>
+            </div>
           </div>
           
           {/* Floating elements */}
