@@ -1,0 +1,109 @@
+Me krijo një website modern dhe shumë tërheqës për domenin AplikoUsa.com, i cili ofron shërbim ndihmës për aplikim në Green Card (DV Lottery).
+Përdor HTML, CSS dhe JavaScript (dhe nëse dëshiron, një backend shumë të thjeshtë me Node.js + Express që vetëm ruan aplikimet në një file JSON). Faqja duhet të jetë responsive për telefon, tablet dhe desktop.
+
+1. Stili & Animacionet
+	•	Dizajn minimalist, premium, me ngjyra kryesore: #0B1B3B (blu e errët), #E63946 (e kuqe) dhe e bardhë.
+	•	Shto gradient background në hero section (blu → e kuqe shumë e butë) dhe disa forma abstrakte në sfond që lëvizin ngadalë (floating shapes) me animime CSS.
+	•	Shto animacione të thjeshta në scroll (p.sh. fade-in, slide-up) për seksionet dhe kartat, duke përdorur vetëm CSS/JS (pa libra të jashtëm nëse nuk është e nevojshme).
+	•	Button-at të kenë hover efekt (pak zoom + shadow i butë).
+	•	Shto një cursor efekt të lehtë në desktop (p.sh. rreth i vogël që ndjek maus-in).
+
+2. Struktura e faqes
+
+Krijo një faqe kryesore one-page me seksionet:
+
+a) Navbar + Hero
+	•	Navbar fixed në krye me logo tekstuale: “AplikoUSA” dhe një ikonë të vogël flamur amerikan.
+	•	Linke në navbar: “Si funksionon”, “Pse ne”, “Çfarë përfshihet”, “Apliko Tani”, “FAQ”, “Kontakt”.
+	•	Hero section:
+	•	Titull i madh: “Apliko për Green Card (DV Lottery) nga shtëpia”
+	•	Nëntitull: “Ne plotësojmë formularin për ju, kontrollojmë foton dhe ju kursejmë gabimet – vetëm 20€ për aplikim.”
+	•	Dy butona:
+	•	“Apliko Tani (20€)” → scroll te formulari i aplikimit.
+	•	“Na shkruaj në WhatsApp” → link placeholder https://wa.me/38300000000.
+	•	Në anë vendos një ilustrim/foto simbolike (një familje + flamuri amerikan, ose një person me valixhe), me animacion hyrës (slide-in nga e djathta).
+
+b) Seksioni “Si funksionon?”
+	•	Titull: “Si funksionon procesi?”
+	•	4 karta në rresht (responsive në telefon → 2 nga 2 ose 1 nga 1):
+	1.	“Plotësoni formularin online”
+	2.	“Ngarkoni fotografinë tuaj”
+	3.	“Ne kontrollojmë dhe dërgojmë aplikimin”
+	4.	“Ju njoftojmë kur dalin rezultatet”
+	•	Çdo kartë të ketë ikonë, animacion të lehtë kur shfaqet dhe hover efekt.
+
+c) Seksioni “Pse të zgjedhësh AplikoUSA?”
+	•	Listo avantazhet në bullet points/karta:
+	•	“Kontroll i fotos sipas rregullave të DV Lottery”
+	•	“Formular i plotësuar pa gabime teknike”
+	•	“Mbështetje në gjuhën shqipe”
+	•	“Çmim i qartë: vetëm 20€ pa tarifa të fshehura”
+	•	Dizajn me ikona check ✅ dhe background të butë.
+
+d) Seksioni “Çfarë përfshihet në 20€?”
+	•	Bëj një kartë ose tabelë me përmbajtje:
+	•	Kontroll dhe riformatim i fotos
+	•	Plotësim profesional i formularit DV Lottery
+	•	Ruajtje e të dhënave tuaja në mënyrë të sigurt
+	•	Udhëzues i shkurtër PDF/tekst me hapat pas aplikimit
+	•	Vendos një badge “Most Popular” / “Best Value”.
+
+3. Formulari i Aplikimit
+
+Krijo një seksion me titull “Apliko Tani për Green Card” me një form të plotë:
+
+Fushat:
+	•	Emri
+	•	Mbiemri
+	•	Email
+	•	Numri i telefonit (me kod shteti)
+	•	Shteti i lindjes (select)
+	•	Qyteti i banimit
+	•	Data e lindjes (3 fushë: ditë / muaj / vit)
+	•	Gjinia (radio buttons)
+	•	Statusi martesor (select)
+	•	Numri i fëmijëve (select)
+	•	Fusha “Mesazh/Komente shtesë”
+	•	Upload foto (input type="file") – lejo vetëm .jpg, .jpeg, .png
+	•	Checkbox: “Deklaroj se të dhënat që kam vendosur janë të sakta” (required)
+
+Funksionalitet:
+	•	Validim me JavaScript (mos lejo dhënie boshe, email i vlefshëm, madhësia e fotos etj).
+	•	Kur formi dërgohet, shfaq një modal animuar me mesazh suksesi:
+“Faleminderit! Aplikimi juaj u dërgua. Ne do t’ju kontaktojmë shumë shpejt.”
+	•	(Opsionale) Backend me Node.js + Express: ruaj aplikimet në një file JSON në server (applications.json) me datën e dërgimit.
+
+4. Seksioni FAQ (Pyetje të shpeshta)
+	•	Bëj 6–8 pyetje/kompetë:
+	•	“A jeni pjesë e Ambasadës së SHBA?”
+	•	“A garantoni që do fitoj Green Card?”
+	•	“A mund të aplikoj nëse jam i martuar?”
+	•	“A ruani të dhënat e mia?”
+	•	Implemento accordion me JS: kur klikon një pyetje, përgjigja hapet me animacion të butë height/opacity.
+
+5. Seksioni i Kontaktit & Footer
+	•	Mini seksion “Na kontaktoni”:
+	•	Numër telefoni (placeholder kosovar)
+	•	WhatsApp link
+	•	Email kontakt
+	•	Orari i mbështetjes
+	•	Footer:
+	•	Logo e vogël “AplikoUSA”
+	•	Linke: “Termat & Kushtet”, “Privacy Policy”
+	•	Tekst i vogël disclaimer legal:
+“AplikoUSA NUK është pjesë e Qeverisë së SHBA dhe nuk ka asnjë lidhje me Ambasadën e SHBA. Ne ofrojmë vetëm shërbim ndihmës për plotësimin e formularit zyrtar falas të DV Lottery.”
+
+6. Panel i Thjeshtë Admin (opsional)
+
+Krijo një faqe/admin të fshehur p.sh. /admin me password të thjeshtë hard-coded në frontend (për demonstrim, p.sh. admin123):
+	•	Pas login, shfaq listën e aplikimeve nga applications.json (nëse përdor backend) në një tabelë:
+	•	Emër + Mbiemër, Email, Data e dërgimit.
+	•	Shto mundësi filtrimi dhe kërkimi në tabela me JavaScript.
+	•	Paneli admin mund të ketë dizajn minimal dark, me tabela dhe badges.
+
+7. Detaje të tjera teknike
+	•	Përdor smooth scrolling kur klikon në linkët e navbar-it.
+	•	Optimizim bazik SEO:
+	•	<title>AplikoUSA – Aplikim për Green Card (DV Lottery) për vetëm 20€</title>
+	•	Meta description me përshkrim në shqip.
+	•	Vendos favicon me flamur amerikan ose një ikonë të thjeshtë.
