@@ -66,6 +66,8 @@ export default function Dashboard() {
     confirmPassword: "",
   });
 
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+
   // Load user payment status on mount
   useEffect(() => {
     const userId = localStorage.getItem("userId");
@@ -76,6 +78,46 @@ export default function Dashboard() {
       setUserPaymentStatus(savedStatus);
     }
   }, []);
+
+  const handlePayment = async (packageType: "individual" | "couple" | "family") => {
+    setCheckoutLoading(true);
+    try {
+      const userId = localStorage.getItem("userId");
+      if (!userId) {
+        toast.error("Përdoruesi nuk u gjet. Ju lutem regjistrohuni përsëri.");
+        return;
+      }
+
+      // Map package type to price ID (from Stripe)
+      // These are test price IDs - replace with real ones after creating products in Stripe
+      const priceIds: Record<string, string> = {
+        individual: "price_individual_test", // Will be replaced with real Stripe price ID
+        couple: "price_couple_test",
+        family: "price_family_test",
+      };
+
+      const response = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId,
+          priceId: priceIds[packageType],
+        }),
+      });
+
+      const data = await response.json();
+      if (data.url) {
+        window.location.href = data.url; // Redirect to Stripe checkout
+      } else {
+        toast.error(data.error || "Gabim në hapjen e pagesës");
+      }
+    } catch (error) {
+      console.error("Payment error:", error);
+      toast.error("Gabim gjatë procesit të pagesës");
+    } finally {
+      setCheckoutLoading(false);
+    }
+  };
 
   // Mock data
   const user = {
@@ -307,13 +349,18 @@ export default function Dashboard() {
                       <CardContent className="p-6">
                         <div className="grid md:grid-cols-3 gap-4">
                           {/* Individual Package */}
-                          <Card className="border-2 border-gray-200 hover:border-primary hover:shadow-lg transition-all cursor-pointer">
+                          <Card className="border-2 border-gray-200 hover:border-primary hover:shadow-lg transition-all">
                             <CardContent className="p-6 text-center">
                               <h3 className="font-bold text-lg mb-2">Individual</h3>
                               <p className="text-sm text-gray-600 mb-4">Për një person</p>
                               <div className="text-3xl font-bold text-primary mb-4">$150</div>
-                              <Button className="w-full bg-primary hover:bg-primary/90" data-testid="button-pay-individual">
-                                Paguaj Tani
+                              <Button 
+                                className="w-full bg-primary hover:bg-primary/90" 
+                                onClick={() => handlePayment("individual")}
+                                disabled={checkoutLoading}
+                                data-testid="button-pay-individual"
+                              >
+                                {checkoutLoading ? "Duke u përpunuar..." : "Paguaj Tani"}
                               </Button>
                             </CardContent>
                           </Card>
@@ -325,20 +372,30 @@ export default function Dashboard() {
                               <h3 className="font-bold text-lg mb-2">Couple</h3>
                               <p className="text-sm text-gray-600 mb-4">Për dy persona</p>
                               <div className="text-3xl font-bold text-primary mb-4">$250</div>
-                              <Button className="w-full bg-primary hover:bg-primary/90" data-testid="button-pay-couple">
-                                Paguaj Tani
+                              <Button 
+                                className="w-full bg-primary hover:bg-primary/90" 
+                                onClick={() => handlePayment("couple")}
+                                disabled={checkoutLoading}
+                                data-testid="button-pay-couple"
+                              >
+                                {checkoutLoading ? "Duke u përpunuar..." : "Paguaj Tani"}
                               </Button>
                             </CardContent>
                           </Card>
 
                           {/* Family Package */}
-                          <Card className="border-2 border-gray-200 hover:border-primary hover:shadow-lg transition-all cursor-pointer">
+                          <Card className="border-2 border-gray-200 hover:border-primary hover:shadow-lg transition-all">
                             <CardContent className="p-6 text-center">
                               <h3 className="font-bold text-lg mb-2">Family</h3>
                               <p className="text-sm text-gray-600 mb-4">Për familje</p>
                               <div className="text-3xl font-bold text-primary mb-4">$350</div>
-                              <Button className="w-full bg-primary hover:bg-primary/90" data-testid="button-pay-family">
-                                Paguaj Tani
+                              <Button 
+                                className="w-full bg-primary hover:bg-primary/90" 
+                                onClick={() => handlePayment("family")}
+                                disabled={checkoutLoading}
+                                data-testid="button-pay-family"
+                              >
+                                {checkoutLoading ? "Duke u përpunuar..." : "Paguaj Tani"}
                               </Button>
                             </CardContent>
                           </Card>
