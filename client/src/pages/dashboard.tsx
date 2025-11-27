@@ -180,10 +180,11 @@ export default function Dashboard() {
   };
 
   // Mock data
+  const userEmail = profileData.email || "user@example.com";
   const user = {
     name: profileData.firstName && profileData.lastName ? `${profileData.firstName} ${profileData.lastName}` : "Përdoruesi",
-    email: profileData.email || "user@example.com",
-    avatar: "",
+    email: userEmail,
+    avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(userEmail)}&scale=80&backgroundColor=b6e3f5,c0aede,d1d4f9,ffd5dc,ffdfbf`,
     status: "pending_review"
   };
 
@@ -287,7 +288,7 @@ export default function Dashboard() {
               <CardContent className="p-6">
                 <div className="flex flex-col items-center text-center mb-6">
                   <Avatar className="w-20 h-20 mb-4 border-2 border-primary/10">
-                    <AvatarImage src={user.avatar} />
+                    <AvatarImage src={user.avatar} alt={user.name} />
                     <AvatarFallback className="bg-primary/5 text-primary text-xl font-bold">
                       {user.name.split(' ').map(n => n[0]).join('')}
                     </AvatarFallback>
