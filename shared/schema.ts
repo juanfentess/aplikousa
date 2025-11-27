@@ -99,6 +99,30 @@ export const transactions = pgTable("transactions", {
   createdAt: timestamp("created_at").default(sql`now()`),
 });
 
+// Activity logs table (for tracking admin actions)
+export const activityLogs = pgTable("activity_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  adminId: varchar("admin_id").references(() => admins.id, { onDelete: "set null" }),
+  action: varchar("action", { length: 100 }).notNull(), // "update_steps", "send_email", "delete_client", etc
+  targetType: varchar("target_type", { length: 50 }).notNull(), // "client", "application", "email", etc
+  targetId: varchar("target_id"),
+  details: jsonb("details"),
+  createdAt: timestamp("created_at").default(sql`now()`),
+});
+
+// Email logs table (for tracking sent emails)
+export const emailLogs = pgTable("email_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  adminId: varchar("admin_id").references(() => admins.id, { onDelete: "set null" }),
+  recipientEmail: text("recipient_email").notNull(),
+  recipientName: text("recipient_name"),
+  subject: text("subject").notNull(),
+  templateId: varchar("template_id").references(() => emailTemplates.id, { onDelete: "set null" }),
+  status: varchar("status", { length: 20 }).default("sent"), // sent, failed, bounced
+  errorMessage: text("error_message"),
+  createdAt: timestamp("created_at").default(sql`now()`),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -133,6 +157,16 @@ export const insertTransactionSchema = createInsertSchema(transactions).omit({
   createdAt: true,
 });
 
+export const insertActivityLogSchema = createInsertSchema(activityLogs).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertEmailLogSchema = createInsertSchema(emailLogs).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -151,3 +185,9 @@ export type InsertApplication = z.infer<typeof insertApplicationSchema>;
 
 export type Transaction = typeof transactions.$inferSelect;
 export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
+
+export type ActivityLog = typeof activityLogs.$inferSelect;
+export type InsertActivityLog = z.infer<typeof insertActivityLogSchema>;
+
+export type EmailLog = typeof emailLogs.$inferSelect;
+export type InsertEmailLog = z.infer<typeof insertEmailLogSchema>;
