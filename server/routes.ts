@@ -887,6 +887,7 @@ export async function registerRoutes(httpServer: HTTPServer, app: Express): Prom
       }
 
       console.log("[Admin Login] Login successful for:", admin.email);
+      (req.session as any).adminId = admin.id;
       res.json({ adminId: admin.id, id: admin.id, email: admin.email });
     } catch (error: any) {
       console.error("[Admin Login] Error:", error.message, error);
