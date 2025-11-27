@@ -18,6 +18,8 @@ export const users = pgTable("users", {
   stripeCustomerId: text("stripe_customer_id"),
   stripeSubscriptionId: text("stripe_subscription_id"),
   paymentStatus: varchar("payment_status", { length: 20 }).default("pending"), // pending, completed, failed
+  lastActivityAt: timestamp("last_activity_at"),
+  isOnline: boolean("is_online").default(false),
   createdAt: timestamp("created_at").default(sql`now()`),
 });
 

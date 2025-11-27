@@ -17,6 +17,8 @@ import {
   Clock,
   AlertCircle,
   PenTool,
+  Eye,
+  Eye as EyeIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -50,6 +52,8 @@ export default function AdminDashboard() {
   const [showTemplateDialog, setShowTemplateDialog] = useState(false);
   const [showSendEmailDialog, setShowSendEmailDialog] = useState(false);
   const [showClientDialog, setShowClientDialog] = useState(false);
+  const [showClientDetailsDialog, setShowClientDetailsDialog] = useState(false);
+  const [selectedClientDetails, setSelectedClientDetails] = useState<any>(null);
   const [editingTemplate, setEditingTemplate] = useState<any>(null);
   const [editingClient, setEditingClient] = useState<any>(null);
   const [formData, setFormData] = useState({
@@ -294,6 +298,12 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleSendEmailToClient = async (clientEmail: string, clientName: string) => {
+    setSendEmailData({ recipientEmail: clientEmail, templateId: "" });
+    setActiveTab("send-email");
+    toast.info(`Dërgim emaili për ${clientName}`);
+  };
+
   const handleLogout = () => {
     localStorage.removeItem("adminId");
     setLocation("/admin/login");
@@ -479,10 +489,32 @@ export default function AdminDashboard() {
                                 </span>
                               </td>
                               <td className="py-3 px-4">
-                                <div className="flex gap-2">
+                                <div className="flex gap-1">
                                   <Button
                                     size="sm"
                                     variant="outline"
+                                    title="Shiko Detalet"
+                                    onClick={() => {
+                                      setSelectedClientDetails(client);
+                                      setShowClientDetailsDialog(true);
+                                    }}
+                                    data-testid={`button-view-client-${client.id}`}
+                                  >
+                                    <Eye className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    title="Dërgo Email"
+                                    onClick={() => handleSendEmailToClient(client.email, `${client.firstName} ${client.lastName}`)}
+                                    data-testid={`button-email-client-${client.id}`}
+                                  >
+                                    <Mail className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    title="Redakto"
                                     onClick={() => {
                                       setEditingClient(client);
                                       setClientFormData({
@@ -505,6 +537,7 @@ export default function AdminDashboard() {
                                     size="sm"
                                     variant="outline"
                                     className="text-red-600 hover:text-red-700"
+                                    title="Fshij"
                                     onClick={() => handleDeleteClient(client.id)}
                                     data-testid={`button-delete-client-${client.id}`}
                                   >
@@ -897,6 +930,86 @@ export default function AdminDashboard() {
                 "Ruaj"
               )}
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Client Details Dialog */}
+      <Dialog open={showClientDetailsDialog} onOpenChange={setShowClientDetailsDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Detalet e Klientit</DialogTitle>
+          </DialogHeader>
+          {selectedClientDetails && (
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm text-gray-600">Emër i Plotë</p>
+                <p className="font-semibold">{selectedClientDetails.firstName} {selectedClientDetails.lastName}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Email</p>
+                <p className="font-semibold text-blue-600">{selectedClientDetails.email}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Telefon</p>
+                <p className="font-semibold">{selectedClientDetails.phone || "—"}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-gray-600">Vendi i Lindjes</p>
+                  <p className="font-semibold">{selectedClientDetails.birthCountry || "—"}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Qytet</p>
+                  <p className="font-semibold">{selectedClientDetails.city || "—"}</p>
+                </div>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Paketa</p>
+                <p className="font-semibold">{selectedClientDetails.package || "—"}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-gray-600">Statusi Pagese</p>
+                  <span className={`text-sm px-2 py-1 rounded inline-block ${
+                    selectedClientDetails.paymentStatus === "completed" 
+                      ? "bg-green-100 text-green-800" 
+                      : "bg-yellow-100 text-yellow-800"
+                  }`}>
+                    {selectedClientDetails.paymentStatus === "completed" ? "✓ Paguar" : "⏳ Në Pritje"}
+                  </span>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Statusi Online</p>
+                  <span className={`text-sm px-2 py-1 rounded inline-block ${
+                    selectedClientDetails.isOnline
+                      ? "bg-green-100 text-green-800"
+                      : "bg-gray-100 text-gray-800"
+                  }`}>
+                    {selectedClientDetails.isOnline ? "🟢 Online" : "⚫ Offline"}
+                  </span>
+                </div>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Data e Regjistrimit</p>
+                <p className="font-semibold">{new Date(selectedClientDetails.createdAt).toLocaleDateString("sq-AL")}</p>
+              </div>
+              {selectedClientDetails.lastActivityAt && (
+                <div>
+                  <p className="text-sm text-gray-600">Aktiviteti i Fundit</p>
+                  <p className="font-semibold">{new Date(selectedClientDetails.lastActivityAt).toLocaleDateString("sq-AL", { 
+                    year: "numeric", 
+                    month: "short", 
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit"
+                  })}</p>
+                </div>
+              )}
+            </div>
+          )}
+          <DialogFooter>
+            <Button onClick={() => setShowClientDetailsDialog(false)}>Mbyll</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

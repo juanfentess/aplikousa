@@ -631,6 +631,33 @@ export async function registerRoutes(
     }
   });
 
+  // Update user activity (when they log in or access dashboard)
+  app.post("/api/users/:id/activity", async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.updateUser(id, { 
+        lastActivityAt: new Date(),
+        isOnline: true
+      });
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error updating activity:", error);
+      res.status(500).json({ error: "Failed to update activity" });
+    }
+  });
+
+  // Set user offline
+  app.post("/api/users/:id/offline", async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.updateUser(id, { isOnline: false });
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error setting offline:", error);
+      res.status(500).json({ error: "Failed to set offline" });
+    }
+  });
+
   // Stripe Checkout
   app.post("/api/checkout", async (req, res) => {
     try {
