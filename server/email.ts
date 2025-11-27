@@ -47,7 +47,7 @@ async function getResendClient() {
   // Create a new client each time to ensure fresh tokens
   return {
     client: new Resend(credentials.settings.api_key),
-    fromEmail: credentials.settings.from_email,
+    fromEmail: "noreply@aplikousa.com", // Using verified domain
   };
 }
 
