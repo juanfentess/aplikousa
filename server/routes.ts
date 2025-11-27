@@ -1566,6 +1566,162 @@ export async function registerRoutes(httpServer: HTTPServer, app: Express): Prom
     }
   });
 
+  // Blog routes
+  app.get("/api/blog/categories", async (req: Request, res: Response) => {
+    try {
+      const categories = await storage.getBlogCategories();
+      res.json(categories);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || "Failed to fetch categories" });
+    }
+  });
+
+  app.get("/api/blog/posts", async (req: Request, res: Response) => {
+    try {
+      const posts = await storage.getBlogPosts(true);
+      res.json(posts);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || "Failed to fetch posts" });
+    }
+  });
+
+  app.get("/api/blog/posts/:slug", async (req: Request, res: Response) => {
+    try {
+      const post = await storage.getBlogPostBySlug(req.params.slug);
+      if (!post) {
+        return res.status(404).json({ error: "Post not found" });
+      }
+      res.json(post);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || "Failed to fetch post" });
+    }
+  });
+
+  app.get("/api/blog/category/:slug", async (req: Request, res: Response) => {
+    try {
+      const category = await storage.getBlogCategoryBySlug(req.params.slug);
+      if (!category) {
+        return res.status(404).json({ error: "Category not found" });
+      }
+      const posts = await storage.getBlogPostsByCategory(category.id, true);
+      res.json({ category, posts });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || "Failed to fetch category" });
+    }
+  });
+
+  // Admin blog routes
+  app.post("/api/admin/blog/categories", async (req: Request, res: Response) => {
+    try {
+      const adminId = (req.session as any).adminId;
+      if (!adminId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      const category = await storage.createBlogCategory(req.body);
+      res.json(category);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || "Failed to create category" });
+    }
+  });
+
+  app.post("/api/admin/blog/posts", async (req: Request, res: Response) => {
+    try {
+      const adminId = (req.session as any).adminId;
+      if (!adminId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      const post = await storage.createBlogPost(req.body);
+      res.json(post);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || "Failed to create post" });
+    }
+  });
+
+  app.put("/api/admin/blog/posts/:id", async (req: Request, res: Response) => {
+    try {
+      const adminId = (req.session as any).adminId;
+      if (!adminId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      const post = await storage.updateBlogPost(req.params.id, req.body);
+      res.json(post);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || "Failed to update post" });
+    }
+  });
+
+  app.delete("/api/admin/blog/posts/:id", async (req: Request, res: Response) => {
+    try {
+      const adminId = (req.session as any).adminId;
+      if (!adminId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      await storage.deleteBlogPost(req.params.id);
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || "Failed to delete post" });
+    }
+  });
+
+  // Sitemap generation
+  app.get("/sitemap.xml", async (req: Request, res: Response) => {
+    try {
+      const baseUrl = `${req.protocol}://${req.get("host")}`;
+      const posts = await storage.getBlogPosts(true);
+      const categories = await storage.getBlogCategories();
+
+      let sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+      sitemap += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
+
+      // Static pages
+      const staticPages = ["/", "/terms", "/privacy", "/refunds", "/login", "/register"];
+      staticPages.forEach((page) => {
+        sitemap += `  <url>\n`;
+        sitemap += `    <loc>${baseUrl}${page}</loc>\n`;
+        sitemap += `    <lastmod>${new Date().toISOString().split("T")[0]}</lastmod>\n`;
+        sitemap += `    <changefreq>weekly</changefreq>\n`;
+        sitemap += `  </url>\n`;
+      });
+
+      // Blog pages
+      categories.forEach((cat) => {
+        sitemap += `  <url>\n`;
+        sitemap += `    <loc>${baseUrl}/blog/category/${cat.slug}</loc>\n`;
+        sitemap += `    <lastmod>${new Date().toISOString().split("T")[0]}</lastmod>\n`;
+        sitemap += `    <changefreq>weekly</changefreq>\n`;
+        sitemap += `  </url>\n`;
+      });
+
+      posts.forEach((post) => {
+        sitemap += `  <url>\n`;
+        sitemap += `    <loc>${baseUrl}/blog/${post.slug}</loc>\n`;
+        sitemap += `    <lastmod>${post.updatedAt || post.createdAt}</lastmod>\n`;
+        sitemap += `    <changefreq>monthly</changefreq>\n`;
+        sitemap += `  </url>\n`;
+      });
+
+      sitemap += `</urlset>`;
+
+      res.header("Content-Type", "application/xml");
+      res.send(sitemap);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || "Failed to generate sitemap" });
+    }
+  });
+
+  // Endpoint to manually trigger sitemap generation
+  app.post("/api/admin/generate-sitemap", async (req: Request, res: Response) => {
+    try {
+      const adminId = (req.session as any).adminId;
+      if (!adminId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      res.json({ success: true, message: "Sitemap generated successfully. Access at /sitemap.xml" });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || "Failed to generate sitemap" });
+    }
+  });
+
   app.post("/api/checkout", async (req: Request, res: Response) => {
     try {
       const { userId, packageType } = req.body;

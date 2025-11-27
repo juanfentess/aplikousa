@@ -10,6 +10,8 @@ import {
   activityLogs,
   emailLogs,
   adminSettings,
+  blogCategories,
+  blogPosts,
 } from "@shared/schema";
 import {
   type User,
@@ -30,6 +32,10 @@ import {
   type InsertEmailLog,
   type AdminSettings,
   type InsertAdminSettings,
+  type BlogCategory,
+  type InsertBlogCategory,
+  type BlogPost,
+  type InsertBlogPost,
 } from "@shared/schema";
 import { eq, and, desc, gt } from "drizzle-orm";
 import bcrypt from "bcrypt";
@@ -98,6 +104,18 @@ export interface IStorage {
   // Admin settings
   getAdminSettings(): Promise<AdminSettings | undefined>;
   updateAdminSettings(settings: Partial<InsertAdminSettings>): Promise<AdminSettings>;
+
+  // Blog
+  createBlogCategory(category: InsertBlogCategory): Promise<BlogCategory>;
+  getBlogCategories(): Promise<BlogCategory[]>;
+  getBlogCategoryBySlug(slug: string): Promise<BlogCategory | undefined>;
+  
+  createBlogPost(post: InsertBlogPost): Promise<BlogPost>;
+  getBlogPosts(published?: boolean): Promise<BlogPost[]>;
+  getBlogPostBySlug(slug: string): Promise<BlogPost | undefined>;
+  getBlogPostsByCategory(categoryId: string, published?: boolean): Promise<BlogPost[]>;
+  updateBlogPost(id: string, post: Partial<InsertBlogPost>): Promise<BlogPost>;
+  deleteBlogPost(id: string): Promise<void>;
 }
 
 export class Storage implements IStorage {
@@ -386,6 +404,56 @@ export class Storage implements IStorage {
       const result = await db.insert(adminSettings).values(settings as InsertAdminSettings).returning();
       return result[0];
     }
+  }
+
+  // Blog methods
+  async createBlogCategory(category: InsertBlogCategory): Promise<BlogCategory> {
+    const result = await db.insert(blogCategories).values(category).returning();
+    return result[0];
+  }
+
+  async getBlogCategories(): Promise<BlogCategory[]> {
+    return await db.select().from(blogCategories).orderBy(blogCategories.name);
+  }
+
+  async getBlogCategoryBySlug(slug: string): Promise<BlogCategory | undefined> {
+    const result = await db.select().from(blogCategories).where(eq(blogCategories.slug, slug));
+    return result[0];
+  }
+
+  async createBlogPost(post: InsertBlogPost): Promise<BlogPost> {
+    const result = await db.insert(blogPosts).values(post).returning();
+    return result[0];
+  }
+
+  async getBlogPosts(published = true): Promise<BlogPost[]> {
+    let query = db.select().from(blogPosts);
+    if (published) {
+      query = query.where(eq(blogPosts.isPublished, true)) as any;
+    }
+    return await query.orderBy(desc(blogPosts.publishedAt || blogPosts.createdAt));
+  }
+
+  async getBlogPostBySlug(slug: string): Promise<BlogPost | undefined> {
+    const result = await db.select().from(blogPosts).where(eq(blogPosts.slug, slug));
+    return result[0];
+  }
+
+  async getBlogPostsByCategory(categoryId: string, published = true): Promise<BlogPost[]> {
+    let query = db.select().from(blogPosts).where(eq(blogPosts.categoryId, categoryId));
+    if (published) {
+      query = query.where(eq(blogPosts.isPublished, true)) as any;
+    }
+    return await query.orderBy(desc(blogPosts.publishedAt || blogPosts.createdAt));
+  }
+
+  async updateBlogPost(id: string, post: Partial<InsertBlogPost>): Promise<BlogPost> {
+    const result = await db.update(blogPosts).set(post).where(eq(blogPosts.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteBlogPost(id: string): Promise<void> {
+    await db.delete(blogPosts).where(eq(blogPosts.id, id));
   }
 }
 
