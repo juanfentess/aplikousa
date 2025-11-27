@@ -127,43 +127,10 @@ export function ApplicationForm() {
     setIsSubmitting(true);
     
     try {
-      // Register user with backend
-      const response = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          firstName: values.firstName,
-          lastName: values.lastName,
-          email: values.email,
-          password,
-          phone: values.phone,
-          birthCountry: values.birthCountry,
-          city: values.city,
-          package: values.package,
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        form.setError("terms", { message: error.error || "Registration failed" });
-        setIsSubmitting(false);
-        return;
-      }
-
-      const data = await response.json();
-      
-      // Close dialog and redirect to verification
-      setShowPasswordDialog(false);
-      form.reset();
-      setFileName(null);
-      setSpouseFileName(null);
-      setPassword("");
-      setConfirmPassword("");
-      
-      // Redirect to verify email page with userId
-      setLocation(`/verify-email?userId=${data.userId}`);
+      // Show password dialog for account creation
+      setShowPasswordDialog(true);
     } catch (err) {
-      form.setError("terms", { message: "Gabim gjatë regjistrimit" });
+      form.setError("terms", { message: "Gabim" });
       console.error(err);
     } finally {
       setIsSubmitting(false);
@@ -181,8 +148,65 @@ export function ApplicationForm() {
       return;
     }
 
-    // Trigger the form submission which will call onSubmit
-    form.handleSubmit(onSubmit)();
+    setCreatingAccount(true);
+    
+    try {
+      // Get current form values
+      const formValues = form.getValues();
+      
+      if (!fileName) {
+        alert("Ju lutem ngarkoni fotografinë tuaj");
+        setCreatingAccount(false);
+        return;
+      }
+
+      if ((selectedPackage === "couple" || selectedPackage === "family") && !spouseFileName) {
+        alert("Ju lutem ngarkoni fotografinë e bashkëshortit/es");
+        setCreatingAccount(false);
+        return;
+      }
+
+      // Register user with backend
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName: formValues.firstName,
+          lastName: formValues.lastName,
+          email: formValues.email,
+          password: password,
+          phone: formValues.phone,
+          birthCountry: formValues.birthCountry,
+          city: formValues.city,
+          package: formValues.package,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        alert(error.error || "Registration failed");
+        setCreatingAccount(false);
+        return;
+      }
+
+      const data = await response.json();
+      
+      // Close dialog and redirect to verification
+      setShowPasswordDialog(false);
+      form.reset();
+      setFileName(null);
+      setSpouseFileName(null);
+      setPassword("");
+      setConfirmPassword("");
+      
+      // Redirect to verify email page with userId
+      setLocation(`/verify-email?userId=${data.userId}`);
+    } catch (err) {
+      console.error("Registration error:", err);
+      alert("Gabim gjatë regjistrimit");
+    } finally {
+      setCreatingAccount(false);
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, isSpouse = false) => {
