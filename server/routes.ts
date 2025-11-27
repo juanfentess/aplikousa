@@ -1,108 +1,326 @@
-import type { Express } from "express";
-import { createServer, type Server } from "http";
-import express from "express";
+import express, { Express, Request, Response } from "express";
+import session from "express-session";
+import { createServer, Server as HTTPServer } from "http";
+import ConnectPgSimple from "connect-pg-simple";
+import { db } from "./db";
 import { storage } from "./storage";
-import { sendVerificationEmail, sendTemplateEmail, sendPasswordResetEmail } from "./email";
-import { stripeService } from "./stripeService";
-import { getStripePublishableKey } from "./stripeClient";
-import { WebhookHandlers } from "./webhookHandlers";
-import { insertUserSchema, insertEmailTemplateSchema, insertAdminSchema } from "@shared/schema";
-import { z } from "zod";
-import crypto from "crypto";
-import { generateApplicationConfirmationHTML, generateDeclarationHTML } from "./documents";
+import { sendTemplateEmail, sendCustomEmail } from "./email";
+import {
+  generateApplicationConfirmationHTML,
+  generateApplicationReviewHTML,
+} from "./documents";
+import Stripe from "stripe";
+import { StripeSync } from "stripe-replit-sync";
+import { sql } from "drizzle-orm";
 
-async function hashPassword(password: string): Promise<string> {
-  const { createHash } = await import("crypto");
-  return createHash("sha256").update(password).digest("hex");
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
+  apiVersion: "2024-11-20",
+});
+
+const stripeSync = new StripeSync({
+  database: db as any,
+  stripe,
+  webhookEndpoint: async (app: Express, path: string, handler) => {
+    app.post(path, handler);
+  },
+});
+
+interface StripeCustomerData {
+  id: string;
+  email: string;
+  metadata?: {
+    userId?: string;
+    name?: string;
+  };
 }
 
-export async function registerRoutes(
-  httpServer: Server,
-  app: Express
-): Promise<Server> {
-  // Register Stripe webhook BEFORE express.json()
-  app.post(
-    '/api/stripe/webhook/:uuid',
-    express.raw({ type: 'application/json' }),
-    async (req, res) => {
-      const signature = req.headers['stripe-signature'];
-      if (!signature) {
-        return res.status(400).json({ error: 'Missing stripe-signature' });
-      }
+interface StripeCheckoutSession {
+  url: string | null;
+  id: string;
+}
 
-      try {
-        const sig = Array.isArray(signature) ? signature[0] : signature;
-        const { uuid } = req.params;
-        await WebhookHandlers.processWebhook(req.body as Buffer, sig, uuid);
-        res.status(200).json({ received: true });
-      } catch (error: any) {
-        console.error('[Webhook] Error:', error.message);
-        res.status(400).json({ error: 'Webhook error' });
-      }
-    }
-  );
+interface StripeProduct {
+  id: string;
+  name: string;
+  prices: Array<{
+    id: string;
+    unit_amount: number;
+  }>;
+}
 
-  // Now apply JSON middleware for other routes
+interface StripeSubscription {
+  id: string;
+  customer: string;
+  status: string;
+}
+
+interface StripeService {
+  createCustomer(email: string, userId: string): Promise<StripeCustomerData>;
+  createCheckoutSessionWithAmount(
+    customerId: string,
+    amount: number,
+    name: string,
+    successUrl: string,
+    cancelUrl: string
+  ): Promise<StripeCheckoutSession>;
+  createCheckoutSession(
+    customerId: string,
+    priceId: string,
+    successUrl: string,
+    cancelUrl: string
+  ): Promise<StripeCheckoutSession>;
+  getCustomer(customerId: string): Promise<StripeCustomerData>;
+  getSubscription(subscriptionId: string): Promise<StripeSubscription>;
+  getProduct(productId: string): Promise<StripeProduct>;
+}
+
+const stripeService: StripeService = {
+  async createCustomer(email: string, userId: string) {
+    const customer = await stripe.customers.create({
+      email,
+      metadata: { userId, name: email.split("@")[0] },
+    });
+    return customer;
+  },
+
+  async createCheckoutSessionWithAmount(
+    customerId: string,
+    amount: number,
+    name: string,
+    successUrl: string,
+    cancelUrl: string
+  ) {
+    const session = await stripe.checkout.sessions.create({
+      customer: customerId,
+      payment_method_types: ["card"],
+      line_items: [
+        {
+          price_data: {
+            currency: "eur",
+            unit_amount: Math.round(amount * 100),
+            product_data: {
+              name: name,
+            },
+          },
+          quantity: 1,
+        },
+      ],
+      mode: "payment",
+      success_url: successUrl,
+      cancel_url: cancelUrl,
+    });
+    return session;
+  },
+
+  async createCheckoutSession(
+    customerId: string,
+    priceId: string,
+    successUrl: string,
+    cancelUrl: string
+  ) {
+    const session = await stripe.checkout.sessions.create({
+      customer: customerId,
+      payment_method_types: ["card"],
+      line_items: [
+        {
+          price: priceId,
+          quantity: 1,
+        },
+      ],
+      mode: "payment",
+      success_url: successUrl,
+      cancel_url: cancelUrl,
+    });
+    return session;
+  },
+
+  async getCustomer(customerId: string) {
+    return await stripe.customers.retrieve(customerId);
+  },
+
+  async getSubscription(subscriptionId: string) {
+    return await stripe.subscriptions.retrieve(subscriptionId);
+  },
+
+  async getProduct(productId: string) {
+    return await stripe.products.retrieve(productId);
+  },
+};
+
+async function getStripePublishableKey(): Promise<string> {
+  if (!process.env.STRIPE_PUBLISHABLE_KEY) {
+    throw new Error("STRIPE_PUBLISHABLE_KEY not set");
+  }
+  return process.env.STRIPE_PUBLISHABLE_KEY;
+}
+
+export function createServer(): HTTPServer {
+  const app = express();
+
+  app.use(express.json());
+
+  const pgSession = ConnectPgSimple(session);
+
   app.use(
-    express.json({
-      verify: (req, _res, buf) => {
-        (req as any).rawBody = buf;
+    session({
+      store: new pgSession({
+        conString: process.env.DATABASE_URL || "",
+      }),
+      secret: "your-secret-key",
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        secure: process.env.NODE_ENV === "production",
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000,
       },
-    }),
+    })
   );
-  app.use(express.urlencoded({ extended: false }));
 
-  // Auth Routes
+  // Initialize Stripe sync
+  stripeSync.initialize();
 
-  // Register user
-  app.post("/api/auth/register", async (req, res) => {
+  // Middleware to log requests
+  app.use((req, res, next) => {
+    const start = Date.now();
+    res.on("finish", () => {
+      const duration = Date.now() - start;
+      console.log(
+        `${new Date().toLocaleTimeString()} [${req.method}] ${req.path} ${res.statusCode} in ${duration}ms${
+          res.locals.data ? " :: " + JSON.stringify(res.locals.data) : ""
+        }`
+      );
+    });
+    next();
+  });
+
+  app.use((req, res, next) => {
+    res.locals.data = null;
+    next();
+  });
+
+  // Login and signup routes
+  app.post("/api/auth/signup", async (req: Request, res: Response) => {
     try {
-      const validData = insertUserSchema.parse(req.body);
+      const {
+        firstName,
+        lastName,
+        email,
+        password,
+        phone,
+        birthCountry,
+        city,
+        package: packageType,
+      } = req.body;
 
-      // Check if user exists
-      const existing = await storage.getUserByEmail(validData.email);
-      if (existing) {
-        return res.status(400).json({ error: "Ky email është tashmë i regjistruar. Ju lutem përdorni një email të ndryshëm." });
+      if (
+        !firstName ||
+        !lastName ||
+        !email ||
+        !password ||
+        !phone ||
+        !birthCountry ||
+        !city ||
+        !packageType
+      ) {
+        return res.status(400).json({ error: "Missing required fields" });
       }
 
-      // Hash password
-      const hashedPassword = await hashPassword(validData.password);
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(400).json({ error: "Email already registered" });
+      }
 
-      // Create user
       const user = await storage.createUser({
-        ...validData,
-        password: hashedPassword,
+        firstName,
+        lastName,
+        email,
+        password,
+        phone,
+        birthCountry,
+        city,
+        package: packageType,
       });
 
       // Generate verification code
-      const code = crypto.randomInt(100000, 999999).toString();
-      const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
-
+      const code = Math.random().toString().slice(2, 8);
       await storage.createVerificationCode({
         userId: user.id,
         code,
-        expiresAt,
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
       });
 
-      // Send verification email
-      const emailResult = await sendVerificationEmail(user.email, code, user.firstName);
+      const verificationUrl = `https://${req.get("host")}/verify?userId=${user.id}&code=${code}`;
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: Arial, sans-serif; background-color: #f5f5f5; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; background-color: white; border-radius: 8px; }
+            h1 { color: #0B1B3B; text-align: center; }
+            p { color: #555; line-height: 1.6; }
+            .button { display: inline-block; padding: 12px 30px; margin: 20px auto; background-color: #E63946; color: white; text-decoration: none; border-radius: 5px; text-align: center; }
+            .code { font-size: 24px; font-weight: bold; color: #0B1B3B; text-align: center; letter-spacing: 5px; margin: 20px 0; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h1>AplikoUSA - Email Verification</h1>
+            <p>Përshëndetje ${firstName},</p>
+            <p>Faleminderit që regjistroheni në AplikoUSA. Për të verifikuar email-in tuaj, përdorni kodin më poshtë ose klikoni linkun:</p>
+            <div class="code">${code}</div>
+            <a href="${verificationUrl}" class="button">Verifikoni Email-in</a>
+            <p>Ky kod skadohet brenda 24 orësh.</p>
+            <p>Nëse nuk keni regjistruar këtë llogari, ju lutem injoroni këtë mesazh.</p>
+            <p>Përshëndetje,<br>AplikoUSA Team</p>
+          </div>
+        </body>
+        </html>
+      `;
 
-      res.json({
-        success: true,
-        userId: user.id,
-        message: "Verification code sent to email",
-      });
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: error.errors });
-      }
-      console.error("Registration error:", error);
-      res.status(500).json({ error: "Registration failed" });
+      await sendCustomEmail(
+        email,
+        `Verifikoni Email-in - AplikoUSA`,
+        htmlContent
+      );
+
+      res.json({ success: true, userId: user.id });
+    } catch (error: any) {
+      console.error("Signup error:", error);
+      res
+        .status(500)
+        .json({ error: error.message || "Signup failed" });
     }
   });
 
-  // Verify email code
-  app.post("/api/auth/verify", async (req, res) => {
+  app.post("/api/auth/login", async (req: Request, res: Response) => {
+    try {
+      const { email, password } = req.body;
+
+      if (!email || !password) {
+        return res.status(400).json({ error: "Missing email or password" });
+      }
+
+      const user = await storage.getUserByEmail(email);
+      if (!user || user.password !== password) {
+        return res.status(401).json({ error: "Invalid credentials" });
+      }
+
+      if (!user.isVerified) {
+        return res.status(401).json({ error: "Email not verified" });
+      }
+
+      res.locals.data = user;
+      res.json(user);
+    } catch (error: any) {
+      console.error("Login error:", error);
+      res.status(500).json({ error: error.message || "Login failed" });
+    }
+  });
+
+  app.post("/api/auth/verify-email", async (req: Request, res: Response) => {
     try {
       const { userId, code } = req.body;
 
@@ -110,206 +328,927 @@ export async function registerRoutes(
         return res.status(400).json({ error: "Missing userId or code" });
       }
 
-      // Get verification code
-      const verificationRecord = await storage.getVerificationCode(userId, code);
-
-      if (!verificationRecord) {
-        return res.status(400).json({ error: "Invalid verification code" });
+      const verificationCode = await storage.getVerificationCode(userId, code);
+      if (!verificationCode) {
+        return res
+          .status(400)
+          .json({ error: "Invalid or expired verification code" });
       }
 
-      // Check expiration
-      if (new Date() > verificationRecord.expiresAt) {
-        await storage.deleteVerificationCode(verificationRecord.id);
-        return res.status(400).json({ error: "Verification code expired" });
-      }
-
-      // Update user as verified
       await storage.updateUserVerification(userId);
-      await storage.deleteVerificationCode(verificationRecord.id);
-      
-      // Create application for the user
+      await storage.deleteVerificationCode(verificationCode.id);
+
       const user = await storage.getUser(userId);
-      if (user) {
-        await storage.createApplication({
-          userId,
-          status: "pending",
-        });
-      }
-
-      res.json({ success: true, message: "Email verified successfully" });
-    } catch (error) {
+      res.locals.data = user;
+      res.json(user);
+    } catch (error: any) {
       console.error("Verification error:", error);
-      res.status(500).json({ error: "Verification failed" });
+      res
+        .status(500)
+        .json({ error: error.message || "Verification failed" });
     }
   });
 
-  // Login user
-  app.post("/api/auth/login", async (req, res) => {
+  app.post("/api/auth/resend-verification", async (req: Request, res: Response) => {
     try {
-      const { email, password } = req.body;
+      const { userId } = req.body;
 
-      if (!email || !password) {
-        return res.status(400).json({ error: "Shkruani emailin dhe fjalëkalimin" });
+      if (!userId) {
+        return res.status(400).json({ error: "Missing userId" });
       }
 
-      // Get user by email
-      const user = await storage.getUserByEmail(email);
+      const user = await storage.getUser(userId);
       if (!user) {
-        return res.status(401).json({ error: "Ky email nuk ekziston në sistem" });
+        return res.status(404).json({ error: "User not found" });
       }
 
-      // Hash the provided password and compare
-      const hashedPassword = await hashPassword(password);
-      if (user.password !== hashedPassword) {
-        return res.status(401).json({ error: "Fjalëkalimi është i gabuar" });
+      if (user.isVerified) {
+        return res.status(400).json({ error: "User already verified" });
       }
 
-      // Update activity tracking
-      await storage.updateUser(user.id, {
-        lastActivityAt: new Date(),
-        isOnline: true
-      });
-
-      // Return user ID and payment status
-      res.json({ 
-        success: true, 
+      const code = Math.random().toString().slice(2, 8);
+      await storage.createVerificationCode({
         userId: user.id,
-        paymentStatus: user.paymentStatus || "pending",
-        firstName: user.firstName
+        code,
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
       });
-    } catch (error) {
-      console.error("Login error:", error);
-      res.status(500).json({ error: "Gabim në kyçje. Provoni më vonë." });
+
+      const verificationUrl = `https://${req.get("host")}/verify?userId=${user.id}&code=${code}`;
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: Arial, sans-serif; background-color: #f5f5f5; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; background-color: white; border-radius: 8px; }
+            h1 { color: #0B1B3B; text-align: center; }
+            p { color: #555; line-height: 1.6; }
+            .button { display: inline-block; padding: 12px 30px; margin: 20px auto; background-color: #E63946; color: white; text-decoration: none; border-radius: 5px; text-align: center; }
+            .code { font-size: 24px; font-weight: bold; color: #0B1B3B; text-align: center; letter-spacing: 5px; margin: 20px 0; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h1>AplikoUSA - Email Verification</h1>
+            <p>Përshëndetje ${user.firstName},</p>
+            <p>Përdorni kodin më poshtë për të verifikuar email-in tuaj:</p>
+            <div class="code">${code}</div>
+            <a href="${verificationUrl}" class="button">Verifikoni Email-in</a>
+            <p>Ky kod skadohet brenda 24 orësh.</p>
+          </div>
+        </body>
+        </html>
+      `;
+
+      await sendCustomEmail(
+        user.email,
+        `Verifikoni Email-in - AplikoUSA`,
+        htmlContent
+      );
+
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("Resend verification error:", error);
+      res
+        .status(500)
+        .json({ error: error.message || "Failed to resend verification" });
     }
   });
 
-  // Forgot password - send reset link
-  app.post("/api/auth/forgot-password", async (req, res) => {
+  app.post("/api/auth/forgot-password", async (req: Request, res: Response) => {
     try {
       const { email } = req.body;
 
       if (!email) {
-        return res.status(400).json({ error: "Shkruani emailin tuaj" });
+        return res.status(400).json({ error: "Missing email" });
       }
 
       const user = await storage.getUserByEmail(email);
       if (!user) {
-        return res.status(200).json({ success: true, message: "Nëse emaili ekziston, do të marrni lidhjen e resetimit" });
+        return res.status(404).json({ error: "User not found" });
       }
 
-      // Generate reset token
-      const token = crypto.randomBytes(16).toString("hex");
-      const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+      const token = Math.random().toString(36).substring(2, 15);
+      await storage.createPasswordResetToken(
+        user.id,
+        token,
+        new Date(Date.now() + 60 * 60 * 1000)
+      );
 
-      await storage.createPasswordResetToken(user.id, token, expiresAt);
+      const resetUrl = `https://${req.get("host")}/reset-password?token=${token}`;
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: Arial, sans-serif; background-color: #f5f5f5; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; background-color: white; border-radius: 8px; }
+            h1 { color: #0B1B3B; text-align: center; }
+            p { color: #555; line-height: 1.6; }
+            .button { display: inline-block; padding: 12px 30px; margin: 20px auto; background-color: #E63946; color: white; text-decoration: none; border-radius: 5px; text-align: center; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h1>AplikoUSA - Password Reset</h1>
+            <p>Përshëndetje ${user.firstName},</p>
+            <p>Për të rivendosur fjalëkalimin tuaj, klikoni linkun më poshtë:</p>
+            <a href="${resetUrl}" class="button">Rivendosni Fjalëkalimin</a>
+            <p>Ky link skadohet brenda 1 ore. Nëse nuk keni kërkuar rivendosje, injoroni këtë mesazh.</p>
+          </div>
+        </body>
+        </html>
+      `;
 
-      // Send reset email
-      const baseUrl = `${req.protocol}://${req.get("host")}`;
-      const resetLink = `${baseUrl}/reset-password?token=${token}`;
+      await sendCustomEmail(
+        email,
+        `Rivendosni Fjalëkalimin - AplikoUSA`,
+        htmlContent
+      );
 
-      await sendPasswordResetEmail(email, resetLink, user.firstName);
-
-      res.json({ success: true, message: "Emaili i rivendosjes u dërgua" });
-    } catch (error) {
+      res.json({ success: true });
+    } catch (error: any) {
       console.error("Forgot password error:", error);
-      res.status(500).json({ error: "Gabim në dërgimin e emailit" });
+      res
+        .status(500)
+        .json({ error: error.message || "Failed to process request" });
     }
   });
 
-  // Reset password with token
-  app.post("/api/auth/reset-password", async (req, res) => {
+  app.post("/api/auth/reset-password", async (req: Request, res: Response) => {
     try {
       const { token, newPassword } = req.body;
 
       if (!token || !newPassword) {
-        return res.status(400).json({ error: "Token dhe fjalëkalim i ri janë të detyrueshme" });
+        return res.status(400).json({ error: "Missing token or password" });
       }
 
-      if (newPassword.length < 6) {
-        return res.status(400).json({ error: "Fjalëkalimi duhet të ketë të paktën 6 karaktere" });
-      }
-
-      // Get and validate token
       const resetToken = await storage.getPasswordResetToken(token);
       if (!resetToken) {
-        return res.status(401).json({ error: "Lidhja e resetimit nuk është e vlefshme ose ka skaduar" });
+        return res.status(400).json({ error: "Invalid or expired token" });
       }
 
-      // Hash new password
-      const hashedPassword = await hashPassword(newPassword);
-
-      // Update user password
-      await storage.updateUser(resetToken.userId, { password: hashedPassword });
-
-      // Delete the token
+      await storage.updateUser(resetToken.userId, { password: newPassword });
       await storage.deletePasswordResetToken(resetToken.id);
 
-      res.json({ success: true, message: "Fjalëkalimi u rivendos me sukses" });
-    } catch (error) {
+      res.json({ success: true });
+    } catch (error: any) {
       console.error("Reset password error:", error);
-      res.status(500).json({ error: "Gabim në rivendosjen e fjalëkalimit" });
+      res
+        .status(500)
+        .json({ error: error.message || "Failed to reset password" });
     }
   });
 
-  // Get user data
-  app.get("/api/auth/user/:id", async (req, res) => {
+  app.get("/api/auth/user/:userId", async (req: Request, res: Response) => {
     try {
-      const { id } = req.params;
+      const { userId } = req.params;
+      const user = await storage.getUser(userId);
 
-      if (!id) {
-        return res.status(400).json({ error: "Missing user ID" });
-      }
-
-      const user = await storage.getUser(id);
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
 
-      // Return user data without password
-      const { password, ...userData } = user;
-      res.json(userData);
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ error: "Failed to fetch user" });
+      res.locals.data = user;
+      res.json(user);
+    } catch (error: any) {
+      console.error("Get user error:", error);
+      res.status(500).json({ error: error.message || "Failed to fetch user" });
     }
   });
 
-  // Handle payment success
-  app.post("/api/payment-success", async (req, res) => {
+  app.patch("/api/auth/user/:userId", async (req: Request, res: Response) => {
     try {
-      const { userId, packageType } = req.body;
+      const { userId } = req.params;
+      const updates = req.body;
+
+      const user = await storage.updateUser(userId, updates);
+      res.locals.data = user;
+      res.json(user);
+    } catch (error: any) {
+      console.error("Update user error:", error);
+      res
+        .status(500)
+        .json({ error: error.message || "Failed to update user" });
+    }
+  });
+
+  // Application routes
+  app.post("/api/applications", async (req: Request, res: Response) => {
+    try {
+      const { userId, ...applicationData } = req.body;
 
       if (!userId) {
-        return res.status(400).json({ error: "Missing user ID" });
+        return res.status(400).json({ error: "Missing userId" });
       }
 
-      // Get user
+      const application = await storage.createApplication({
+        userId,
+        ...applicationData,
+        status: "pending",
+      });
+
+      res.json(application);
+    } catch (error: any) {
+      console.error("Create application error:", error);
+      res
+        .status(500)
+        .json({ error: error.message || "Failed to create application" });
+    }
+  });
+
+  app.get("/api/applications/:userId", async (req: Request, res: Response) => {
+    try {
+      const { userId } = req.params;
+      let application = await storage.getApplication(userId);
+
+      if (!application) {
+        // Create default application if it doesn't exist
+        application = await storage.createApplication({
+          userId,
+          status: "pending",
+          registrationStatus: "completed",
+          paymentStatus: "pending",
+          formStatus: "pending",
+          photoStatus: "pending",
+          submissionStatus: "pending",
+        });
+      }
+
+      res.locals.data = application;
+      res.json(application);
+    } catch (error: any) {
+      console.error("Get application error:", error);
+      res
+        .status(500)
+        .json({ error: error.message || "Failed to fetch application" });
+    }
+  });
+
+  app.patch("/api/applications/:userId", async (req: Request, res: Response) => {
+    try {
+      const { userId } = req.params;
+      const updates = req.body;
+
+      let application = await storage.getApplication(userId);
+      if (!application) {
+        return res.status(404).json({ error: "Application not found" });
+      }
+
+      application = await storage.updateApplicationStatus(
+        application.id,
+        updates.status
+      );
+
+      res.locals.data = application;
+      res.json(application);
+    } catch (error: any) {
+      console.error("Update application error:", error);
+      res
+        .status(500)
+        .json({ error: error.message || "Failed to update application" });
+    }
+  });
+
+  // Get all applications for admin
+  app.get("/api/admin/applications", async (req: Request, res: Response) => {
+    try {
+      const applications = await storage.getApplications();
+      res.json(applications);
+    } catch (error: any) {
+      console.error("Get applications error:", error);
+      res
+        .status(500)
+        .json({ error: error.message || "Failed to fetch applications" });
+    }
+  });
+
+  // Update application steps
+  app.post(
+    "/api/admin/applications/:id/update-steps",
+    async (req: Request, res: Response) => {
+      try {
+        const { id } = req.params;
+        const steps = req.body;
+
+        const application = await storage.updateApplicationSteps(id, steps);
+        res.json(application);
+      } catch (error: any) {
+        console.error("Update steps error:", error);
+        res
+          .status(500)
+          .json({ error: error.message || "Failed to update steps" });
+      }
+    }
+  );
+
+  // Transaction routes
+  app.post("/api/transactions", async (req: Request, res: Response) => {
+    try {
+      const { userId, ...transactionData } = req.body;
+
+      if (!userId) {
+        return res.status(400).json({ error: "Missing userId" });
+      }
+
+      const transaction = await storage.createTransaction({
+        userId,
+        ...transactionData,
+      });
+
+      res.json(transaction);
+    } catch (error: any) {
+      console.error("Create transaction error:", error);
+      res
+        .status(500)
+        .json({ error: error.message || "Failed to create transaction" });
+    }
+  });
+
+  app.get("/api/transactions/:userId", async (req: Request, res: Response) => {
+    try {
+      const { userId } = req.params;
+      const transactions = await storage.getTransactions(userId);
+
+      res.locals.data = transactions;
+      res.json(transactions);
+    } catch (error: any) {
+      console.error("Get transactions error:", error);
+      res
+        .status(500)
+        .json({ error: error.message || "Failed to fetch transactions" });
+    }
+  });
+
+  // Admin routes
+  app.post("/api/admin/login", async (req: Request, res: Response) => {
+    try {
+      const { email, password } = req.body;
+
+      if (!email || !password) {
+        return res.status(400).json({ error: "Missing email or password" });
+      }
+
+      const admin = await storage.getAdminByEmail(email);
+      if (!admin || admin.password !== password) {
+        return res.status(401).json({ error: "Invalid credentials" });
+      }
+
+      res.json(admin);
+    } catch (error: any) {
+      console.error("Admin login error:", error);
+      res
+        .status(500)
+        .json({ error: error.message || "Login failed" });
+    }
+  });
+
+  // Email template routes
+  app.get("/api/admin/templates", async (req: Request, res: Response) => {
+    try {
+      const templates = await storage.getEmailTemplates();
+      res.json(templates);
+    } catch (error: any) {
+      console.error("Get templates error:", error);
+      res
+        .status(500)
+        .json({ error: error.message || "Failed to fetch templates" });
+    }
+  });
+
+  app.post("/api/admin/templates", async (req: Request, res: Response) => {
+    try {
+      const { name, subject, htmlContent } = req.body;
+
+      if (!name || !subject || !htmlContent) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+
+      const template = await storage.createEmailTemplate({
+        name,
+        subject,
+        htmlContent,
+      });
+
+      res.json(template);
+    } catch (error: any) {
+      console.error("Create template error:", error);
+      res
+        .status(500)
+        .json({ error: error.message || "Failed to create template" });
+    }
+  });
+
+  app.patch("/api/admin/templates/:id", async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+
+      const template = await storage.updateEmailTemplate(id, updates);
+      res.json(template);
+    } catch (error: any) {
+      console.error("Update template error:", error);
+      res
+        .status(500)
+        .json({ error: error.message || "Failed to update template" });
+    }
+  });
+
+  app.delete("/api/admin/templates/:id", async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteEmailTemplate(id);
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("Delete template error:", error);
+      res
+        .status(500)
+        .json({ error: error.message || "Failed to delete template" });
+    }
+  });
+
+  // Send email using template
+  app.post("/api/admin/send-email", async (req: Request, res: Response) => {
+    try {
+      const { toEmail, templateId, recipientName } = req.body;
+
+      if (!toEmail || !templateId) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+
+      const template = await storage.getEmailTemplateById(templateId);
+      if (!template) {
+        return res.status(404).json({ error: "Template not found" });
+      }
+
+      const success = await sendTemplateEmail(
+        toEmail,
+        template.htmlContent,
+        template.subject,
+        recipientName || "Klient"
+      );
+
+      if (success) {
+        res.json({ success: true, message: "Email sent successfully" });
+      } else {
+        res.status(500).json({ error: "Failed to send email" });
+      }
+    } catch (error) {
+      console.error("Error sending email:", error);
+      res.status(500).json({ error: "Failed to send email" });
+    }
+  });
+
+  // Send custom email
+  app.post("/api/admin/send-custom-email", async (req: Request, res: Response) => {
+    try {
+      const { toEmail, subject, htmlContent } = req.body;
+
+      if (!toEmail || !subject || !htmlContent) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+
+      const success = await sendTemplateEmail(
+        toEmail,
+        htmlContent,
+        subject,
+        "Klient"
+      );
+
+      if (success) {
+        res.json({ success: true, message: "Email sent successfully" });
+      } else {
+        res.status(500).json({ error: "Failed to send email" });
+      }
+    } catch (error) {
+      console.error("Error sending custom email:", error);
+      res.status(500).json({ error: "Failed to send email" });
+    }
+  });
+
+  // Get all clients
+  app.get("/api/admin/clients", async (req: Request, res: Response) => {
+    try {
+      const clients = await storage.getAllUsers();
+      res.json(clients);
+    } catch (error) {
+      console.error("Error fetching clients:", error);
+      res.status(500).json({ error: "Failed to fetch clients" });
+    }
+  });
+
+  // Get single client
+  app.get("/api/admin/clients/:id", async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const client = await storage.getUser(id);
+      if (!client) {
+        return res.status(404).json({ error: "Client not found" });
+      }
+      res.json(client);
+    } catch (error) {
+      console.error("Error fetching client:", error);
+      res.status(500).json({ error: "Failed to fetch client" });
+    }
+  });
+
+  // Update client
+  app.patch("/api/admin/clients/:id", async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+
+      const client = await storage.updateUser(id, updates);
+      res.json(client);
+    } catch (error) {
+      console.error("Error updating client:", error);
+      res.status(500).json({ error: "Failed to update client" });
+    }
+  });
+
+  // Delete client
+  app.delete("/api/admin/clients/:id", async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteUser(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting client:", error);
+      res.status(500).json({ error: "Failed to delete client" });
+    }
+  });
+
+  // Admin Analytics
+  app.get("/api/admin/analytics", async (req: Request, res: Response) => {
+    try {
+      const allUsers = await storage.getAllUsers();
+      const allApplications = await storage.getApplications();
+
+      const stats = {
+        totalClients: allUsers.length,
+        completedPayments: allUsers.filter(u => u.paymentStatus === "completed").length,
+        pendingPayments: allUsers.filter(u => u.paymentStatus !== "completed").length,
+        totalRevenue: allUsers.filter(u => u.paymentStatus === "completed").reduce((acc, u) => {
+          const pkg = u.package;
+          const amount = pkg === "individual" ? 20 : pkg === "couple" ? 35 : 50;
+          return acc + amount;
+        }, 0),
+        applications: {
+          total: allApplications.length,
+          completed: allApplications.filter(a => a.paymentStatus === "completed").length,
+          pending: allApplications.filter(a => a.paymentStatus === "pending").length,
+        },
+        byPackage: {
+          individual: allUsers.filter(u => u.package === "individual").length,
+          couple: allUsers.filter(u => u.package === "couple").length,
+          family: allUsers.filter(u => u.package === "family").length,
+        }
+      };
+
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching analytics:", error);
+      res.status(500).json({ error: "Failed to fetch analytics" });
+    }
+  });
+
+  // Get client transactions
+  app.get("/api/admin/clients/:id/transactions", async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const transactions = await storage.getTransactions(id);
+      res.json(transactions);
+    } catch (error) {
+      console.error("Error fetching transactions:", error);
+      res.status(500).json({ error: "Failed to fetch transactions" });
+    }
+  });
+
+  // Process refund
+  app.post("/api/admin/refund", async (req: Request, res: Response) => {
+    try {
+      const { transactionId, reason } = req.body;
+
+      if (!transactionId) {
+        return res.status(400).json({ error: "Missing transactionId" });
+      }
+
+      // Update transaction status to refunded
+      const transaction = await storage.updateTransactionStatus(transactionId, "refunded");
+      res.json({ success: true, transaction });
+    } catch (error) {
+      console.error("Error processing refund:", error);
+      res.status(500).json({ error: "Failed to process refund" });
+    }
+  });
+
+  // Reset client password
+  app.post("/api/admin/clients/:id/reset-password", async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const newPassword = Math.random().toString(36).substring(2, 10);
+
+      const client = await storage.updateUser(id, { password: newPassword });
+
+      // Send email with new password
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: Arial, sans-serif; background-color: #f5f5f5; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; background-color: white; border-radius: 8px; }
+            h1 { color: #0B1B3B; text-align: center; }
+            p { color: #555; line-height: 1.6; }
+            .password { font-size: 18px; font-weight: bold; color: #0B1B3B; text-align: center; background-color: #f0f0f0; padding: 10px; border-radius: 5px; margin: 20px 0; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h1>AplikoUSA - Password Reset</h1>
+            <p>Përshëndetje ${client.firstName},</p>
+            <p>Administratori i AplikoUSA ka rivendosur fjalëkalimin tuaj:</p>
+            <div class="password">${newPassword}</div>
+            <p>Ju lutem përdorni këtë fjalëkalim për të hyrë në llogari tuaj dhe ndryshojeni atë në diçka të sigurt.</p>
+          </div>
+        </body>
+        </html>
+      `;
+
+      await sendCustomEmail(client.email, "Fjalëkalimi u Rivendos - AplikoUSA", htmlContent);
+
+      res.json({ success: true, newPassword });
+    } catch (error) {
+      console.error("Error resetting password:", error);
+      res.status(500).json({ error: "Failed to reset password" });
+    }
+  });
+
+  // Resend verification email
+  app.post("/api/admin/clients/:id/resend-verification", async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const client = await storage.getUser(id);
+
+      if (!client) {
+        return res.status(404).json({ error: "Client not found" });
+      }
+
+      const code = Math.random().toString().slice(2, 8);
+      await storage.createVerificationCode({
+        userId: id,
+        code,
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      });
+
+      const verificationUrl = `https://${req.get("host")}/verify?userId=${id}&code=${code}`;
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: Arial, sans-serif; background-color: #f5f5f5; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; background-color: white; border-radius: 8px; }
+            h1 { color: #0B1B3B; text-align: center; }
+            p { color: #555; line-height: 1.6; }
+            .button { display: inline-block; padding: 12px 30px; margin: 20px auto; background-color: #E63946; color: white; text-decoration: none; border-radius: 5px; text-align: center; }
+            .code { font-size: 24px; font-weight: bold; color: #0B1B3B; text-align: center; letter-spacing: 5px; margin: 20px 0; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h1>AplikoUSA - Email Verification</h1>
+            <p>Përshëndetje ${client.firstName},</p>
+            <p>Administratori i AplikoUSA ka kërkuar ri-dërgimin e linkut të verifikimit:</p>
+            <div class="code">${code}</div>
+            <a href="${verificationUrl}" class="button">Verifikoni Email-in</a>
+            <p>Ky kod skadohet brenda 24 orësh.</p>
+          </div>
+        </body>
+        </html>
+      `;
+
+      await sendCustomEmail(client.email, "Verifikoni Email-in - AplikoUSA", htmlContent);
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error resending verification:", error);
+      res.status(500).json({ error: "Failed to resend verification" });
+    }
+  });
+
+  // Toggle account disable
+  app.post("/api/admin/clients/:id/toggle-account", async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const client = await storage.getUser(id);
+
+      if (!client) {
+        return res.status(404).json({ error: "Client not found" });
+      }
+
+      // For now, we can use a field to track disabled status
+      // You might want to add an `isDisabled` or `isActive` field to the user schema
+      const updated = await storage.updateUser(id, {
+        isVerified: !client.isVerified // Using this as a proxy for now
+      });
+
+      res.json({ success: true, user: updated });
+    } catch (error) {
+      console.error("Error toggling account:", error);
+      res.status(500).json({ error: "Failed to toggle account" });
+    }
+  });
+
+  // Export clients to CSV
+  app.get("/api/admin/export-csv", async (req: Request, res: Response) => {
+    try {
+      const clients = await storage.getAllUsers();
+
+      let csv = "First Name,Last Name,Email,Phone,City,Birth Country,Package,Payment Status,Created At\n";
+      clients.forEach(client => {
+        csv += `"${client.firstName}","${client.lastName}","${client.email}","${client.phone}","${client.city}","${client.birthCountry}","${client.package}","${client.paymentStatus}","${client.createdAt}"\n`;
+      });
+
+      res.setHeader("Content-Type", "text/csv");
+      res.setHeader("Content-Disposition", "attachment; filename=clients.csv");
+      res.send(csv);
+    } catch (error) {
+      console.error("Error exporting CSV:", error);
+      res.status(500).json({ error: "Failed to export CSV" });
+    }
+  });
+
+  // Update user activity (when they log in or access dashboard)
+  app.post("/api/users/:id/activity", async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      await storage.updateUser(id, {
+        lastActivityAt: new Date(),
+        isOnline: true,
+      });
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error updating activity:", error);
+      res.status(500).json({ error: "Failed to update activity" });
+    }
+  });
+
+  // Set user offline
+  app.post("/api/users/:id/offline", async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      await storage.updateUser(id, { isOnline: false });
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error setting offline:", error);
+      res.status(500).json({ error: "Failed to set offline" });
+    }
+  });
+
+  // Get application confirmation document (HTML for PDF)
+  app.get("/api/documents/:userId/confirmation", async (req: Request, res: Response) => {
+    try {
+      const { userId } = req.params as { userId: string };
+
       const user = await storage.getUser(userId);
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
 
-      // Package details mapping
-      const packages: Record<string, { name: string; amount: number }> = {
-        individual: { name: "Paket Individuale", amount: 20 },
-        couple: { name: "Paket për Çifte", amount: 35 },
-        family: { name: "Paket Familjare", amount: 50 },
-      };
+      let application = await storage.getApplication(userId);
+      if (!application) {
+        // Create default application if it doesn't exist
+        application = await storage.createApplication({
+          userId,
+          status: "pending",
+          registrationStatus: "completed",
+          paymentStatus: "pending",
+          formStatus: "pending",
+          photoStatus: "pending",
+          submissionStatus: "pending",
+        });
+      }
 
-      const pkg = packages[packageType] || packages.individual;
+      const html = generateApplicationConfirmationHTML(
+        user,
+        application,
+        application?.photoUrl || ""
+      );
+      res.setHeader("Content-Type", "text/html; charset=utf-8");
+      res.send(html);
+    } catch (error) {
+      console.error("Error generating confirmation document:", error);
+      res.status(500).json({ error: "Failed to generate document" });
+    }
+  });
 
-      // Create transaction record
-      await storage.createTransaction({
-        userId,
-        amount: pkg.amount.toString(),
-        currency: "EUR",
-        packageType,
-        status: "completed",
-      });
+  // Get application review document (HTML for PDF)
+  app.get("/api/documents/:userId/review", async (req: Request, res: Response) => {
+    try {
+      const { userId } = req.params as { userId: string };
+
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      let application = await storage.getApplication(userId);
+      if (!application) {
+        application = await storage.createApplication({
+          userId,
+          status: "pending",
+          registrationStatus: "completed",
+          paymentStatus: "pending",
+          formStatus: "pending",
+          photoStatus: "pending",
+          submissionStatus: "pending",
+        });
+      }
+
+      const html = generateApplicationReviewHTML(user, application);
+      res.setHeader("Content-Type", "text/html; charset=utf-8");
+      res.send(html);
+    } catch (error) {
+      console.error("Error generating review document:", error);
+      res.status(500).json({ error: "Failed to generate document" });
+    }
+  });
+
+  // Webhook for Stripe events
+  app.post("/api/stripe/webhook/:webhookId", async (req: Request, res: Response) => {
+    try {
+      const sig = req.headers["stripe-signature"] as string;
+      const event = stripe.webhooks.constructEvent(
+        req.body,
+        sig,
+        process.env.STRIPE_WEBHOOK_SECRET || ""
+      );
+
+      console.log("Stripe webhook event:", event.type);
+
+      if (event.type === "checkout.session.completed") {
+        const session = event.data.object as any;
+        const userId = session.metadata?.userId;
+
+        if (userId) {
+          const user = await storage.getUser(userId);
+          if (user) {
+            // Update user payment status
+            await storage.updateUserStripeInfo(userId, {
+              paymentStatus: "completed",
+            });
+
+            // Update or create application
+            let application = await storage.getApplication(userId);
+            if (application) {
+              await storage.updateApplicationSteps(application.id, {
+                paymentStatus: "completed",
+                formStatus: "completed",
+              });
+            } else {
+              await storage.createApplication({
+                userId,
+                status: "reviewing",
+                registrationStatus: "completed",
+                paymentStatus: "completed",
+                formStatus: "completed",
+                photoStatus: "pending",
+                submissionStatus: "pending",
+              });
+            }
+          }
+        }
+      }
+
+      res.json({ received: true });
+    } catch (error) {
+      console.error("Webhook error:", error);
+      res.status(400).send("Webhook Error");
+    }
+  });
+
+  // Payment success endpoint
+  app.post("/api/payment-success", async (req: Request, res: Response) => {
+    try {
+      const { userId } = req.body;
+
+      if (!userId) {
+        return res.status(400).json({ error: "Missing userId" });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
 
       // Update payment status on user
-      await storage.updateUserStripeInfo(userId, { 
-        paymentStatus: "completed"
+      await storage.updateUserStripeInfo(userId, {
+        paymentStatus: "completed",
       });
 
       // Update or create application with payment status completed
@@ -343,526 +1282,47 @@ export async function registerRoutes(
         <!DOCTYPE html>
         <html>
         <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <meta charset="utf-8">
           <style>
-            body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; }
-            .container { max-width: 600px; margin: 0 auto; background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-            .header { background: linear-gradient(135deg, #0B1B3B 0%, #1a3a52 100%); color: white; padding: 40px 20px; text-align: center; }
-            .header h1 { margin: 0; font-size: 28px; font-weight: 700; }
-            .success-icon { font-size: 48px; margin-bottom: 15px; }
-            .content { padding: 40px 30px; }
-            .section { margin-bottom: 30px; }
-            .section-title { font-size: 16px; font-weight: 700; color: #0B1B3B; margin-bottom: 20px; }
-            .info-box { background-color: #f0f7ff; border-left: 4px solid #0B1B3B; padding: 15px 15px; border-radius: 4px; margin: 10px 0; display: flex; justify-content: space-between; align-items: center; }
-            .info-label { font-size: 13px; color: #666; font-weight: 500; }
-            .info-value { font-size: 16px; color: #0B1B3B; font-weight: 700; text-align: right; }
-            .amount-box { background-color: #0B1B3B; color: white; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0; }
-            .amount-label { font-size: 13px; opacity: 0.9; }
-            .amount-value { font-size: 36px; font-weight: 700; margin-top: 8px; }
-            .button { display: inline-block; background-color: #E63946; color: white; padding: 14px 35px; border-radius: 4px; text-decoration: none; font-weight: 700; margin: 20px auto; }
-            .button:hover { background-color: #d12a3a; }
-            .button-container { text-align: center; }
-            .features { list-style: none; padding: 0; margin: 20px 0; background-color: #f9f9f9; border-radius: 8px; padding: 20px; }
-            .features li { padding: 10px 0; padding-left: 25px; position: relative; color: #333; font-size: 14px; }
-            .features li:before { content: "✓"; position: absolute; left: 0; color: #0B1B3B; font-weight: bold; font-size: 16px; }
-            .footer { background-color: #f9f9f9; padding: 20px 30px; border-top: 1px solid #eee; font-size: 12px; color: #666; text-align: center; }
-            .footer p { margin: 8px 0; }
-            .footer a { color: #0B1B3B; text-decoration: none; font-weight: 600; }
-            .divider { height: 1px; background-color: #eee; margin: 20px 0; }
+            body { font-family: Arial, sans-serif; background-color: #f5f5f5; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; background-color: white; border-radius: 8px; }
+            h1 { color: #0B1B3B; text-align: center; }
+            p { color: #555; line-height: 1.6; }
+            .button { display: inline-block; padding: 12px 30px; margin: 20px auto; background-color: #E63946; color: white; text-decoration: none; border-radius: 5px; text-align: center; }
+            .status { font-size: 24px; font-weight: bold; color: #28a745; text-align: center; margin: 20px 0; }
           </style>
         </head>
         <body>
           <div class="container">
-            <!-- Header -->
-            <div class="header">
-              <div class="success-icon">✓</div>
-              <h1>Pagesa u Përfundua me Sukses!</h1>
-              <p style="margin: 10px 0 0 0; font-size: 14px; opacity: 0.9;">Faleminderit për zgjedhjen e AplikoUSA</p>
-            </div>
-
-            <!-- Content -->
-            <div class="content">
-              <!-- Greeting -->
-              <div class="section">
-                <p style="margin: 0; font-size: 16px; color: #333; font-weight: 600;">Përshëndetje ${user.firstName},</p>
-              </div>
-
-              <!-- Success Message -->
-              <div class="section">
-                <p style="margin: 0; color: #555; line-height: 1.7;">
-                  Jemi të lumtur t'ju informojmë se pagesa juaj për aplikimin e DV Lottery Green Card u përfundua me sukses. Tani mund të filloni plotësimin e aplikimit tuaj dhe të ndjekni përparimin në çdo kohë përmes panelit tuaj.
-                </p>
-              </div>
-
-              <!-- Payment Details Section -->
-              <div class="section">
-                <div class="section-title">Detalet e Pagesës</div>
-                
-                <div class="info-box">
-                  <div class="info-label">Paketi i Zgjedhur</div>
-                  <div class="info-value">${pkg.name}</div>
-                </div>
-                
-                <div class="amount-box">
-                  <div class="amount-label">Shuma e Paguar</div>
-                  <div class="amount-value">€${pkg.amount}</div>
-                </div>
-                
-                <div class="info-box">
-                  <div class="info-label">Statusi i Pagesës</div>
-                  <div class="info-value" style="color: #10b981; font-weight: 700;">✓ Përfunduar</div>
-                </div>
-                
-                <div class="info-box">
-                  <div class="info-label">Email Konfirmimi</div>
-                  <div class="info-value">${user.email}</div>
-                </div>
-              </div>
-
-              <div class="divider"></div>
-
-              <!-- What's Included -->
-              <div class="section">
-                <div class="section-title">Çfarë Përfshihet në Paketën Tuaj</div>
-                <ul class="features">
-                  <li>Mbështetje e plotë për plotësimin e aplikimit</li>
-                  <li>Kontrolli i përputhshmërisë me kërkesat zyrtare</li>
-                  <li>Konsultim me ekspertë të DV Lottery</li>
-                  <li>Ndjekja e statusit në kohë reale</li>
-                  <li>Akses i plotë në panelin tuaj</li>
-                </ul>
-              </div>
-
-              <!-- Next Steps -->
-              <div class="section">
-                <div class="section-title">Hapat Tuaj të Ardhshëm</div>
-                <ol style="color: #555; line-height: 1.8; padding-left: 25px;">
-                  <li>Hyni në panelin tuaj me kredencialet tuaja</li>
-                  <li>Plotësoni të gjithë informacionet e kërkuara në aplikim</li>
-                  <li>Ngarkoni dokumentet sipas specifikacioneve</li>
-                  <li>Rishikoni aplikimin përpara dorëzimit</li>
-                  <li>Dorëzoni aplikimin përfundimtar</li>
-                </ol>
-              </div>
-
-              <!-- CTA Button -->
-              <div class="button-container">
-                <a href="https://aplikousa.com/dashboard" class="button">Shko në Panelin tim</a>
-              </div>
-
-              <!-- Support Section -->
-              <div class="section" style="margin-top: 30px; padding-top: 30px; border-top: 1px solid #eee; background-color: #f9f9f9; padding: 20px; border-radius: 8px;">
-                <p style="margin: 0; font-size: 14px; color: #555; font-weight: 600;">Keni pyetje?</p>
-                <p style="margin: 8px 0 0 0; font-size: 14px; color: #666;">
-                  Ekipi ynë i mbështetjes është i gatshëm të ju ndihmojë. Kontaktoni na në <a href="mailto:info@aplikousa.com" style="color: #0B1B3B; text-decoration: none; font-weight: 600;">info@aplikousa.com</a> ose më +1 (555) 000-0000
-                </p>
-              </div>
-            </div>
-
-            <!-- Footer -->
-            <div class="footer">
-              <p style="margin: 0; font-weight: 600;">© 2025 AplikoUSA - Green Card DV Lottery</p>
-              <p>Aplikimi zyrtar për vizat të gjelbëra në ShBA</p>
-              <p style="margin-top: 15px;">
-                <a href="https://aplikousa.com/privacy">Politika e Privatësisë</a> | 
-                <a href="https://aplikousa.com/terms">Termat e Shërbimit</a> | 
-                <a href="https://aplikousa.com/contact">Kontakti</a>
-              </p>
-            </div>
+            <h1>AplikoUSA - Pagesa e Pranuar</h1>
+            <div class="status">✓ Pagesa Përfunduar me Sukses</div>
+            <p>Përshëndetje ${user.firstName},</p>
+            <p>Faleminderit! Pagesa juaj për ${user.package} paketë ($${user.package === "individual" ? 20 : user.package === "couple" ? 35 : 50}) u pranua me sukses!</p>
+            <p>Tani mund të shikoni statusin e aplikimit tuaj në dashboard dhe të plotësoni formularin e nevojshëm.</p>
+            <a href="https://${req.get("host")}/dashboard" class="button">Shko në Dashboard</a>
+            <p>Nëse keni pyetje, na kontaktoni në info@aplikousa.com</p>
           </div>
         </body>
         </html>
       `;
 
-      await sendTemplateEmail(
+      await sendCustomEmail(
         user.email,
-        htmlContent,
-        "Pagesa e Përfunduar me Sukses - AplikoUSA DV Lottery",
-        user.firstName
+        "Pagesa e Pranuar - AplikoUSA",
+        htmlContent
       );
 
-      res.json({ success: true, message: "Payment updated and email sent" });
-    } catch (error) {
+      res.json({ success: true, message: "Payment processed successfully" });
+    } catch (error: any) {
       console.error("Payment success error:", error);
-      res.status(500).json({ error: "Failed to process payment success" });
+      res
+        .status(500)
+        .json({ error: error.message || "Failed to process payment" });
     }
   });
 
-  // Get transactions
-  app.get("/api/transactions/:userId", async (req, res) => {
-    try {
-      const { userId } = req.params;
-
-      if (!userId) {
-        return res.status(400).json({ error: "Missing user ID" });
-      }
-
-      const transactions = await storage.getTransactions(userId);
-      res.json(transactions);
-    } catch (error) {
-      console.error("Error fetching transactions:", error);
-      res.status(500).json({ error: "Failed to fetch transactions" });
-    }
-  });
-
-  // Admin Routes
-
-  // Admin login
-  app.post("/api/admin/login", async (req, res) => {
-    try {
-      const { email, password } = req.body;
-
-      if (!email || !password) {
-        return res.status(400).json({ error: "Missing email or password" });
-      }
-
-      const admin = await storage.getAdminByEmail(email);
-      if (!admin) {
-        return res.status(401).json({ error: "Invalid credentials" });
-      }
-
-      const hashedPassword = await hashPassword(password);
-      if (admin.password !== hashedPassword) {
-        return res.status(401).json({ error: "Invalid credentials" });
-      }
-
-      res.json({ success: true, adminId: admin.id });
-    } catch (error) {
-      console.error("Admin login error:", error);
-      res.status(500).json({ error: "Login failed" });
-    }
-  });
-
-  // Get email templates
-  app.get("/api/admin/templates", async (req, res) => {
-    try {
-      const templates = await storage.getEmailTemplates();
-      res.json(templates);
-    } catch (error) {
-      console.error("Error fetching templates:", error);
-      res.status(500).json({ error: "Failed to fetch templates" });
-    }
-  });
-
-  // Create email template
-  app.post("/api/admin/templates", async (req, res) => {
-    try {
-      const validData = insertEmailTemplateSchema.parse(req.body);
-      const template = await storage.createEmailTemplate(validData);
-      res.json(template);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: error.errors });
-      }
-      console.error("Error creating template:", error);
-      res.status(500).json({ error: "Failed to create template" });
-    }
-  });
-
-  // Update email template
-  app.patch("/api/admin/templates/:id", async (req, res) => {
-    try {
-      const { id } = req.params;
-      const { name, subject, htmlContent, isActive } = req.body;
-
-      const template = await storage.updateEmailTemplate(id, {
-        name,
-        subject,
-        htmlContent,
-        isActive,
-      });
-
-      res.json(template);
-    } catch (error) {
-      console.error("Error updating template:", error);
-      res.status(500).json({ error: "Failed to update template" });
-    }
-  });
-
-  // Delete email template
-  app.delete("/api/admin/templates/:id", async (req, res) => {
-    try {
-      const { id } = req.params;
-      await storage.deleteEmailTemplate(id);
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Error deleting template:", error);
-      res.status(500).json({ error: "Failed to delete template" });
-    }
-  });
-
-  // Get application by userId
-  app.get("/api/applications/:userId", async (req, res) => {
-    try {
-      const { userId } = req.params;
-      const application = await storage.getApplication(userId);
-      if (!application) {
-        return res.status(404).json({ error: "Application not found" });
-      }
-      res.json(application);
-    } catch (error) {
-      console.error("Error fetching application:", error);
-      res.status(500).json({ error: "Failed to fetch application" });
-    }
-  });
-
-  // Get all applications
-  app.get("/api/admin/applications", async (req, res) => {
-    try {
-      const applications = await storage.getApplications();
-      res.json(applications);
-    } catch (error) {
-      console.error("Error fetching applications:", error);
-      res.status(500).json({ error: "Failed to fetch applications" });
-    }
-  });
-
-  // Update application status
-  app.patch("/api/admin/applications/:id/status", async (req, res) => {
-    try {
-      const { id } = req.params;
-      const { status } = req.body;
-
-      if (!status) {
-        return res.status(400).json({ error: "Missing status" });
-      }
-
-      const application = await storage.updateApplicationStatus(id, status);
-      res.json(application);
-    } catch (error) {
-      console.error("Error updating application:", error);
-      res.status(500).json({ error: "Failed to update application" });
-    }
-  });
-
-  // Update application steps
-  app.post("/api/admin/applications/:id/update-steps", async (req, res) => {
-    try {
-      const { id } = req.params;
-      const { registrationStatus, paymentStatus, formStatus, photoStatus, submissionStatus } = req.body;
-
-      const application = await storage.updateApplicationSteps(id, {
-        registrationStatus,
-        paymentStatus,
-        formStatus,
-        photoStatus,
-        submissionStatus,
-      });
-      res.json(application);
-    } catch (error) {
-      console.error("Error updating application steps:", error);
-      res.status(500).json({ error: "Failed to update application steps" });
-    }
-  });
-
-  // Send email to client
-  app.post("/api/admin/send-email", async (req, res) => {
-    try {
-      const { toEmail, templateId, recipientName } = req.body;
-
-      if (!toEmail || !templateId) {
-        return res.status(400).json({ error: "Missing required fields" });
-      }
-
-      // Get template by ID
-      const template = await storage.getEmailTemplateById(templateId);
-      if (!template) {
-        return res.status(404).json({ error: "Template not found" });
-      }
-
-      const success = await sendTemplateEmail(
-        toEmail,
-        template.htmlContent,
-        template.subject,
-        recipientName || "Klient"
-      );
-
-      if (success) {
-        res.json({ success: true, message: "Email sent successfully" });
-      } else {
-        res.status(500).json({ error: "Failed to send email" });
-      }
-    } catch (error) {
-      console.error("Error sending email:", error);
-      res.status(500).json({ error: "Failed to send email" });
-    }
-  });
-
-  // Send custom email
-  app.post("/api/admin/send-custom-email", async (req, res) => {
-    try {
-      const { toEmail, subject, htmlContent } = req.body;
-
-      if (!toEmail || !subject || !htmlContent) {
-        return res.status(400).json({ error: "Missing required fields" });
-      }
-
-      const success = await sendTemplateEmail(
-        toEmail,
-        htmlContent,
-        subject,
-        "Klient"
-      );
-
-      if (success) {
-        res.json({ success: true, message: "Email sent successfully" });
-      } else {
-        res.status(500).json({ error: "Failed to send email" });
-      }
-    } catch (error) {
-      console.error("Error sending custom email:", error);
-      res.status(500).json({ error: "Failed to send email" });
-    }
-  });
-
-  // Get all clients
-  app.get("/api/admin/clients", async (req, res) => {
-    try {
-      const clients = await storage.getAllUsers();
-      res.json(clients);
-    } catch (error) {
-      console.error("Error fetching clients:", error);
-      res.status(500).json({ error: "Failed to fetch clients" });
-    }
-  });
-
-  // Get single client
-  app.get("/api/admin/clients/:id", async (req, res) => {
-    try {
-      const { id } = req.params;
-      const client = await storage.getUser(id);
-      if (!client) {
-        return res.status(404).json({ error: "Client not found" });
-      }
-      res.json(client);
-    } catch (error) {
-      console.error("Error fetching client:", error);
-      res.status(500).json({ error: "Failed to fetch client" });
-    }
-  });
-
-  // Update client
-  app.patch("/api/admin/clients/:id", async (req, res) => {
-    try {
-      const { id } = req.params;
-      const updates = req.body;
-
-      const client = await storage.updateUser(id, updates);
-      res.json(client);
-    } catch (error) {
-      console.error("Error updating client:", error);
-      res.status(500).json({ error: "Failed to update client" });
-    }
-  });
-
-  // Delete client
-  app.delete("/api/admin/clients/:id", async (req, res) => {
-    try {
-      const { id } = req.params;
-      await storage.deleteUser(id);
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Error deleting client:", error);
-      res.status(500).json({ error: "Failed to delete client" });
-    }
-  });
-
-  // Update user activity (when they log in or access dashboard)
-  app.post("/api/users/:id/activity", async (req, res) => {
-    try {
-      const { id } = req.params;
-      await storage.updateUser(id, { 
-        lastActivityAt: new Date(),
-        isOnline: true
-      });
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Error updating activity:", error);
-      res.status(500).json({ error: "Failed to update activity" });
-    }
-  });
-
-  // Set user offline
-  app.post("/api/users/:id/offline", async (req, res) => {
-    try {
-      const { id } = req.params;
-      await storage.updateUser(id, { isOnline: false });
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Error setting offline:", error);
-      res.status(500).json({ error: "Failed to set offline" });
-    }
-  });
-
-  // Get application confirmation document (HTML for PDF)
-  app.get("/api/documents/:userId/confirmation", async (req, res) => {
-    try {
-      const { userId } = req.params as { userId: string };
-      
-      const user = await storage.getUser(userId);
-      if (!user) {
-        return res.status(404).json({ error: "User not found" });
-      }
-
-      let application = await storage.getApplication(userId);
-      if (!application) {
-        // Create default application if it doesn't exist
-        application = await storage.createApplication({
-          userId,
-          status: "pending",
-          registrationStatus: "completed",
-          paymentStatus: "pending",
-          formStatus: "pending",
-          photoStatus: "pending",
-          submissionStatus: "pending",
-        });
-      }
-
-      const html = generateApplicationConfirmationHTML(user, application, application?.photoUrl || "");
-      res.setHeader("Content-Type", "text/html; charset=utf-8");
-      res.send(html);
-    } catch (error) {
-      console.error("Error generating confirmation:", error);
-      res.status(500).json({ error: "Failed to generate document" });
-    }
-  });
-
-  // Get declaration document (HTML for PDF)
-  app.get("/api/documents/:userId/declaration", async (req, res) => {
-    try {
-      const { userId } = req.params as { userId: string };
-      
-      const user = await storage.getUser(userId);
-      if (!user) {
-        return res.status(404).json({ error: "User not found" });
-      }
-
-      let application = await storage.getApplication(userId);
-      if (!application) {
-        // Create default application if it doesn't exist
-        application = await storage.createApplication({
-          userId,
-          status: "pending",
-          registrationStatus: "completed",
-          paymentStatus: "pending",
-          formStatus: "pending",
-          photoStatus: "pending",
-          submissionStatus: "pending",
-        });
-      }
-
-      const html = generateDeclarationHTML(user, application);
-      res.setHeader("Content-Type", "text/html; charset=utf-8");
-      res.send(html);
-    } catch (error) {
-      console.error("Error generating declaration:", error);
-      res.status(500).json({ error: "Failed to generate document" });
-    }
-  });
-
-  // Stripe Checkout
-  app.post("/api/checkout", async (req, res) => {
+  // Create checkout session with amount
+  app.post("/api/create-checkout", async (req: Request, res: Response) => {
     try {
       const { userId, packageType } = req.body;
 
@@ -870,7 +1330,6 @@ export async function registerRoutes(
         return res.status(400).json({ error: "Missing userId or packageType" });
       }
 
-      // Get user
       const user = await storage.getUser(userId);
       if (!user) {
         return res.status(404).json({ error: "User not found" });
@@ -915,7 +1374,7 @@ export async function registerRoutes(
   });
 
   // Stripe Routes
-  app.get("/api/stripe/publishable-key", async (req, res) => {
+  app.get("/api/stripe/publishable-key", async (req: Request, res: Response) => {
     try {
       const key = await getStripePublishableKey();
       res.json({ publishableKey: key });
@@ -925,7 +1384,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/checkout", async (req, res) => {
+  app.post("/api/checkout", async (req: Request, res: Response) => {
     try {
       const { userId, priceId } = req.body;
 
@@ -941,15 +1400,17 @@ export async function registerRoutes(
       let customerId = user.stripeCustomerId;
       if (!customerId) {
         const customer = await stripeService.createCustomer(user.email, user.id);
-        await storage.updateUserStripeInfo(user.id, { stripeCustomerId: customer.id });
+        await storage.updateUserStripeInfo(user.id, {
+          stripeCustomerId: customer.id,
+        });
         customerId = customer.id;
       }
 
       const session = await stripeService.createCheckoutSession(
         customerId,
         priceId,
-        `${process.env.REPLIT_DOMAINS || 'localhost:5000'}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-        `${process.env.REPLIT_DOMAINS || 'localhost:5000'}/checkout/cancel`
+        `${process.env.REPLIT_DOMAINS || "localhost:5000"}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+        `${process.env.REPLIT_DOMAINS || "localhost:5000"}/checkout/cancel`
       );
 
       res.json({ url: session.url });
@@ -959,5 +1420,12 @@ export async function registerRoutes(
     }
   });
 
-  return httpServer;
+  return createServer();
 }
+
+const httpServer = createServer();
+const PORT = process.env.PORT || 5000;
+
+httpServer.listen(PORT, "0.0.0.0", () => {
+  console.log(`${new Date().toLocaleTimeString()} [express] serving on port ${PORT}`);
+});
