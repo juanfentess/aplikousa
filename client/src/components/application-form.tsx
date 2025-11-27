@@ -263,11 +263,17 @@ export function ApplicationForm() {
                     )}
                   />
                 </div>
-                <FormMessage>
-                  {form.formState.errors.birthDate?.day?.message || 
-                   form.formState.errors.birthDate?.month?.message || 
-                   form.formState.errors.birthDate?.year?.message}
-                </FormMessage>
+                <div className="min-h-[20px]">
+                  {(form.formState.errors.birthDate?.day?.message || 
+                    form.formState.errors.birthDate?.month?.message || 
+                    form.formState.errors.birthDate?.year?.message) && (
+                    <p className="text-[0.8rem] font-medium text-destructive">
+                      {form.formState.errors.birthDate?.day?.message || 
+                       form.formState.errors.birthDate?.month?.message || 
+                       form.formState.errors.birthDate?.year?.message}
+                    </p>
+                  )}
+                </div>
               </div>
 
               <FormField
