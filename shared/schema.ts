@@ -123,6 +123,20 @@ export const emailLogs = pgTable("email_logs", {
   createdAt: timestamp("created_at").default(sql`now()`),
 });
 
+// Admin settings table (for Stripe payment customization and branding)
+export const adminSettings = pgTable("admin_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  stripeBillingName: text("stripe_billing_name").default("AplikoUSA"), // Name shown on payment page
+  stripeProductDescription: text("stripe_product_description").default("Green Card DV Lottery Application"), // Description on payment
+  companyName: text("company_name").default("AplikoUSA"), // Company display name
+  companyPhone: text("company_phone"), // Company contact phone
+  companyEmail: text("company_email"), // Company contact email
+  supportUrl: text("support_url"), // Support/help link
+  privacyPolicyUrl: text("privacy_policy_url"), // Privacy policy link
+  customLogoUrl: text("custom_logo_url"), // Custom logo for branding
+  updatedAt: timestamp("updated_at").default(sql`now()`),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -167,6 +181,11 @@ export const insertEmailLogSchema = createInsertSchema(emailLogs).omit({
   createdAt: true,
 });
 
+export const insertAdminSettingsSchema = createInsertSchema(adminSettings).omit({
+  id: true,
+  updatedAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -191,3 +210,6 @@ export type InsertActivityLog = z.infer<typeof insertActivityLogSchema>;
 
 export type EmailLog = typeof emailLogs.$inferSelect;
 export type InsertEmailLog = z.infer<typeof insertEmailLogSchema>;
+
+export type AdminSettings = typeof adminSettings.$inferSelect;
+export type InsertAdminSettings = z.infer<typeof insertAdminSettingsSchema>;
