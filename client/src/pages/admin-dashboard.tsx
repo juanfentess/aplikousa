@@ -83,11 +83,13 @@ export default function AdminDashboard() {
   const [sendEmailData, setSendEmailData] = useState({
     recipientEmail: "",
     templateId: "",
+    emailMode: "select", // "select" or "manual"
   });
   const [customEmailData, setCustomEmailData] = useState({
     recipientEmail: "",
     subject: "",
     htmlContent: "",
+    emailMode: "select", // "select" or "manual"
   });
 
   useEffect(() => {
@@ -845,15 +847,55 @@ export default function AdminDashboard() {
                 <CardContent className="p-6">
                   <div className="space-y-6">
                     <div className="space-y-2">
-                      <Label htmlFor="email">Email i Klientit</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="client@example.com"
-                        value={sendEmailData.recipientEmail}
-                        onChange={(e) => setSendEmailData({ ...sendEmailData, recipientEmail: e.target.value })}
-                        data-testid="input-recipient-email"
-                      />
+                      <Label>Email i Klientit</Label>
+                      <div className="flex gap-2 mb-3">
+                        <button
+                          onClick={() => setSendEmailData({ ...sendEmailData, emailMode: "select", recipientEmail: "" })}
+                          className={`flex-1 px-3 py-2 rounded text-sm font-medium transition-all ${
+                            sendEmailData.emailMode === "select"
+                              ? "bg-primary text-white"
+                              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                          }`}
+                        >
+                          Zgjedh nga Klientët
+                        </button>
+                        <button
+                          onClick={() => setSendEmailData({ ...sendEmailData, emailMode: "manual", recipientEmail: "" })}
+                          className={`flex-1 px-3 py-2 rounded text-sm font-medium transition-all ${
+                            sendEmailData.emailMode === "manual"
+                              ? "bg-primary text-white"
+                              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                          }`}
+                        >
+                          Shkruaj Emailin
+                        </button>
+                      </div>
+
+                      {sendEmailData.emailMode === "select" ? (
+                        <Select
+                          value={sendEmailData.recipientEmail}
+                          onValueChange={(value) => setSendEmailData({ ...sendEmailData, recipientEmail: value })}
+                        >
+                          <SelectTrigger data-testid="select-client-email">
+                            <SelectValue placeholder="Zgjedhni klientin" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {clients.map((client) => (
+                              <SelectItem key={client.id} value={client.email}>
+                                {client.firstName} {client.lastName} ({client.email})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <Input
+                          type="email"
+                          placeholder="client@example.com"
+                          value={sendEmailData.recipientEmail}
+                          onChange={(e) => setSendEmailData({ ...sendEmailData, recipientEmail: e.target.value })}
+                          data-testid="input-recipient-email"
+                        />
+                      )}
                     </div>
 
                     <div className="space-y-2">
@@ -917,15 +959,55 @@ export default function AdminDashboard() {
                 <CardContent className="p-6">
                   <div className="space-y-6">
                     <div className="space-y-2">
-                      <Label htmlFor="custom-email">Email i Klientit</Label>
-                      <Input
-                        id="custom-email"
-                        type="email"
-                        placeholder="client@example.com"
-                        value={customEmailData.recipientEmail}
-                        onChange={(e) => setCustomEmailData({ ...customEmailData, recipientEmail: e.target.value })}
-                        data-testid="input-custom-recipient-email"
-                      />
+                      <Label>Email i Klientit</Label>
+                      <div className="flex gap-2 mb-3">
+                        <button
+                          onClick={() => setCustomEmailData({ ...customEmailData, emailMode: "select", recipientEmail: "" })}
+                          className={`flex-1 px-3 py-2 rounded text-sm font-medium transition-all ${
+                            customEmailData.emailMode === "select"
+                              ? "bg-primary text-white"
+                              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                          }`}
+                        >
+                          Zgjedh nga Klientët
+                        </button>
+                        <button
+                          onClick={() => setCustomEmailData({ ...customEmailData, emailMode: "manual", recipientEmail: "" })}
+                          className={`flex-1 px-3 py-2 rounded text-sm font-medium transition-all ${
+                            customEmailData.emailMode === "manual"
+                              ? "bg-primary text-white"
+                              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                          }`}
+                        >
+                          Shkruaj Emailin
+                        </button>
+                      </div>
+
+                      {customEmailData.emailMode === "select" ? (
+                        <Select
+                          value={customEmailData.recipientEmail}
+                          onValueChange={(value) => setCustomEmailData({ ...customEmailData, recipientEmail: value })}
+                        >
+                          <SelectTrigger data-testid="select-client-custom-email">
+                            <SelectValue placeholder="Zgjedhni klientin" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {clients.map((client) => (
+                              <SelectItem key={client.id} value={client.email}>
+                                {client.firstName} {client.lastName} ({client.email})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <Input
+                          type="email"
+                          placeholder="client@example.com"
+                          value={customEmailData.recipientEmail}
+                          onChange={(e) => setCustomEmailData({ ...customEmailData, recipientEmail: e.target.value })}
+                          data-testid="input-custom-recipient-email"
+                        />
+                      )}
                     </div>
 
                     <div className="space-y-2">
