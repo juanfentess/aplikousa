@@ -209,7 +209,11 @@ export default function Dashboard() {
 
   const confirmLogout = async () => {
     setShowLogoutDialog(false);
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Clear all stored data
+    localStorage.removeItem("userId");
+    localStorage.removeItem("paymentStatus");
+    localStorage.removeItem("selectedPackage");
+    await new Promise(resolve => setTimeout(resolve, 300));
     setLocation("/");
   };
 
