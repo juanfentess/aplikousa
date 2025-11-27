@@ -1,14 +1,13 @@
 import express, { Express, Request, Response } from "express";
 import session from "express-session";
-import { createServer, Server as HTTPServer } from "http";
+import { createServer as createHTTPServer, Server as HTTPServer } from "http";
 import ConnectPgSimple from "connect-pg-simple";
 import { db } from "./db";
 import { storage } from "./storage";
-import { sendTemplateEmail, sendTemplateEmail } from "./email";
+import { sendTemplateEmail, sendVerificationEmail, sendPasswordResetEmail } from "./email";
 import {
   generateApplicationConfirmationHTML,
 } from "./documents";
-import { sendTemplateEmail, sendVerificationEmail, sendPasswordResetEmail } from "./email";
 import Stripe from "stripe";
 import { StripeSync } from "stripe-replit-sync";
 import { sql } from "drizzle-orm";
@@ -1389,7 +1388,7 @@ export function createServer(): HTTPServer {
     }
   });
 
-  return createServer();
+  return createHTTPServer();
 }
 
 const httpServer = createServer();
