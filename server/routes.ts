@@ -12,17 +12,33 @@ import Stripe from "stripe";
 import { StripeSync } from "stripe-replit-sync";
 import { sql } from "drizzle-orm";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
-  apiVersion: "2024-11-20",
-});
+let stripe: Stripe | null = null;
+let stripeSync: StripeSync | null = null;
 
-const stripeSync = new StripeSync({
-  database: db as any,
-  stripe,
-  webhookEndpoint: async (app: Express, path: string, handler) => {
-    app.post(path, handler);
-  },
-});
+function getStripe(): Stripe {
+  if (!stripe) {
+    if (!process.env.STRIPE_SECRET_KEY) {
+      throw new Error("STRIPE_SECRET_KEY not set");
+    }
+    stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: "2024-11-20",
+    });
+  }
+  return stripe;
+}
+
+function getStripeSync(): StripeSync {
+  if (!stripeSync) {
+    stripeSync = new StripeSync({
+      database: db as any,
+      stripe: getStripe(),
+      webhookEndpoint: async (app: Express, path: string, handler) => {
+        app.post(path, handler);
+      },
+    });
+  }
+  return stripeSync;
+}
 
 interface StripeCustomerData {
   id: string;
@@ -75,7 +91,7 @@ interface StripeService {
 
 const stripeService: StripeService = {
   async createCustomer(email: string, userId: string) {
-    const customer = await stripe.customers.create({
+    const customer = await getStripe().customers.create({
       email,
       metadata: { userId, name: email.split("@")[0] },
     });
@@ -89,7 +105,7 @@ const stripeService: StripeService = {
     successUrl: string,
     cancelUrl: string
   ) {
-    const session = await stripe.checkout.sessions.create({
+    const session = await getStripe().checkout.sessions.create({
       customer: customerId,
       payment_method_types: ["card"],
       line_items: [
@@ -117,7 +133,7 @@ const stripeService: StripeService = {
     successUrl: string,
     cancelUrl: string
   ) {
-    const session = await stripe.checkout.sessions.create({
+    const session = await getStripe().checkout.sessions.create({
       customer: customerId,
       payment_method_types: ["card"],
       line_items: [
@@ -134,15 +150,15 @@ const stripeService: StripeService = {
   },
 
   async getCustomer(customerId: string) {
-    return await stripe.customers.retrieve(customerId);
+    return await getStripe().customers.retrieve(customerId);
   },
 
   async getSubscription(subscriptionId: string) {
-    return await stripe.subscriptions.retrieve(subscriptionId);
+    return await getStripe().subscriptions.retrieve(subscriptionId);
   },
 
   async getProduct(productId: string) {
-    return await stripe.products.retrieve(productId);
+    return await getStripe().products.retrieve(productId);
   },
 };
 
@@ -1127,7 +1143,7 @@ export async function registerRoutes(httpServer: HTTPServer, app: Express): Prom
   app.post("/api/stripe/webhook/:webhookId", async (req: Request, res: Response) => {
     try {
       const sig = req.headers["stripe-signature"] as string;
-      const event = stripe.webhooks.constructEvent(
+      const event = getStripe().webhooks.constructEvent(
         req.body,
         sig,
         process.env.STRIPE_WEBHOOK_SECRET || ""
