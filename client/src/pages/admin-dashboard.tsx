@@ -338,6 +338,29 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleLoginAsClient = async (clientId: string) => {
+    try {
+      const response = await fetch("/api/admin/login-as-client", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ clientId }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        localStorage.setItem("userId", clientId);
+        localStorage.removeItem("adminId");
+        toast.success("Kyqe si klient me sukses!");
+        setTimeout(() => setLocation("/dashboard"), 500);
+      } else {
+        toast.error("Gabim gjatë kyqjes si klient");
+      }
+    } catch (err) {
+      toast.error("Gabim gjatë kyqjes si klient");
+      console.error(err);
+    }
+  };
+
   const handleSendEmailToClient = async (clientEmail: string, clientName: string) => {
     setSendEmailData({ recipientEmail: clientEmail, templateId: "" });
     setActiveTab("send-email");
@@ -572,6 +595,16 @@ export default function AdminDashboard() {
                                     data-testid={`button-edit-client-${client.id}`}
                                   >
                                     <Edit2 className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="text-blue-600 hover:text-blue-700"
+                                    title="Kyqu si Klient"
+                                    onClick={() => handleLoginAsClient(client.id)}
+                                    data-testid={`button-login-as-client-${client.id}`}
+                                  >
+                                    <LogOut className="w-4 h-4" />
                                   </Button>
                                   <Button
                                     size="sm"

@@ -920,6 +920,28 @@ export async function registerRoutes(httpServer: HTTPServer, app: Express): Prom
     }
   });
 
+  // Admin login as client
+  app.post("/api/admin/login-as-client", async (req: Request, res: Response) => {
+    try {
+      const { clientId } = req.body;
+      
+      if (!clientId) {
+        return res.status(400).json({ error: "Missing clientId" });
+      }
+
+      const client = await storage.getUser(clientId);
+      if (!client) {
+        return res.status(404).json({ error: "Client not found" });
+      }
+
+      console.log("[Admin] Logging in as client:", clientId);
+      res.json({ success: true, userId: clientId, email: client.email });
+    } catch (error: any) {
+      console.error("Error login as client:", error);
+      res.status(500).json({ error: "Failed to login as client" });
+    }
+  });
+
   // Admin Analytics
   app.get("/api/admin/analytics", async (req: Request, res: Response) => {
     try {
