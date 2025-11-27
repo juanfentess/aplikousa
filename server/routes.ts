@@ -1,9 +1,11 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import express from "express";
 import { storage } from "./storage";
 import { sendVerificationEmail, sendTemplateEmail } from "./email";
 import { stripeService } from "./stripeService";
 import { getStripePublishableKey } from "./stripeClient";
+import { WebhookHandlers } from "./webhookHandlers";
 import { insertUserSchema, insertEmailTemplateSchema, insertAdminSchema } from "@shared/schema";
 import { z } from "zod";
 import crypto from "crypto";
@@ -17,6 +19,38 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  // Register Stripe webhook BEFORE express.json()
+  app.post(
+    '/api/stripe/webhook/:uuid',
+    express.raw({ type: 'application/json' }),
+    async (req, res) => {
+      const signature = req.headers['stripe-signature'];
+      if (!signature) {
+        return res.status(400).json({ error: 'Missing stripe-signature' });
+      }
+
+      try {
+        const sig = Array.isArray(signature) ? signature[0] : signature;
+        const { uuid } = req.params;
+        await WebhookHandlers.processWebhook(req.body as Buffer, sig, uuid);
+        res.status(200).json({ received: true });
+      } catch (error: any) {
+        console.error('[Webhook] Error:', error.message);
+        res.status(400).json({ error: 'Webhook error' });
+      }
+    }
+  );
+
+  // Now apply JSON middleware for other routes
+  app.use(
+    express.json({
+      verify: (req, _res, buf) => {
+        (req as any).rawBody = buf;
+      },
+    }),
+  );
+  app.use(express.urlencoded({ extended: false }));
+
   // Auth Routes
 
   // Register user
