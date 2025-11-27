@@ -4,6 +4,7 @@ import { Hero } from "@/components/hero";
 import { HowItWorks } from "@/components/features";
 import { WhyUs } from "@/components/why-us";
 import { Pricing } from "@/components/pricing";
+import { Testimonials } from "@/components/testimonials";
 import { ApplicationForm } from "@/components/application-form";
 import { FAQ } from "@/components/faq";
 import { Footer } from "@/components/footer";
@@ -38,6 +39,7 @@ export default function Home() {
       <HowItWorks />
       <WhyUs />
       <Pricing />
+      <Testimonials />
       <ApplicationForm />
       <FAQ />
       <Footer />
