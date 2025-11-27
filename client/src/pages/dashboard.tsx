@@ -135,86 +135,30 @@ export default function Dashboard() {
   };
 
   const downloadDocument = (docName: string) => {
-    // Create a mock PDF download
-    const element = document.createElement("a");
-    const file = new Blob(
-      [
-        `%PDF-1.4
-1 0 obj
-<<
-/Type /Catalog
-/Pages 2 0 R
->>
-endobj
-2 0 obj
-<<
-/Type /Pages
-/Kids [3 0 R]
-/Count 1
->>
-endobj
-3 0 obj
-<<
-/Type /Page
-/Parent 2 0 R
-/MediaBox [0 0 612 792]
-/Contents 4 0 R
-/Resources <<
-/Font <<
-/F1 5 0 R
->>
->>
->>
-endobj
-4 0 obj
-<<
-/Length 141
->>
-stream
-BT
-/F1 24 Tf
-50 700 Td
-(${docName}) Tj
-0 -40 Td
-/F1 12 Tf
-(Ky dokumenti është gjeneruar nga sistemi AplikoUSA) Tj
-0 -20 Td
-(Data: ${new Date().toLocaleDateString('sq-AL')}) Tj
-ET
-endstream
-endobj
-5 0 obj
-<<
-/Type /Font
-/Subtype /Type1
-/BaseFont /Helvetica
->>
-endobj
-xref
-0 6
-0000000000 65535 f
-0000000009 00000 n
-0000000058 00000 n
-0000000115 00000 n
-0000000262 00000 n
-0000000453 00000 n
-trailer
-<<
-/Size 6
-/Root 1 0 R
->>
-startxref
-532
-%%EOF`
-      ],
-      { type: "application/pdf" }
-    );
-    element.href = URL.createObjectURL(file);
-    element.download = `${docName.toLowerCase().replace(/\s+/g, "-")}-${Date.now()}.pdf`;
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
-    toast.success(`${docName} u shkarkua me sukses!`);
+    try {
+      // Create a simple document content
+      const content = `${docName}\n\nAplikoUSA - Shërbimi i Aplikimit për Green Card DV Lottery\n\nData: ${new Date().toLocaleDateString('sq-AL')}\nOra: ${new Date().toLocaleTimeString('sq-AL')}\n\nKy dokumenti është një kopje e sigurt e aplikimit tuaj.\n\nMë shumë informacion: www.aplikousa.com`;
+      
+      // Create blob
+      const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      
+      // Create and trigger download
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${docName.toLowerCase().replace(/\s+/g, "-")}.txt`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Cleanup
+      setTimeout(() => URL.revokeObjectURL(url), 100);
+      
+      toast.success(`${docName} u shkarkua me sukses!`);
+    } catch (error) {
+      console.error("Download error:", error);
+      toast.error("Gabim gjatë shkarkimit të dokumentit");
+    }
   };
 
   return (
