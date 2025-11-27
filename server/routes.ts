@@ -142,6 +142,39 @@ export async function registerRoutes(
     }
   });
 
+  // Login user
+  app.post("/api/auth/login", async (req, res) => {
+    try {
+      const { email, password } = req.body;
+
+      if (!email || !password) {
+        return res.status(400).json({ error: "Missing email or password" });
+      }
+
+      // Get user by email
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        return res.status(401).json({ error: "Invalid email or password" });
+      }
+
+      // Hash the provided password and compare
+      const hashedPassword = await hashPassword(password);
+      if (user.password !== hashedPassword) {
+        return res.status(401).json({ error: "Invalid email or password" });
+      }
+
+      // Return user ID and payment status
+      res.json({ 
+        success: true, 
+        userId: user.id,
+        paymentStatus: user.paymentStatus || "pending"
+      });
+    } catch (error) {
+      console.error("Login error:", error);
+      res.status(500).json({ error: "Login failed" });
+    }
+  });
+
   // Admin Routes
 
   // Admin login
