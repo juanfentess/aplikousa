@@ -398,6 +398,36 @@ export async function registerRoutes(httpServer: HTTPServer, app: Express): Prom
     }
   });
 
+  // Alias for /verify-email to match frontend expectations
+  app.post("/api/auth/verify", async (req: Request, res: Response) => {
+    try {
+      const { userId, code } = req.body;
+
+      if (!userId || !code) {
+        return res.status(400).json({ error: "Missing userId or code" });
+      }
+
+      const verificationCode = await storage.getVerificationCode(userId, code);
+      if (!verificationCode) {
+        return res
+          .status(400)
+          .json({ error: "Invalid or expired verification code" });
+      }
+
+      await storage.updateUserVerification(userId);
+      await storage.deleteVerificationCode(verificationCode.id);
+
+      const user = await storage.getUser(userId);
+      res.locals.data = user;
+      res.json(user);
+    } catch (error: any) {
+      console.error("Verification error:", error);
+      res
+        .status(500)
+        .json({ error: error.message || "Verification failed" });
+    }
+  });
+
   app.post("/api/auth/resend-verification", async (req: Request, res: Response) => {
     try {
       const { userId } = req.body;

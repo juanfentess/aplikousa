@@ -57,6 +57,13 @@ export default function VerifyEmail() {
         return;
       }
 
+      const userData = await response.json();
+      
+      // Store user data in localStorage so dashboard recognizes them as logged in
+      localStorage.setItem("userId", userData.id);
+      localStorage.setItem("userData", JSON.stringify(userData));
+      localStorage.setItem("paymentStatus", userData.paymentStatus || "pending");
+
       setVerified(true);
       toast.success("Email verifikuar me sukses!");
       setTimeout(() => setLocation("/dashboard"), 2000);
