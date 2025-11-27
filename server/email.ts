@@ -60,27 +60,70 @@ export async function sendVerificationEmail(
     const { client, fromEmail } = await getResendClient();
 
     const htmlContent = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <div style="background: linear-gradient(135deg, #0B1B3B 0%, #E63946 100%); padding: 40px; text-align: center; border-radius: 8px 8px 0 0;">
-          <h1 style="color: white; margin: 0; font-size: 28px;">AplikoUSA</h1>
-        </div>
-        <div style="background: #f8f9fa; padding: 40px; border-radius: 0 0 8px 8px;">
-          <h2 style="color: #0B1B3B; margin-top: 0;">Përshëndetje ${userName}! 👋</h2>
-          <p style="color: #555; font-size: 16px; line-height: 1.6;">
-            Për të përfunduar regjistrimin tuaj në AplikoUSA, ju duhet të verifikoni adresën tuaj të email-it.
-          </p>
-          <div style="background: white; border: 2px solid #E63946; border-radius: 8px; padding: 30px; text-align: center; margin: 30px 0;">
-            <p style="color: #999; font-size: 12px; margin: 0 0 15px 0;">Kodi i verifikimit tuaj</p>
-            <div style="font-size: 48px; font-weight: bold; color: #E63946; letter-spacing: 10px; margin: 0;">
-              ${code.split("").join(" ")}
-            </div>
-            <p style="color: #999; font-size: 12px; margin: 15px 0 0 0;">Ky kod skadohet në 15 minuta</p>
-          </div>
-          <p style="color: #999; font-size: 14px; text-align: center; margin: 0;">
-            Nëse nuk kërkuat këtë kod, mund ta injorohe këtë email.
-          </p>
-        </div>
-      </div>
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      </head>
+      <body style="font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f5f5;">
+          <tr>
+            <td align="center" style="padding: 20px;">
+              <table width="600" cellpadding="0" cellspacing="0" style="background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <!-- Header -->
+                <tr>
+                  <td style="background: linear-gradient(135deg, #0B1B3B 0%, #E63946 100%); padding: 40px 20px; text-align: center;">
+                    <h1 style="color: white; margin: 0; font-size: 28px; font-weight: bold;">AplikoUSA</h1>
+                  </td>
+                </tr>
+                <!-- Content -->
+                <tr>
+                  <td style="padding: 40px 20px;">
+                    <h2 style="color: #0B1B3B; font-size: 20px; margin: 0 0 20px 0; font-weight: bold;">Përshëndetje ${userName}!</h2>
+                    
+                    <p style="color: #555; font-size: 16px; line-height: 1.6; margin: 0 0 30px 0;">
+                      Për të përfunduar regjistrimin tuaj në AplikoUSA, ju duhet të verifikoni adresën tuaj të email-it.
+                    </p>
+                    
+                    <!-- Code Box -->
+                    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8f9fa; border: 2px solid #E63946; border-radius: 8px; margin: 30px 0;">
+                      <tr>
+                        <td style="padding: 30px; text-align: center;">
+                          <p style="color: #999; font-size: 12px; margin: 0 0 15px 0; font-weight: bold;">KODI I VERIFIKIMIT TUAJ</p>
+                          <div style="font-size: 48px; font-weight: bold; color: #E63946; letter-spacing: 8px; margin: 0; font-family: monospace;">
+                            ${code.split("").join(" ")}
+                          </div>
+                          <p style="color: #999; font-size: 12px; margin: 15px 0 0 0;">Ky kod skadohet në 15 minuta</p>
+                        </td>
+                      </tr>
+                    </table>
+                    
+                    <!-- Instructions -->
+                    <p style="color: #555; font-size: 14px; line-height: 1.6; margin: 20px 0; text-align: center;">
+                      Shënohet kodin më sipër në faqen e verifikimit të AplikoUSA.
+                    </p>
+                    
+                    <!-- Disclaimer -->
+                    <p style="color: #999; font-size: 12px; line-height: 1.6; margin: 30px 0 0 0; padding-top: 20px; border-top: 1px solid #e0e0e0; text-align: center;">
+                      Nëse nuk kërkuat këtë kod, ju lutem injorohe këtë email. Pas 15 minutash, kodi do të zhduket.
+                    </p>
+                  </td>
+                </tr>
+                <!-- Footer -->
+                <tr>
+                  <td style="background-color: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #e0e0e0;">
+                    <p style="color: #999; font-size: 12px; margin: 0;">
+                      © 2025 AplikoUSA. Të gjitha të drejtat e rezervuara.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+      </html>
     `;
 
     console.log(`[EMAIL] Attempting to send verification email to ${toEmail} from ${fromEmail}`);

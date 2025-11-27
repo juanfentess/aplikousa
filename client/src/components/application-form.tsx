@@ -5,6 +5,7 @@ import { z } from "zod";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, Loader2, AlertCircle, User, Users, Crown, Eye, EyeOff } from "lucide-react";
 import { useLocation } from "wouter";
+import { toast } from "sonner";
 import {
   Form,
   FormControl,
