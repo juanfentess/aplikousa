@@ -26,28 +26,34 @@ export default function Login() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget as HTMLFormElement);
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+
+    if (!email || !password) {
+      toast.error("Ju lutem plotësoni të gjitha fushat");
+      return;
+    }
     
     setIsLoading(true);
     try {
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: formData.get("email"),
-          password: formData.get("password"),
-        }),
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await response.json();
       if (response.ok && data.userId) {
         localStorage.setItem("userId", data.userId);
         localStorage.setItem("paymentStatus", data.paymentStatus || "pending");
-        toast.success("Hyrje e suksesshme!");
-        setLocation("/dashboard");
+        toast.success(`Mirë se vini ${data.firstName}! 👋`, {
+          description: "Hyrje e suksesshme në sistemin tuaj",
+        });
+        setTimeout(() => setLocation("/dashboard"), 500);
       } else {
-        const errorMsg = data.error || "Hyrje e dështuar. Kontrolloni kredencialët tuaj.";
-        toast.error(errorMsg);
-        console.error("Login failed:", errorMsg);
+        toast.error(data.error || "Hyrje e dështuar", {
+          description: "Kontrolloni emailin dhe fjalëkalimin tuaj",
+        });
       }
     } catch (error) {
       console.error("Login error:", error);

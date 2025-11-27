@@ -148,30 +148,37 @@ export async function registerRoutes(
       const { email, password } = req.body;
 
       if (!email || !password) {
-        return res.status(400).json({ error: "Missing email or password" });
+        return res.status(400).json({ error: "Shkruani emailin dhe fjalëkalimin" });
       }
 
       // Get user by email
       const user = await storage.getUserByEmail(email);
       if (!user) {
-        return res.status(401).json({ error: "Invalid email or password" });
+        return res.status(401).json({ error: "Ky email nuk ekziston në sistem" });
       }
 
       // Hash the provided password and compare
       const hashedPassword = await hashPassword(password);
       if (user.password !== hashedPassword) {
-        return res.status(401).json({ error: "Invalid email or password" });
+        return res.status(401).json({ error: "Fjalëkalimi është i gabuar" });
       }
+
+      // Update activity tracking
+      await storage.updateUser(user.id, {
+        lastActivityAt: new Date(),
+        isOnline: true
+      });
 
       // Return user ID and payment status
       res.json({ 
         success: true, 
         userId: user.id,
-        paymentStatus: user.paymentStatus || "pending"
+        paymentStatus: user.paymentStatus || "pending",
+        firstName: user.firstName
       });
     } catch (error) {
       console.error("Login error:", error);
-      res.status(500).json({ error: "Login failed" });
+      res.status(500).json({ error: "Gabim në kyçje. Provoni më vonë." });
     }
   });
 
