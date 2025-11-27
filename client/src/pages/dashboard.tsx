@@ -578,7 +578,7 @@ export default function Dashboard() {
                           <Card className="border-2 border-gray-200 hover:border-primary hover:shadow-lg transition-all">
                             <CardContent className="p-6 text-center">
                               <h3 className="font-bold text-lg mb-2">Familjare</h3>
-                              <p className="text-sm text-gray-600 mb-4">Për protestat e familje</p>
+                              <p className="text-sm text-gray-600 mb-4">Për paketet e familje</p>
                               <div className="text-3xl font-bold text-primary mb-4">50€</div>
                               <Button 
                                 className="w-full bg-primary hover:bg-primary/90" 
