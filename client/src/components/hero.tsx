@@ -104,47 +104,72 @@ export function Hero() {
           transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
           className="relative hidden md:block"
         >
-          <div className="relative z-10 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md rounded-2xl p-8 border border-white/20 shadow-2xl rotate-3 hover:rotate-0 transition-transform duration-500">
-             <div className="aspect-[4/3] rounded-xl bg-gradient-to-br from-green-400/30 via-blue-400/20 to-purple-400/30 flex flex-col items-center justify-center relative overflow-hidden group border border-white/30">
-                {/* Animated Background */}
-                <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1529101091760-6149d4c8f092?q=80&w=2574&auto=format&fit=crop')] bg-cover bg-center opacity-40 group-hover:opacity-60 transition-opacity duration-700"></div>
+          <div className="relative z-10 bg-gradient-to-br from-teal-500/40 via-blue-600/30 to-slate-900/50 backdrop-blur-xl rounded-3xl p-1 border border-white/20 shadow-2xl hover:shadow-secondary/30 transition-all duration-500">
+             <div className="aspect-[4/3] rounded-3xl bg-gradient-to-br from-teal-600/60 via-blue-700/50 to-slate-900/70 flex flex-col items-center justify-center relative overflow-hidden">
+                {/* Subtle Grid Background */}
+                <div className="absolute inset-0 opacity-10">
+                  <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_24%,rgba(255,255,255,.05)_25%,rgba(255,255,255,.05)_26%,transparent_27%,transparent_74%,rgba(255,255,255,.05)_75%,rgba(255,255,255,.05)_76%,transparent_77%,transparent),linear-gradient(0deg,transparent_24%,rgba(255,255,255,.05)_25%,rgba(255,255,255,.05)_26%,transparent_27%,transparent_74%,rgba(255,255,255,.05)_75%,rgba(255,255,255,.05)_76%,transparent_77%,transparent)] bg-[length:50px_50px]"></div>
+                </div>
                 
-                {/* Decorative Elements */}
+                {/* Top Right Badge */}
                 <motion.div 
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                  className="absolute top-4 right-4 w-16 h-16 border-2 border-green-400/50 rounded-full opacity-40"
-                />
-                <motion.div 
-                  animate={{ rotate: -360 }}
-                  transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-                  className="absolute bottom-6 left-4 w-12 h-12 border-2 border-blue-400/50 rounded-full opacity-30"
-                />
-                
-                {/* Center Content */}
-                <div className="relative z-10 text-center space-y-4">
-                  <motion.div 
-                    animate={{ scale: [1, 1.1, 1] }}
-                    transition={{ duration: 3, repeat: Infinity }}
-                    className="text-5xl font-bold text-white drop-shadow-lg"
-                  >
-                    🎯
-                  </motion.div>
-                  <div className="space-y-2">
-                    <p className="text-lg font-bold text-white drop-shadow-md">Green Card Lottery</p>
-                    <p className="text-sm text-white/80 drop-shadow">Përfundoji në 3 hapa</p>
+                  animate={{ y: [0, -5, 0] }}
+                  transition={{ duration: 3, repeat: Infinity }}
+                  className="absolute top-6 right-6 bg-secondary text-white px-4 py-2 rounded-xl font-bold text-sm shadow-lg z-20"
+                >
+                  <div className="flex items-center gap-2">
+                    <span>100%</span>
+                    <span className="text-xs">Pa Gabime</span>
                   </div>
-                  <div className="flex justify-center gap-3 pt-2">
-                    <div className="w-2 h-2 rounded-full bg-green-400 opacity-80"></div>
-                    <div className="w-2 h-2 rounded-full bg-blue-400 opacity-80"></div>
-                    <div className="w-2 h-2 rounded-full bg-purple-400 opacity-80"></div>
+                </motion.div>
+                
+                {/* Content */}
+                <div className="relative z-10 flex flex-col items-center justify-center h-full gap-6">
+                  {/* Icon - Target with Arrow */}
+                  <motion.div 
+                    animate={{ rotate: [0, 5, -5, 0] }}
+                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                    className="relative w-16 h-16"
+                  >
+                    <div className="absolute inset-0 rounded-full border-3 border-secondary/70 flex items-center justify-center">
+                      <div className="w-8 h-8 rounded-full bg-secondary/50"></div>
+                      <motion.div 
+                        animate={{ rotate: -360 }}
+                        transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                        className="absolute w-12 h-12 border-2 border-transparent border-t-secondary border-r-secondary rounded-full"
+                      />
+                    </div>
+                    <motion.div 
+                      animate={{ x: [0, 3, 0], y: [0, -3, 0] }}
+                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                      className="absolute -top-2 -right-2 text-secondary text-xl"
+                    >
+                      →
+                    </motion.div>
+                  </motion.div>
+                  
+                  {/* Text */}
+                  <div className="text-center space-y-3">
+                    <h3 className="text-2xl font-bold text-white font-heading tracking-tight">Green Card Lottery</h3>
+                    <p className="text-white/80 text-sm font-medium">Përfundoji në 3 hapa</p>
+                  </div>
+                  
+                  {/* Steps Indicator */}
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-400"></div>
+                    <div className="w-2.5 h-2.5 rounded-full bg-blue-400"></div>
+                    <div className="w-2.5 h-2.5 rounded-full bg-purple-400"></div>
                   </div>
                 </div>
                 
-                {/* Bottom Badge */}
-                <div className="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur px-4 py-3 rounded-lg shadow-lg group-hover:shadow-xl transition-shadow">
-                  <p className="text-xs font-bold text-primary mb-1">✓ Zyrtar & Sigur</p>
-                  <p className="text-[11px] text-gray-600">Aplikimi direkt në USCIS</p>
+                {/* Bottom White Section */}
+                <div className="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm px-6 py-4 rounded-b-3xl">
+                  <div className="space-y-1">
+                    <p className="text-xs font-bold text-primary flex items-center gap-2">
+                      <span className="text-green-600">✓</span> Zyrtar & Sigur
+                    </p>
+                    <p className="text-xs text-gray-600">Aplikimi direkt në USCIS</p>
+                  </div>
                 </div>
              </div>
           </div>
