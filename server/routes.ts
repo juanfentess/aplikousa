@@ -153,31 +153,7 @@ async function getStripePublishableKey(): Promise<string> {
   return process.env.STRIPE_PUBLISHABLE_KEY;
 }
 
-export function createServer(): HTTPServer {
-  const app = express();
-
-  app.use(express.json());
-
-  const pgSession = ConnectPgSimple(session);
-
-  app.use(
-    session({
-      store: new pgSession({
-        conString: process.env.DATABASE_URL || "",
-      }),
-      secret: "your-secret-key",
-      resave: false,
-      saveUninitialized: false,
-      cookie: {
-        secure: process.env.NODE_ENV === "production",
-        httpOnly: true,
-        maxAge: 24 * 60 * 60 * 1000,
-      },
-    })
-  );
-
-  // Initialize Stripe sync
-  stripeSync.initialize();
+export async function registerRoutes(httpServer: HTTPServer, app: Express): Promise<void> {
 
   // Middleware to log requests
   app.use((req, res, next) => {
@@ -1388,12 +1364,4 @@ export function createServer(): HTTPServer {
     }
   });
 
-  return createHTTPServer();
 }
-
-const httpServer = createServer();
-const PORT = process.env.PORT || 5000;
-
-httpServer.listen(PORT, "0.0.0.0", () => {
-  console.log(`${new Date().toLocaleTimeString()} [express] serving on port ${PORT}`);
-});
