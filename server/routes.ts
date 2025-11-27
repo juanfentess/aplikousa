@@ -92,6 +92,15 @@ export async function registerRoutes(
       // Update user as verified
       await storage.updateUserVerification(userId);
       await storage.deleteVerificationCode(verificationRecord.id);
+      
+      // Create application for the user
+      const user = await storage.getUser(userId);
+      if (user) {
+        await storage.createApplication({
+          userId,
+          status: "pending",
+        });
+      }
 
       res.json({ success: true, message: "Email verified successfully" });
     } catch (error) {
