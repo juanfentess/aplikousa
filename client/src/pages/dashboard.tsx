@@ -76,17 +76,19 @@ export default function Dashboard() {
       // Check if returning from payment success
       const params = new URLSearchParams(window.location.search);
       if (params.get("payment") === "success") {
+        const packageType = localStorage.getItem("selectedPackage") || "individual";
         // Call API to mark payment as complete
         fetch("/api/payment-success", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId }),
+          body: JSON.stringify({ userId, packageType }),
         })
           .then(res => res.json())
           .then(data => {
             if (data.success) {
               setUserPaymentStatus("completed");
               localStorage.setItem("paymentStatus", "completed");
+              localStorage.removeItem("selectedPackage");
               toast.success("Pagesa u përfundua me sukses! Mirëpresim në aplikimin tuaj.");
               // Clean URL
               window.history.replaceState({}, document.title, "/dashboard");
@@ -127,6 +129,9 @@ export default function Dashboard() {
         setCheckoutLoading(false);
         return;
       }
+
+      // Store selected package for later use in payment-success
+      localStorage.setItem("selectedPackage", packageType);
 
       const response = await fetch("/api/checkout", {
         method: "POST",

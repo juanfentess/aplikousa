@@ -201,7 +201,7 @@ export async function registerRoutes(
   // Handle payment success
   app.post("/api/payment-success", async (req, res) => {
     try {
-      const { userId } = req.body;
+      const { userId, packageType } = req.body;
 
       if (!userId) {
         return res.status(400).json({ error: "Missing user ID" });
@@ -212,6 +212,15 @@ export async function registerRoutes(
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
+
+      // Package details mapping
+      const packages: Record<string, { name: string; amount: number }> = {
+        individual: { name: "Paket Individuale", amount: 20 },
+        couple: { name: "Paket për Çifte", amount: 35 },
+        family: { name: "Paket Familjare", amount: 50 },
+      };
+
+      const pkg = packages[packageType] || packages.individual;
 
       // Update payment status
       await storage.updateUserStripeInfo(userId, { paymentStatus: "completed" });
@@ -227,21 +236,27 @@ export async function registerRoutes(
             body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; }
             .container { max-width: 600px; margin: 0 auto; background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
             .header { background: linear-gradient(135deg, #0B1B3B 0%, #1a3a52 100%); color: white; padding: 40px 20px; text-align: center; }
-            .header h1 { margin: 0; font-size: 28px; }
+            .header h1 { margin: 0; font-size: 28px; font-weight: 700; }
             .success-icon { font-size: 48px; margin-bottom: 15px; }
             .content { padding: 40px 30px; }
             .section { margin-bottom: 30px; }
-            .section-title { font-size: 16px; font-weight: 600; color: #0B1B3B; margin-bottom: 15px; }
-            .info-box { background-color: #f0f7ff; border-left: 4px solid #0B1B3B; padding: 15px; border-radius: 4px; margin: 15px 0; }
+            .section-title { font-size: 16px; font-weight: 700; color: #0B1B3B; margin-bottom: 20px; }
+            .info-box { background-color: #f0f7ff; border-left: 4px solid #0B1B3B; padding: 15px 15px; border-radius: 4px; margin: 10px 0; display: flex; justify-content: space-between; align-items: center; }
             .info-label { font-size: 13px; color: #666; font-weight: 500; }
-            .info-value { font-size: 16px; color: #0B1B3B; font-weight: 600; margin-top: 5px; }
-            .button { display: inline-block; background-color: #0B1B3B; color: white; padding: 12px 30px; border-radius: 4px; text-decoration: none; font-weight: 600; margin: 20px 0; }
-            .button:hover { background-color: #0a1530; }
-            .features { list-style: none; padding: 0; margin: 15px 0; }
+            .info-value { font-size: 16px; color: #0B1B3B; font-weight: 700; text-align: right; }
+            .amount-box { background-color: #0B1B3B; color: white; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0; }
+            .amount-label { font-size: 13px; opacity: 0.9; }
+            .amount-value { font-size: 36px; font-weight: 700; margin-top: 8px; }
+            .button { display: inline-block; background-color: #E63946; color: white; padding: 14px 35px; border-radius: 4px; text-decoration: none; font-weight: 700; margin: 20px auto; }
+            .button:hover { background-color: #d12a3a; }
+            .button-container { text-align: center; }
+            .features { list-style: none; padding: 0; margin: 20px 0; background-color: #f9f9f9; border-radius: 8px; padding: 20px; }
             .features li { padding: 10px 0; padding-left: 25px; position: relative; color: #333; font-size: 14px; }
-            .features li:before { content: "✓"; position: absolute; left: 0; color: #0B1B3B; font-weight: bold; }
+            .features li:before { content: "✓"; position: absolute; left: 0; color: #0B1B3B; font-weight: bold; font-size: 16px; }
             .footer { background-color: #f9f9f9; padding: 20px 30px; border-top: 1px solid #eee; font-size: 12px; color: #666; text-align: center; }
-            .footer a { color: #0B1B3B; text-decoration: none; }
+            .footer p { margin: 8px 0; }
+            .footer a { color: #0B1B3B; text-decoration: none; font-weight: 600; }
+            .divider { height: 1px; background-color: #eee; margin: 20px 0; }
           </style>
         </head>
         <body>
@@ -250,71 +265,96 @@ export async function registerRoutes(
             <div class="header">
               <div class="success-icon">✓</div>
               <h1>Pagesa u Përfundua me Sukses!</h1>
-              <p style="margin: 10px 0 0 0; font-size: 14px; opacity: 0.9;">Faleminderit për besimin tuaj</p>
+              <p style="margin: 10px 0 0 0; font-size: 14px; opacity: 0.9;">Faleminderit për zgjedhjen e AplikoUSA</p>
             </div>
 
             <!-- Content -->
             <div class="content">
               <!-- Greeting -->
               <div class="section">
-                <p style="margin: 0; font-size: 16px; color: #333;">Përshëndetje ${user.firstName},</p>
+                <p style="margin: 0; font-size: 16px; color: #333; font-weight: 600;">Përshëndetje ${user.firstName},</p>
               </div>
 
               <!-- Success Message -->
               <div class="section">
-                <p style="margin: 0; color: #666; line-height: 1.6;">
-                  Jemi të ngazëllyer t'ju informojmë se pagesa juaj për aplikimin e DV Lottery Green Card është marrë dhe përpunuar me sukses. 
-                  Ju mund ta filloni aplikimin tuaj tani dhe të ndjekni statusin në çdo kohë përmes panelimit tuaj.
+                <p style="margin: 0; color: #555; line-height: 1.7;">
+                  Jemi të lumtur t'ju informojmë se pagesa juaj për aplikimin e DV Lottery Green Card u përfundua me sukses. Tani mund të filloni plotësimin e aplikimit tuaj dhe të ndjekni përparimin në çdo kohë përmes panelit tuaj.
                 </p>
               </div>
 
-              <!-- Receipt Section -->
+              <!-- Payment Details Section -->
               <div class="section">
                 <div class="section-title">Detalet e Pagesës</div>
+                
                 <div class="info-box">
-                  <div class="info-label">Shuma e Paguar</div>
-                  <div class="info-value">Sipas Paketës</div>
+                  <div class="info-label">Paketi i Zgjedhur</div>
+                  <div class="info-value">${pkg.name}</div>
                 </div>
+                
+                <div class="amount-box">
+                  <div class="amount-label">Shuma e Paguar</div>
+                  <div class="amount-value">€${pkg.amount}</div>
+                </div>
+                
                 <div class="info-box">
-                  <div class="info-label">Statusi</div>
-                  <div class="info-value" style="color: #10b981;">Përfunduar</div>
+                  <div class="info-label">Statusi i Pagesës</div>
+                  <div class="info-value" style="color: #10b981; font-weight: 700;">✓ Përfunduar</div>
                 </div>
+                
                 <div class="info-box">
                   <div class="info-label">Email Konfirmimi</div>
                   <div class="info-value">${user.email}</div>
                 </div>
               </div>
 
-              <!-- What's Next -->
+              <div class="divider"></div>
+
+              <!-- What's Included -->
               <div class="section">
-                <div class="section-title">Hapat e Ardhshëm</div>
+                <div class="section-title">Çfarë Përfshihet në Paketën Tuaj</div>
                 <ul class="features">
-                  <li>Plotësoni formularin e aplikimit me të dhënat tuaja të plota</li>
-                  <li>Ngarkoni foton tuaj në përputhje me kërkesat zyrtare</li>
-                  <li>Rishikojeni aplikimin tuaj para se ta dorëzoni</li>
-                  <li>Monitoroni statusin e aplikimit në panelin tuaj</li>
+                  <li>Mbështetje e plotë për plotësimin e aplikimit</li>
+                  <li>Kontrolli i përputhshmërisë me kërkesat zyrtare</li>
+                  <li>Konsultim me ekspertë të DV Lottery</li>
+                  <li>Ndjekja e statusit në kohë reale</li>
+                  <li>Akses i plotë në panelin tuaj</li>
                 </ul>
               </div>
 
+              <!-- Next Steps -->
+              <div class="section">
+                <div class="section-title">Hapat Tuaj të Ardhshëm</div>
+                <ol style="color: #555; line-height: 1.8; padding-left: 25px;">
+                  <li>Hyni në panelin tuaj me kredencialet tuaja</li>
+                  <li>Plotësoni të gjithë informacionet e kërkuara në aplikim</li>
+                  <li>Ngarkoni dokumentet sipas specifikacioneve</li>
+                  <li>Rishikoni aplikimin përpara dorëzimit</li>
+                  <li>Dorëzoni aplikimin përfundimtar</li>
+                </ol>
+              </div>
+
               <!-- CTA Button -->
-              <div style="text-align: center;">
+              <div class="button-container">
                 <a href="https://aplikousa.com/dashboard" class="button">Shko në Panelin tim</a>
               </div>
 
-              <!-- Support -->
-              <div class="section" style="margin-top: 30px; padding-top: 30px; border-top: 1px solid #eee;">
-                <p style="margin: 0; font-size: 14px; color: #666;">
-                  Nëse keni pyetje ose keni nevojë për ndihmë, kontaktoni <a href="mailto:info@aplikousa.com" style="color: #0B1B3B; text-decoration: none;">info@aplikousa.com</a>
+              <!-- Support Section -->
+              <div class="section" style="margin-top: 30px; padding-top: 30px; border-top: 1px solid #eee; background-color: #f9f9f9; padding: 20px; border-radius: 8px;">
+                <p style="margin: 0; font-size: 14px; color: #555; font-weight: 600;">Keni pyetje?</p>
+                <p style="margin: 8px 0 0 0; font-size: 14px; color: #666;">
+                  Ekipi ynë i mbështetjes është i gatshëm të ju ndihmojë. Kontaktoni na në <a href="mailto:info@aplikousa.com" style="color: #0B1B3B; text-decoration: none; font-weight: 600;">info@aplikousa.com</a> ose më +1 (555) 000-0000
                 </p>
               </div>
             </div>
 
             <!-- Footer -->
             <div class="footer">
-              <p style="margin: 0;">© 2025 AplikoUSA. Të gjitha të drejtat e rezervuara.</p>
-              <p style="margin: 10px 0 0 0; font-size: 11px;">
+              <p style="margin: 0; font-weight: 600;">© 2025 AplikoUSA - Green Card DV Lottery</p>
+              <p>Aplikimi zyrtar për vizat të gjelbëra në ShBA</p>
+              <p style="margin-top: 15px;">
                 <a href="https://aplikousa.com/privacy">Politika e Privatësisë</a> | 
-                <a href="https://aplikousa.com/terms">Termat e Shërbimit</a>
+                <a href="https://aplikousa.com/terms">Termat e Shërbimit</a> | 
+                <a href="https://aplikousa.com/contact">Kontakti</a>
               </p>
             </div>
           </div>
@@ -325,7 +365,7 @@ export async function registerRoutes(
       await sendTemplateEmail(
         user.email,
         htmlContent,
-        "Pagesa e Suksesshme - AplikoUSA Green Card DV Lottery",
+        "Pagesa e Përfunduar me Sukses - AplikoUSA DV Lottery",
         user.firstName
       );
 
