@@ -14,14 +14,34 @@ export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [, setLocation] = useLocation();
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    const formData = new FormData(e.currentTarget as HTMLFormElement);
+    
     setIsLoading(true);
-    // Simulate register
-    setTimeout(() => {
+    try {
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName: formData.get("firstName"),
+          lastName: formData.get("lastName"),
+          email: formData.get("email"),
+          password: formData.get("password"),
+        }),
+      });
+
+      const data = await response.json();
+      if (data.userId) {
+        localStorage.setItem("userId", data.userId);
+        localStorage.setItem("paymentStatus", "pending");
+        setLocation("/dashboard");
+      }
+    } catch (error) {
+      console.error("Registration error:", error);
+    } finally {
       setIsLoading(false);
-      setLocation("/dashboard");
-    }, 1500);
+    }
   };
 
   return (
@@ -46,22 +66,23 @@ export default function Register() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="firstName">Emri</Label>
-                    <Input id="firstName" placeholder="Emri" required className="bg-gray-50" />
+                    <Input id="firstName" name="firstName" placeholder="Emri" required className="bg-gray-50" />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="lastName">Mbiemri</Label>
-                    <Input id="lastName" placeholder="Mbiemri" required className="bg-gray-50" />
+                    <Input id="lastName" name="lastName" placeholder="Mbiemri" required className="bg-gray-50" />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" placeholder="emri@shembull.com" required className="bg-gray-50" />
+                  <Input id="email" name="email" type="email" placeholder="emri@shembull.com" required className="bg-gray-50" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="password">Fjalëkalimi</Label>
                   <div className="relative">
                     <Input 
                       id="password" 
+                      name="password"
                       type={showPassword ? "text" : "password"} 
                       placeholder="••••••••" 
                       required 

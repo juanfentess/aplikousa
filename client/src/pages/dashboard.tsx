@@ -83,8 +83,11 @@ export default function Dashboard() {
     setCheckoutLoading(true);
     try {
       const userId = localStorage.getItem("userId");
+      console.log("Payment clicked for:", packageType, "userId:", userId);
+      
       if (!userId) {
         toast.error("Përdoruesi nuk u gjet. Ju lutem regjistrohuni përsëri.");
+        setCheckoutLoading(false);
         return;
       }
 
@@ -95,24 +98,35 @@ export default function Dashboard() {
         family: "prod_TV7YKG4TXTFwmr",     // 50€
       };
 
+      const productId = productIds[packageType];
+      console.log("Sending checkout request with productId:", productId);
+
       const response = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId,
-          productId: productIds[packageType],
+          productId,
         }),
       });
 
+      console.log("Checkout response status:", response.status);
       const data = await response.json();
+      console.log("Checkout response data:", data);
+      
+      if (!response.ok) {
+        throw new Error(data.error || "API error");
+      }
+      
       if (data.url) {
-        window.location.href = data.url; // Redirect to Stripe checkout
+        console.log("Redirecting to:", data.url);
+        window.location.href = data.url;
       } else {
         toast.error(data.error || "Gabim në hapjen e pagesës");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Payment error:", error);
-      toast.error("Gabim gjatë procesit të pagesës");
+      toast.error(error?.message || "Gabim gjatë procesit të pagesës");
     } finally {
       setCheckoutLoading(false);
     }

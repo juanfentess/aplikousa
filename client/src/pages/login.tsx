@@ -14,14 +14,32 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [, setLocation] = useLocation();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    const formData = new FormData(e.currentTarget as HTMLFormElement);
+    
     setIsLoading(true);
-    // Simulate login
-    setTimeout(() => {
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: formData.get("email"),
+          password: formData.get("password"),
+        }),
+      });
+
+      const data = await response.json();
+      if (data.userId) {
+        localStorage.setItem("userId", data.userId);
+        localStorage.setItem("paymentStatus", data.paymentStatus || "pending");
+        setLocation("/dashboard");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+    } finally {
       setIsLoading(false);
-      setLocation("/dashboard");
-    }, 1500);
+    }
   };
 
   return (
@@ -45,13 +63,14 @@ export default function Login() {
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" placeholder="emri@shembull.com" required className="bg-gray-50" />
+                  <Input id="email" name="email" type="email" placeholder="emri@shembull.com" required className="bg-gray-50" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="password">Fjalëkalimi</Label>
                   <div className="relative">
                     <Input 
                       id="password" 
+                      name="password"
                       type={showPassword ? "text" : "password"} 
                       placeholder="••••••••" 
                       required 
