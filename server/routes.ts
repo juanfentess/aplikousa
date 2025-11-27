@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import express from "express";
 import { storage } from "./storage";
-import { sendVerificationEmail, sendTemplateEmail } from "./email";
+import { sendVerificationEmail, sendTemplateEmail, sendPasswordResetEmail } from "./email";
 import { stripeService } from "./stripeService";
 import { getStripePublishableKey } from "./stripeClient";
 import { WebhookHandlers } from "./webhookHandlers";
@@ -179,6 +179,74 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Login error:", error);
       res.status(500).json({ error: "Gabim në kyçje. Provoni më vonë." });
+    }
+  });
+
+  // Forgot password - send reset link
+  app.post("/api/auth/forgot-password", async (req, res) => {
+    try {
+      const { email } = req.body;
+
+      if (!email) {
+        return res.status(400).json({ error: "Shkruani emailin tuaj" });
+      }
+
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        return res.status(200).json({ success: true, message: "Nëse emaili ekziston, do të marrni lidhjen e resetimit" });
+      }
+
+      // Generate reset token
+      const token = crypto.randomBytes(16).toString("hex");
+      const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+      await storage.createPasswordResetToken(user.id, token, expiresAt);
+
+      // Send reset email
+      const baseUrl = `${req.protocol}://${req.get("host")}`;
+      const resetLink = `${baseUrl}/reset-password?token=${token}`;
+
+      await sendPasswordResetEmail(email, resetLink, user.firstName);
+
+      res.json({ success: true, message: "Emaili i rivendosjes u dërgua" });
+    } catch (error) {
+      console.error("Forgot password error:", error);
+      res.status(500).json({ error: "Gabim në dërgimin e emailit" });
+    }
+  });
+
+  // Reset password with token
+  app.post("/api/auth/reset-password", async (req, res) => {
+    try {
+      const { token, newPassword } = req.body;
+
+      if (!token || !newPassword) {
+        return res.status(400).json({ error: "Token dhe fjalëkalim i ri janë të detyrueshme" });
+      }
+
+      if (newPassword.length < 6) {
+        return res.status(400).json({ error: "Fjalëkalimi duhet të ketë të paktën 6 karaktere" });
+      }
+
+      // Get and validate token
+      const resetToken = await storage.getPasswordResetToken(token);
+      if (!resetToken) {
+        return res.status(401).json({ error: "Lidhja e resetimit nuk është e vlefshme ose ka skaduar" });
+      }
+
+      // Hash new password
+      const hashedPassword = await hashPassword(newPassword);
+
+      // Update user password
+      await storage.updateUser(resetToken.userId, { password: hashedPassword });
+
+      // Delete the token
+      await storage.deletePasswordResetToken(resetToken.id);
+
+      res.json({ success: true, message: "Fjalëkalimi u rivendos me sukses" });
+    } catch (error) {
+      console.error("Reset password error:", error);
+      res.status(500).json({ error: "Gabim në rivendosjen e fjalëkalimit" });
     }
   });
 

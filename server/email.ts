@@ -180,3 +180,88 @@ export async function sendTemplateEmail(
     return false;
   }
 }
+
+export async function sendPasswordResetEmail(
+  toEmail: string,
+  resetLink: string,
+  userName: string
+): Promise<boolean> {
+  try {
+    const { client, fromEmail } = await getResendClient();
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+          body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; }
+          .container { max-width: 600px; margin: 0 auto; background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+          .header { background: linear-gradient(135deg, #0B1B3B 0%, #1a3a52 100%); color: white; padding: 40px 20px; text-align: center; }
+          .header h1 { margin: 0; font-size: 28px; font-weight: 700; }
+          .content { padding: 40px 30px; }
+          .warning-box { background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; border-radius: 4px; margin: 20px 0; }
+          .warning-box p { margin: 0; color: #856404; font-size: 14px; }
+          .reset-box { background-color: #0B1B3B; border-radius: 8px; padding: 30px; text-align: center; margin: 30px 0; }
+          .reset-link { display: inline-block; background-color: #E63946; color: white; padding: 16px 40px; text-decoration: none; border-radius: 4px; font-weight: 700; margin: 15px 0; }
+          .reset-link:hover { background-color: #d12a3a; }
+          .info-text { color: #555; font-size: 14px; line-height: 1.6; margin: 20px 0; }
+          .footer { background-color: #f9f9f9; padding: 20px 30px; border-top: 1px solid #eee; font-size: 12px; color: #666; text-align: center; }
+          .footer p { margin: 8px 0; }
+          .divider { height: 1px; background-color: #eee; margin: 30px 0; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>🔐 Rivendos Fjalëkalimin</h1>
+          </div>
+          <div class="content">
+            <p style="color: #0B1B3B; font-size: 16px; margin: 0 0 20px 0;">Përshëndetje ${userName},</p>
+            
+            <p style="color: #555; font-size: 14px; line-height: 1.6;">
+              Keni kërkuar të rivendosni fjalëkalimin tuaj. Nëse nuk e bëtë këtë kërkesë, mund ta injorohet këtë email.
+            </p>
+
+            <div class="reset-box">
+              <p style="color: white; margin: 0 0 15px 0; font-size: 14px;">Klikoni butonin më poshtë për të rivendosur fjalëkalimin tuaj:</p>
+              <a href="${resetLink}" class="reset-link">Rivendos Fjalëkalimin</a>
+              <p style="color: rgba(255,255,255,0.7); font-size: 12px; margin: 15px 0 0 0;">Kjo lidhje do të skadojë në 1 orë</p>
+            </div>
+
+            <div class="warning-box">
+              <p>⚠️ Nëse nuk keni kërkuar këtë, ju lutemi injorojeni emailin. Ju duhet ta ndryshoni fjalëkalimin tuaj vetëm nëse dyshimet se ka qenë i kompromentuar.</p>
+            </div>
+
+            <div class="divider"></div>
+
+            <p style="color: #666; font-size: 12px; text-align: center; margin: 20px 0;">
+              Ose kopjoni këtë lidhje në shfletuesin tuaj:<br>
+              <span style="word-break: break-all; color: #0B1B3B;">${resetLink}</span>
+            </p>
+          </div>
+          <div class="footer">
+            <p>AplikoUSA - Green Card DV Lottery Application Services</p>
+            <p>© 2025 AplikoUSA. Të gjitha të drejtat e rezervuara.</p>
+            <p>info@aplikousa.com | +383 44 000 000</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    const response = await client.emails.send({
+      from: `AplikoUSA <${fromEmail}>`,
+      to: toEmail,
+      subject: "Rivendos Fjalëkalimin - AplikoUSA",
+      html: htmlContent,
+      replyTo: "info@aplikousa.com",
+    });
+
+    return !!response.data?.id;
+  } catch (error) {
+    console.error("Error sending password reset email:", error);
+    return false;
+  }
+}
