@@ -805,12 +805,21 @@ export async function registerRoutes(
         return res.status(404).json({ error: "User not found" });
       }
 
-      const application = await storage.getApplication(userId);
+      let application = await storage.getApplication(userId);
       if (!application) {
-        return res.status(404).json({ error: "Application not found" });
+        // Create default application if it doesn't exist
+        application = await storage.createApplication({
+          userId,
+          status: "pending",
+          registrationStatus: "completed",
+          paymentStatus: "pending",
+          formStatus: "pending",
+          photoStatus: "pending",
+          submissionStatus: "pending",
+        });
       }
 
-      const html = generateApplicationConfirmationHTML(user, application, application.photoUrl);
+      const html = generateApplicationConfirmationHTML(user, application, application?.photoUrl || "");
       res.setHeader("Content-Type", "text/html; charset=utf-8");
       res.send(html);
     } catch (error) {
@@ -829,9 +838,18 @@ export async function registerRoutes(
         return res.status(404).json({ error: "User not found" });
       }
 
-      const application = await storage.getApplication(userId);
+      let application = await storage.getApplication(userId);
       if (!application) {
-        return res.status(404).json({ error: "Application not found" });
+        // Create default application if it doesn't exist
+        application = await storage.createApplication({
+          userId,
+          status: "pending",
+          registrationStatus: "completed",
+          paymentStatus: "pending",
+          formStatus: "pending",
+          photoStatus: "pending",
+          submissionStatus: "pending",
+        });
       }
 
       const html = generateDeclarationHTML(user, application);
