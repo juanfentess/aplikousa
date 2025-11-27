@@ -1,4 +1,4 @@
-import { db } from "@replit/drizzle";
+import { db } from "./db";
 import {
   users,
   verificationCodes,
