@@ -589,6 +589,78 @@ export default function AdminDashboard() {
     { id: "settings", label: "Rregullimet", icon: Settings },
   ];
 
+  const handleCreateBlogPost = async () => {
+    if (!blogPostForm.title || !blogPostForm.slug || !blogPostForm.content || !blogPostForm.categoryId) {
+      toast.error("Plotësoni të gjitha fushat e detyrueshme");
+      return;
+    }
+    setLoading(true);
+    try {
+      const method = editingPost ? "PUT" : "POST";
+      const url = editingPost ? `/api/admin/blog/posts/${editingPost.id}` : "/api/admin/blog/posts";
+      const response = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...blogPostForm,
+          publishedAt: blogPostForm.isPublished ? new Date() : null,
+        }),
+      });
+      if (response.ok) {
+        toast.success(editingPost ? "Postimi përditësuar" : "Postimi krijuar");
+        setShowBlogPostDialog(false);
+        setBlogPostForm({ title: "", slug: "", content: "", excerpt: "", categoryId: "", imageUrl: "", seoTitle: "", seoDescription: "", seoKeywords: "", isPublished: false });
+        setEditingPost(null);
+        loadBlogPosts();
+      }
+    } catch (err) {
+      toast.error("Gabim gjatë ruajtjes");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteBlogPost = async (id: string) => {
+    if (!confirm("A jeni i sigurt?")) return;
+    try {
+      const response = await fetch(`/api/admin/blog/posts/${id}`, { method: "DELETE" });
+      if (response.ok) {
+        toast.success("Postimi u fshi");
+        loadBlogPosts();
+      }
+    } catch (err) {
+      toast.error("Gabim");
+      console.error(err);
+    }
+  };
+
+  const handleCreateBlogCategory = async () => {
+    if (!blogCategoryForm.name || !blogCategoryForm.slug) {
+      toast.error("Plotësoni emrin dhe slug-ën");
+      return;
+    }
+    setLoading(true);
+    try {
+      const response = await fetch("/api/admin/blog/categories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(blogCategoryForm),
+      });
+      if (response.ok) {
+        toast.success("Kategoria krijuar");
+        setShowBlogCategoryDialog(false);
+        setBlogCategoryForm({ name: "", slug: "", description: "" });
+        loadBlogCategories();
+      }
+    } catch (err) {
+      toast.error("Gabim");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleBulkSelect = (clientId: string) => {
     setSelectedClientIds(prev => 
       prev.includes(clientId) ? prev.filter(id => id !== clientId) : [...prev, clientId]
