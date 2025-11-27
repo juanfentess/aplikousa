@@ -89,11 +89,11 @@ export default function Dashboard() {
       }
 
       // Map package type to price ID (from Stripe)
-      // These are test price IDs - replace with real ones after creating products in Stripe
+      // Replace these with your actual Stripe price IDs from: https://dashboard.stripe.com/prices
       const priceIds: Record<string, string> = {
-        individual: "price_individual_test", // Will be replaced with real Stripe price ID
-        couple: "price_couple_test",
-        family: "price_family_test",
+        individual: "price_1234567890individual", // 20€
+        couple: "price_1234567890couple",         // 35€
+        family: "price_1234567890family",          // 50€
       };
 
       const response = await fetch("/api/checkout", {
@@ -353,7 +353,7 @@ export default function Dashboard() {
                             <CardContent className="p-6 text-center">
                               <h3 className="font-bold text-lg mb-2">Individual</h3>
                               <p className="text-sm text-gray-600 mb-4">Për një person</p>
-                              <div className="text-3xl font-bold text-primary mb-4">$150</div>
+                              <div className="text-3xl font-bold text-primary mb-4">20€</div>
                               <Button 
                                 className="w-full bg-primary hover:bg-primary/90" 
                                 onClick={() => handlePayment("individual")}
@@ -367,11 +367,11 @@ export default function Dashboard() {
 
                           {/* Couple Package */}
                           <Card className="border-2 border-primary relative">
-                            <div className="absolute -top-2 right-4 bg-primary text-white px-3 py-1 rounded-full text-xs font-bold">POPULAR</div>
+                            <div className="absolute -top-2 right-4 bg-primary text-white px-3 py-1 rounded-full text-xs font-bold">MË I KËRKUAR</div>
                             <CardContent className="p-6 text-center">
-                              <h3 className="font-bold text-lg mb-2">Couple</h3>
+                              <h3 className="font-bold text-lg mb-2">Çifti (Partnerë)</h3>
                               <p className="text-sm text-gray-600 mb-4">Për dy persona</p>
-                              <div className="text-3xl font-bold text-primary mb-4">$250</div>
+                              <div className="text-3xl font-bold text-primary mb-4">35€</div>
                               <Button 
                                 className="w-full bg-primary hover:bg-primary/90" 
                                 onClick={() => handlePayment("couple")}
@@ -386,9 +386,9 @@ export default function Dashboard() {
                           {/* Family Package */}
                           <Card className="border-2 border-gray-200 hover:border-primary hover:shadow-lg transition-all">
                             <CardContent className="p-6 text-center">
-                              <h3 className="font-bold text-lg mb-2">Family</h3>
-                              <p className="text-sm text-gray-600 mb-4">Për familje</p>
-                              <div className="text-3xl font-bold text-primary mb-4">$350</div>
+                              <h3 className="font-bold text-lg mb-2">Familjare</h3>
+                              <p className="text-sm text-gray-600 mb-4">Për protestat e familje</p>
+                              <div className="text-3xl font-bold text-primary mb-4">50€</div>
                               <Button 
                                 className="w-full bg-primary hover:bg-primary/90" 
                                 onClick={() => handlePayment("family")}
