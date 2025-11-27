@@ -21,7 +21,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
@@ -263,9 +262,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
-      <Navbar />
-      
-      <div className="container mx-auto px-4 md:px-6 pt-28 pb-20">
+      <div className="container mx-auto px-4 md:px-6 pt-8 pb-20">
         <div className="grid lg:grid-cols-12 gap-8">
           
           {/* Sidebar */}
