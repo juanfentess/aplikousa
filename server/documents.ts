@@ -57,7 +57,7 @@ export function generateApplicationConfirmationHTML(user: any, application: any,
             </div>
           </div>
           <div class="subtitle">Green Card DV Lottery Application Services</div>
-          <div class="subtitle">info@aplikousa.com | +383 44 000 000 | www.aplikousa.com</div>
+          <div class="subtitle">info@aplikousa.com | +383 49 771 673 | www.aplikousa.com</div>
         </div>
 
         <h1 class="confirmation-title">✓ KONFIRMIMI I APLIKIMIT</h1>
@@ -268,7 +268,7 @@ export function generateDeclarationHTML(user: any, application: any): string {
 
         <div class="footer">
           <p><strong>AplikoUSA - Green Card DV Lottery Application Services</strong></p>
-          <p>info@aplikousa.com | +383 44 000 000 | www.aplikousa.com</p>
+          <p>info@aplikousa.com | +383 49 771 673 | www.aplikousa.com</p>
           <p>© 2025 AplikoUSA. Të gjitha të drejtat e rezervuara.</p>
         </div>
       </div>

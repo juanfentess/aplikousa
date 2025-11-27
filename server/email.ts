@@ -244,7 +244,7 @@ export async function sendPasswordResetEmail(
           <div class="footer">
             <p>AplikoUSA - Green Card DV Lottery Application Services</p>
             <p>© 2025 AplikoUSA. Të gjitha të drejtat e rezervuara.</p>
-            <p>info@aplikousa.com | +383 44 000 000</p>
+            <p>info@aplikousa.com | +383 49 771 673</p>
           </div>
         </div>
       </body>
