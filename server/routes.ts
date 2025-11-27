@@ -170,6 +170,19 @@ async function getStripePublishableKey(): Promise<string> {
 }
 
 export async function registerRoutes(httpServer: HTTPServer, app: Express): Promise<void> {
+  // Seed default admin user if none exists
+  try {
+    const existingAdmin = await storage.getAdminByEmail("admin@aplikousa.com");
+    if (!existingAdmin) {
+      await storage.createAdmin({
+        email: "admin@aplikousa.com",
+        password: "admin123"
+      });
+      console.log("[Admin] Default admin created: admin@aplikousa.com / admin123");
+    }
+  } catch (err: any) {
+    console.error("[Admin] Failed to seed admin:", err.message);
+  }
 
   // Middleware to log requests
   app.use((req, res, next) => {
@@ -687,7 +700,7 @@ export async function registerRoutes(httpServer: HTTPServer, app: Express): Prom
         return res.status(401).json({ error: "Invalid credentials" });
       }
 
-      res.json(admin);
+      res.json({ adminId: admin.id, id: admin.id, email: admin.email });
     } catch (error: any) {
       console.error("Admin login error:", error);
       res

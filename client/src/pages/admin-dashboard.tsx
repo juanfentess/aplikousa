@@ -91,7 +91,7 @@ export default function AdminDashboard() {
   });
 
   useEffect(() => {
-    const adminId = localStorage.getItem("adminId");
+    const adminId = localStorage.getItem("adminId") || localStorage.getItem("admin");
     if (!adminId) {
       setLocation("/admin/login");
       return;

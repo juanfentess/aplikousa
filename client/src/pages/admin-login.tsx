@@ -31,7 +31,7 @@ export default function AdminLogin() {
       }
 
       const data = await response.json();
-      localStorage.setItem("adminId", data.adminId);
+      localStorage.setItem("adminId", data.adminId || data.id);
       toast.success("Hyp me sukses!");
       setLocation("/admin/dashboard");
     } catch (err) {
