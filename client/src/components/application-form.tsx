@@ -3,7 +3,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, Loader2, AlertCircle, User, Users, Crown } from "lucide-react";
+import { Check, Loader2, AlertCircle, User, Users, Crown, Eye, EyeOff } from "lucide-react";
+import { useLocation } from "wouter";
 import {
   Form,
   FormControl,
@@ -71,9 +72,14 @@ const formSchema = z.object({
 
 export function ApplicationForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
+  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
   const [spouseFileName, setSpouseFileName] = useState<string | null>(null);
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [creatingAccount, setCreatingAccount] = useState(false);
+  const [, setLocation] = useLocation();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -124,11 +130,29 @@ export function ApplicationForm() {
     await new Promise((resolve) => setTimeout(resolve, 2000));
     
     setIsSubmitting(false);
-    setShowSuccess(true);
+    setShowPasswordDialog(true);
+  }
+
+  const handleCreateAccount = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password.length < 6) {
+      alert("Fjalëkalimi duhet të ketë të paktën 6 karaktere");
+      return;
+    }
+    if (password !== confirmPassword) {
+      alert("Fjalëkalimet nuk përputhen");
+      return;
+    }
+
+    setCreatingAccount(true);
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    setCreatingAccount(false);
+    setShowPasswordDialog(false);
     form.reset();
     setFileName(null);
     setSpouseFileName(null);
-  }
+    setLocation("/dashboard");
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, isSpouse = false) => {
     const file = e.target.files?.[0];
@@ -675,22 +699,67 @@ export function ApplicationForm() {
         </div>
       </div>
 
-      <Dialog open={showSuccess} onOpenChange={setShowSuccess}>
+      <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <div className="mx-auto w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mb-4">
-              <Check className="h-6 w-6 text-green-600" />
+            <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+              <User className="h-6 w-6 text-primary" />
             </div>
-            <DialogTitle className="text-center text-xl">Aplikimi u dërgua me sukses!</DialogTitle>
+            <DialogTitle className="text-center text-xl">Krijoni Llogarinë Tuaj</DialogTitle>
             <DialogDescription className="text-center pt-2">
-              Faleminderit që zgjodhët AplikoUSA. Ne kemi pranuar të dhënat tuaja dhe do t'ju kontaktojmë së shpejti për konfirmim.
+              Për të ndjekur statusin e aplikimit tuaj, ju lutem vendosni një fjalëkalim për të krijuar llogarinë.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="sm:justify-center">
-            <Button type="button" onClick={() => setShowSuccess(false)} className="w-full sm:w-auto">
-              Mbyll
+          
+          <form onSubmit={handleCreateAccount} className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="password">Fjalëkalimi i Ri</Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  placeholder="Të paktën 6 karaktere"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Konfirmo Fjalëkalimin</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                placeholder="Përsërit fjalëkalimin"
+              />
+            </div>
+
+            <Button 
+              type="submit" 
+              className="w-full bg-primary hover:bg-primary/90 text-white"
+              disabled={creatingAccount}
+            >
+              {creatingAccount ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Duke krijuar llogarinë...
+                </>
+              ) : (
+                "Krijo Llogari & Vazhdo"
+              )}
             </Button>
-          </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </section>
