@@ -307,10 +307,30 @@ export async function registerRoutes(
         status: "completed",
       });
 
-      // Update payment status
+      // Update payment status on user
       await storage.updateUserStripeInfo(userId, { 
         paymentStatus: "completed"
       });
+
+      // Update or create application with payment status completed
+      let application = await storage.getApplication(userId);
+      if (application) {
+        // Update existing application
+        await storage.updateApplicationSteps(application.id, {
+          paymentStatus: "completed",
+          formStatus: "completed",
+        });
+      } else {
+        // Create new application if doesn't exist
+        await storage.createApplication({
+          userId,
+          registrationStatus: "completed",
+          paymentStatus: "completed",
+          formStatus: "completed",
+          photoStatus: "pending",
+          submissionStatus: "pending",
+        });
+      }
 
       // Send payment success email
       const htmlContent = `
