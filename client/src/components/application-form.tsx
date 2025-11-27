@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, Loader2, AlertCircle } from "lucide-react";
+import { Check, Loader2, AlertCircle, User, Users, Crown } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -33,8 +33,10 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { Card, CardContent } from "@/components/ui/card";
 
 const formSchema = z.object({
+  package: z.enum(["individual", "couple", "family"]),
   firstName: z.string().min(2, "Emri duhet të ketë të paktën 2 karaktere"),
   lastName: z.string().min(2, "Mbiemri duhet të ketë të paktën 2 karaktere"),
   email: z.string().email("Ju lutem shkruani një email të vlefshëm"),
@@ -50,22 +52,33 @@ const formSchema = z.object({
     required_error: "Ju lutem zgjidhni gjininë",
   }),
   maritalStatus: z.string().min(1, "Ju lutem zgjidhni statusin martesor"),
+  
+  // Spouse info (optional unless couple/family)
+  spouseFirstName: z.string().optional(),
+  spouseLastName: z.string().optional(),
+  spouseBirthDate: z.object({
+    day: z.string().optional(),
+    month: z.string().optional(),
+    year: z.string().optional(),
+  }).optional(),
+  
   childrenCount: z.string().min(1, "Zgjidhni numrin e fëmijëve"),
   message: z.string().optional(),
   terms: z.boolean().refine((val) => val === true, {
     message: "Duhet të pranoni kushtet dhe saktësinë e të dhënave",
   }),
-  // File handling would need a refine check in a real app, here we mock it
 });
 
 export function ApplicationForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
+  const [spouseFileName, setSpouseFileName] = useState<string | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      package: "individual",
       firstName: "",
       lastName: "",
       email: "",
@@ -73,15 +86,36 @@ export function ApplicationForm() {
       birthCountry: "",
       city: "",
       birthDate: { day: "", month: "", year: "" },
+      gender: "male",
+      maritalStatus: "single",
+      childrenCount: "0",
+      spouseFirstName: "",
+      spouseLastName: "",
+      spouseBirthDate: { day: "", month: "", year: "" },
       message: "",
       terms: false,
     },
   });
 
+  const selectedPackage = form.watch("package");
+  const maritalStatus = form.watch("maritalStatus");
+
+  // Auto-update marital status based on package
+  useEffect(() => {
+    if (selectedPackage === "couple" || selectedPackage === "family") {
+      form.setValue("maritalStatus", "married");
+    }
+  }, [selectedPackage, form]);
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!fileName) {
       form.setError("terms", { message: "Ju lutem ngarkoni fotografinë tuaj" });
       return;
+    }
+
+    if ((selectedPackage === "couple" || selectedPackage === "family") && !spouseFileName) {
+       form.setError("terms", { message: "Ju lutem ngarkoni fotografinë e bashkëshortit/es" });
+       return;
     }
 
     setIsSubmitting(true);
@@ -93,12 +127,17 @@ export function ApplicationForm() {
     setShowSuccess(true);
     form.reset();
     setFileName(null);
+    setSpouseFileName(null);
   }
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, isSpouse = false) => {
     const file = e.target.files?.[0];
     if (file) {
-      setFileName(file.name);
+      if (isSpouse) {
+        setSpouseFileName(file.name);
+      } else {
+        setFileName(file.name);
+      }
     }
   };
 
@@ -117,6 +156,62 @@ export function ApplicationForm() {
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+              
+              {/* Package Selection */}
+              <div className="space-y-4">
+                <Label className="text-lg font-semibold text-primary">Zgjidhni Paketën</Label>
+                <FormField
+                  control={form.control}
+                  name="package"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <RadioGroup
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                          className="grid grid-cols-1 md:grid-cols-3 gap-4"
+                        >
+                          <FormItem>
+                            <FormControl>
+                              <RadioGroupItem value="individual" className="peer sr-only" />
+                            </FormControl>
+                            <FormLabel className="flex flex-col items-center justify-between rounded-xl border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 [&:has([data-state=checked])]:border-primary cursor-pointer transition-all">
+                              <User className="mb-3 h-6 w-6 text-primary" />
+                              <span className="font-bold">Individual (20€)</span>
+                            </FormLabel>
+                          </FormItem>
+                          
+                          <FormItem>
+                            <FormControl>
+                              <RadioGroupItem value="couple" className="peer sr-only" />
+                            </FormControl>
+                            <FormLabel className="flex flex-col items-center justify-between rounded-xl border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-secondary peer-data-[state=checked]:bg-secondary/5 [&:has([data-state=checked])]:border-secondary cursor-pointer transition-all">
+                              <Users className="mb-3 h-6 w-6 text-secondary" />
+                              <span className="font-bold text-secondary">Çifti (35€)</span>
+                            </FormLabel>
+                          </FormItem>
+                          
+                          <FormItem>
+                            <FormControl>
+                              <RadioGroupItem value="family" className="peer sr-only" />
+                            </FormControl>
+                            <FormLabel className="flex flex-col items-center justify-between rounded-xl border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 [&:has([data-state=checked])]:border-primary cursor-pointer transition-all">
+                              <Crown className="mb-3 h-6 w-6 text-yellow-500" />
+                              <span className="font-bold">Familjare (50€)</span>
+                            </FormLabel>
+                          </FormItem>
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="h-px bg-gray-200 my-6" />
+              
+              <h3 className="text-lg font-semibold text-primary">Të dhënat e Aplikantit Kryesor</h3>
+
               <div className="grid md:grid-cols-2 gap-6">
                 <FormField
                   control={form.control}
@@ -307,6 +402,151 @@ export function ApplicationForm() {
                 )}
               />
 
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Foto e Aplikantit Kryesor</Label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-primary transition-colors bg-gray-50 cursor-pointer relative">
+                   <input 
+                    type="file" 
+                    accept=".jpg,.jpeg,.png" 
+                    onChange={(e) => handleFileChange(e, false)}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                   />
+                   <div className="flex flex-col items-center justify-center gap-2 text-gray-500">
+                      {fileName ? (
+                        <>
+                          <Check className="w-8 h-8 text-green-500" />
+                          <span className="font-medium text-primary">{fileName}</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-sm font-medium">Klikoni për të ngarkuar foto</span>
+                          <span className="text-xs">JPG, JPEG, PNG (Max 5MB)</span>
+                        </>
+                      )}
+                   </div>
+                </div>
+                {!fileName && form.formState.errors.terms && (
+                  <p className="text-xs text-destructive mt-1">Foto është e detyrueshme</p>
+                )}
+              </div>
+
+              {/* Spouse Section - Only if Couple or Family */}
+              <AnimatePresence>
+                {(selectedPackage === "couple" || selectedPackage === "family") && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="space-y-6 overflow-hidden border-t pt-6 border-gray-200"
+                  >
+                    <h3 className="text-lg font-semibold text-secondary">Të dhënat e Bashkëshortit/es</h3>
+                    <div className="bg-secondary/5 p-6 rounded-xl space-y-6 border border-secondary/10">
+                      <div className="grid md:grid-cols-2 gap-6">
+                        <FormField
+                          control={form.control}
+                          name="spouseFirstName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Emri</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Emri i bashkëshortit/es" {...field} className="h-11 bg-white" />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="spouseLastName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Mbiemri</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Mbiemri i bashkëshortit/es" {...field} className="h-11 bg-white" />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">Data e Lindjes</Label>
+                        <div className="grid grid-cols-3 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="spouseBirthDate.day"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormControl>
+                                  <Input placeholder="Dita" type="number" min="1" max="31" {...field} className="h-11 bg-white" />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="spouseBirthDate.month"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormControl>
+                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <SelectTrigger className="h-11 bg-white">
+                                      <SelectValue placeholder="Muaji" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {Array.from({ length: 12 }, (_, i) => (
+                                        <SelectItem key={i} value={`${i + 1}`}>
+                                          {new Date(0, i).toLocaleString('sq-AL', { month: 'long' })}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="spouseBirthDate.year"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormControl>
+                                  <Input placeholder="Viti" type="number" min="1900" max="2025" {...field} className="h-11 bg-white" />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">Foto e Bashkëshortit/es</Label>
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-secondary transition-colors bg-white cursor-pointer relative">
+                          <input 
+                            type="file" 
+                            accept=".jpg,.jpeg,.png" 
+                            onChange={(e) => handleFileChange(e, true)}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          />
+                          <div className="flex flex-col items-center justify-center gap-2 text-gray-500">
+                              {spouseFileName ? (
+                                <>
+                                  <Check className="w-8 h-8 text-green-500" />
+                                  <span className="font-medium text-secondary">{spouseFileName}</span>
+                                </>
+                              ) : (
+                                <>
+                                  <span className="text-sm font-medium">Klikoni për të ngarkuar foto</span>
+                                  <span className="text-xs">JPG, JPEG, PNG (Max 5MB)</span>
+                                </>
+                              )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               <div className="grid md:grid-cols-2 gap-6">
                 <FormField
                   control={form.control}
@@ -314,7 +554,7 @@ export function ApplicationForm() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Statusi Martesor</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} defaultValue={field.value} disabled={selectedPackage !== "individual"}>
                         <FormControl>
                           <SelectTrigger className="h-11 bg-gray-50">
                             <SelectValue placeholder="Zgjidhni statusin" />
@@ -357,33 +597,21 @@ export function ApplicationForm() {
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">Ngarkoni fotografinë tuaj</Label>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-primary transition-colors bg-gray-50 cursor-pointer relative">
-                   <input 
-                    type="file" 
-                    accept=".jpg,.jpeg,.png" 
-                    onChange={handleFileChange}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                   />
-                   <div className="flex flex-col items-center justify-center gap-2 text-gray-500">
-                      {fileName ? (
-                        <>
-                          <Check className="w-8 h-8 text-green-500" />
-                          <span className="font-medium text-primary">{fileName}</span>
-                        </>
-                      ) : (
-                        <>
-                          <span className="text-sm font-medium">Klikoni për të ngarkuar foto</span>
-                          <span className="text-xs">JPG, JPEG, PNG (Max 5MB)</span>
-                        </>
-                      )}
-                   </div>
-                </div>
-                {!fileName && form.formState.errors.terms && (
-                  <p className="text-xs text-destructive mt-1">Foto është e detyrueshme</p>
+              {/* Children Note - If Family Selected */}
+              <AnimatePresence>
+                {selectedPackage === "family" && form.watch("childrenCount") !== "0" && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="bg-blue-50 p-4 rounded-lg border border-blue-100 flex items-start gap-3"
+                  >
+                    <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />
+                    <p className="text-sm text-blue-800">
+                      Për fëmijët, ne do t'ju kontaktojmë më vonë për të marrë detajet e tyre (emrat, datëlindjet dhe fotot), për të mos e rënduar këtë formular tani.
+                    </p>
+                  </motion.div>
                 )}
-              </div>
+              </AnimatePresence>
 
               <FormField
                 control={form.control}
@@ -437,7 +665,9 @@ export function ApplicationForm() {
                     Duke dërguar...
                   </>
                 ) : (
-                  "Dërgo Aplikimin"
+                  `Dërgo Aplikimin (${
+                    selectedPackage === "family" ? "50€" : selectedPackage === "couple" ? "35€" : "20€"
+                  })`
                 )}
               </Button>
             </form>
