@@ -107,6 +107,30 @@ export default function AdminDashboard() {
   const [emailLogs, setEmailLogs] = useState<any[]>([]);
   const [adminSettings, setAdminSettings] = useState<any>(null);
 
+  // Blog
+  const [blogPosts, setBlogPosts] = useState<any[]>([]);
+  const [blogCategories, setBlogCategories] = useState<any[]>([]);
+  const [showBlogPostDialog, setShowBlogPostDialog] = useState(false);
+  const [showBlogCategoryDialog, setShowBlogCategoryDialog] = useState(false);
+  const [editingPost, setEditingPost] = useState<any>(null);
+  const [blogPostForm, setBlogPostForm] = useState({
+    title: "",
+    slug: "",
+    content: "",
+    excerpt: "",
+    categoryId: "",
+    imageUrl: "",
+    seoTitle: "",
+    seoDescription: "",
+    seoKeywords: "",
+    isPublished: false,
+  });
+  const [blogCategoryForm, setBlogCategoryForm] = useState({
+    name: "",
+    slug: "",
+    description: "",
+  });
+
   // Filtering
   const [searchQuery, setSearchQuery] = useState("");
   const [filterPaymentStatus, setFilterPaymentStatus] = useState("all");
@@ -137,6 +161,8 @@ export default function AdminDashboard() {
     loadActivityLogs();
     loadEmailLogs();
     loadAdminSettings();
+    loadBlogPosts();
+    loadBlogCategories();
   }, [setLocation]);
 
   const loadTemplates = async () => {
