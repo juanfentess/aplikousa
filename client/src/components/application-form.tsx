@@ -195,9 +195,10 @@ export function ApplicationForm() {
 
       const data = await response.json();
       
-      // Show code dialog
-      setVerificationCode(data.code);
+      // Save userId for verification
       setUserId(data.userId);
+      
+      // Show code dialog - user will enter code from email
       setShowCodeDialog(true);
       
       // Close password dialog

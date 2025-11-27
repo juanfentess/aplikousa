@@ -89,10 +89,7 @@ export async function registerRoutes(
       res.json({
         success: true,
         userId: user.id,
-        code: emailResult.code, // Return code for development/testing
-        message: emailResult.success 
-          ? "Verification code sent to email" 
-          : "Account created. Code: " + emailResult.code + " (Email delivery pending - check console or use this code)",
+        message: "Verification code sent to email",
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
