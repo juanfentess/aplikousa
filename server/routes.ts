@@ -313,23 +313,29 @@ export async function registerRoutes(
       });
 
       // Update or create application with payment status completed
-      let application = await storage.getApplication(userId);
-      if (application) {
-        // Update existing application
-        await storage.updateApplicationSteps(application.id, {
-          paymentStatus: "completed",
-          formStatus: "completed",
-        });
-      } else {
-        // Create new application if doesn't exist
-        await storage.createApplication({
-          userId,
-          registrationStatus: "completed",
-          paymentStatus: "completed",
-          formStatus: "completed",
-          photoStatus: "pending",
-          submissionStatus: "pending",
-        });
+      try {
+        let application = await storage.getApplication(userId);
+        if (application) {
+          // Update existing application
+          await storage.updateApplicationSteps(application.id, {
+            paymentStatus: "completed",
+            formStatus: "completed",
+          });
+        } else {
+          // Create new application if doesn't exist
+          await storage.createApplication({
+            userId,
+            status: "reviewing",
+            registrationStatus: "completed",
+            paymentStatus: "completed",
+            formStatus: "completed",
+            photoStatus: "pending",
+            submissionStatus: "pending",
+          });
+        }
+      } catch (appError) {
+        console.error("Error updating application:", appError);
+        // Continue with email even if app update fails
       }
 
       // Send payment success email
