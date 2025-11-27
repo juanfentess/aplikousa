@@ -595,6 +595,26 @@ export async function registerRoutes(
     }
   });
 
+  // Update application steps
+  app.post("/api/admin/applications/:id/update-steps", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { registrationStatus, paymentStatus, formStatus, photoStatus, submissionStatus } = req.body;
+
+      const application = await storage.updateApplicationSteps(id, {
+        registrationStatus,
+        paymentStatus,
+        formStatus,
+        photoStatus,
+        submissionStatus,
+      });
+      res.json(application);
+    } catch (error) {
+      console.error("Error updating application steps:", error);
+      res.status(500).json({ error: "Failed to update application steps" });
+    }
+  });
+
   // Send email to client
   app.post("/api/admin/send-email", async (req, res) => {
     try {

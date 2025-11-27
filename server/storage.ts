@@ -224,6 +224,21 @@ export class Storage implements IStorage {
     return result[0];
   }
 
+  async updateApplicationSteps(id: string, steps: {
+    registrationStatus?: string;
+    paymentStatus?: string;
+    formStatus?: string;
+    photoStatus?: string;
+    submissionStatus?: string;
+  }): Promise<Application> {
+    const result = await db
+      .update(applications)
+      .set(steps)
+      .where(eq(applications.id, id))
+      .returning();
+    return result[0];
+  }
+
   // Transactions
   async createTransaction(transaction: InsertTransaction): Promise<Transaction> {
     const result = await db.insert(transactions).values(transaction).returning();

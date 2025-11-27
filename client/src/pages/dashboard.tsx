@@ -190,13 +190,48 @@ export default function Dashboard() {
     status: "pending_review"
   };
 
-  const applicationSteps = [
-    { id: 1, title: "Regjistrimi", status: "completed", date: "27 Nëntor 2025" },
-    { id: 2, title: "Pagesa", status: userPaymentStatus === "completed" ? "completed" : "pending", date: userPaymentStatus === "completed" ? "27 Nëntor 2025" : "Pritet" },
-    { id: 3, title: "Plotësimi i Formularit", status: userPaymentStatus === "completed" ? "completed" : "pending", date: userPaymentStatus === "completed" ? "27 Nëntor 2025" : "Pritet" },
-    { id: 4, title: "Kontrolli i Fotos", status: "pending", date: "Pritet" },
-    { id: 5, title: "Dorëzimi Zyrtar", status: "pending", date: "Pritet" },
-  ];
+  const getApplicationSteps = () => {
+    const mapStatus = (status: string) => {
+      if (status === "completed") return "completed";
+      if (status === "in_progress") return "in_progress";
+      return "pending";
+    };
+
+    return [
+      { 
+        id: 1, 
+        title: "Regjistrimi", 
+        status: mapStatus(userApplication?.registrationStatus || "completed"),
+        date: userApplication?.registrationStatus === "completed" ? new Date(userApplication?.createdAt).toLocaleDateString("sq-AL") : ""
+      },
+      { 
+        id: 2, 
+        title: "Pagesa", 
+        status: mapStatus(userApplication?.paymentStatus || "pending"),
+        date: userApplication?.paymentStatus === "completed" ? new Date().toLocaleDateString("sq-AL") : ""
+      },
+      { 
+        id: 3, 
+        title: "Plotësimi i Formularit", 
+        status: mapStatus(userApplication?.formStatus || "pending"),
+        date: ""
+      },
+      { 
+        id: 4, 
+        title: "Kontrolli i Fotos", 
+        status: mapStatus(userApplication?.photoStatus || "pending"),
+        date: ""
+      },
+      { 
+        id: 5, 
+        title: "Dorëzimi Zyrtar", 
+        status: mapStatus(userApplication?.submissionStatus || "pending"),
+        date: ""
+      },
+    ];
+  };
+
+  const applicationSteps = getApplicationSteps();
 
   const userId = localStorage.getItem("userId");
   const documents = [

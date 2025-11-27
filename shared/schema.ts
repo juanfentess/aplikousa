@@ -76,6 +76,11 @@ export const applications = pgTable("applications", {
   childrenCount: varchar("children_count"),
   photoUrl: text("photo_url"),
   notes: text("notes"),
+  registrationStatus: varchar("registration_status", { length: 20 }).default("completed"), // completed, in_progress, pending
+  paymentStatus: varchar("payment_status", { length: 20 }).default("pending"), // completed, in_progress, pending
+  formStatus: varchar("form_status", { length: 20 }).default("pending"), // completed, in_progress, pending
+  photoStatus: varchar("photo_status", { length: 20 }).default("pending"), // completed, in_progress, pending
+  submissionStatus: varchar("submission_status", { length: 20 }).default("pending"), // completed, in_progress, pending
   createdAt: timestamp("created_at").default(sql`now()`),
   updatedAt: timestamp("updated_at").default(sql`now()`),
 });

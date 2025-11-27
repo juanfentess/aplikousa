@@ -230,6 +230,37 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleUpdateApplicationSteps = async () => {
+    if (!selectedApplicationForSteps) {
+      toast.error("Nuk ka aplikim të zgjedhur");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/admin/applications/${selectedApplicationForSteps.id}/update-steps`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(applicationStepsData),
+      });
+
+      if (response.ok) {
+        toast.success("✅ Hapat e aplikimit përditësohen me sukses!", { duration: 3000 });
+        setShowUpdateStepsDialog(false);
+        setSelectedApplicationForSteps(null);
+        loadApplications();
+      } else {
+        const data = await response.json();
+        toast.error("❌ " + (data.error || "Gabim në përditësim"), { duration: 3000 });
+      }
+    } catch (err) {
+      toast.error("❌ Gabim gjatë përditësimit", { duration: 3000 });
+      console.error("Update steps error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSendCustomEmail = async () => {
     if (!customEmailData.recipientEmail || !customEmailData.subject || !customEmailData.htmlContent) {
       toast.error("Plotësoni të gjitha fushat");
@@ -1031,6 +1062,109 @@ export default function AdminDashboard() {
           )}
           <DialogFooter>
             <Button onClick={() => setShowClientDetailsDialog(false)}>Mbyll</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Update Application Steps Dialog */}
+      <Dialog open={showUpdateStepsDialog} onOpenChange={setShowUpdateStepsDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Përditëso Hapat e Aplikimit</DialogTitle>
+            <DialogDescription>
+              Zgjedhni statuset për çdo hap të procesit
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label className="text-sm font-semibold">Regjistrimi</Label>
+              <Select value={applicationStepsData.registrationStatus} onValueChange={(value) => setApplicationStepsData({...applicationStepsData, registrationStatus: value})}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="completed">✓ Përfunduar</SelectItem>
+                  <SelectItem value="in_progress">⧖ Duke u përpunuar</SelectItem>
+                  <SelectItem value="pending">○ Në Pritje</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label className="text-sm font-semibold">Pagesa</Label>
+              <Select value={applicationStepsData.paymentStatus} onValueChange={(value) => setApplicationStepsData({...applicationStepsData, paymentStatus: value})}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="completed">✓ Përfunduar</SelectItem>
+                  <SelectItem value="in_progress">⧖ Duke u përpunuar</SelectItem>
+                  <SelectItem value="pending">○ Në Pritje</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label className="text-sm font-semibold">Plotësimi i Formularit</Label>
+              <Select value={applicationStepsData.formStatus} onValueChange={(value) => setApplicationStepsData({...applicationStepsData, formStatus: value})}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="completed">✓ Përfunduar</SelectItem>
+                  <SelectItem value="in_progress">⧖ Duke u përpunuar</SelectItem>
+                  <SelectItem value="pending">○ Në Pritje</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label className="text-sm font-semibold">Kontrolli i Fotos</Label>
+              <Select value={applicationStepsData.photoStatus} onValueChange={(value) => setApplicationStepsData({...applicationStepsData, photoStatus: value})}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="completed">✓ Përfunduar</SelectItem>
+                  <SelectItem value="in_progress">⧖ Duke u përpunuar</SelectItem>
+                  <SelectItem value="pending">○ Në Pritje</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label className="text-sm font-semibold">Dorëzimi Zyrtar</Label>
+              <Select value={applicationStepsData.submissionStatus} onValueChange={(value) => setApplicationStepsData({...applicationStepsData, submissionStatus: value})}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="completed">✓ Përfunduar</SelectItem>
+                  <SelectItem value="in_progress">⧖ Duke u përpunuar</SelectItem>
+                  <SelectItem value="pending">○ Në Pritje</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowUpdateStepsDialog(false);
+                setSelectedApplicationForSteps(null);
+              }}
+            >
+              Anulo
+            </Button>
+            <Button 
+              onClick={handleUpdateApplicationSteps}
+              className="bg-primary hover:bg-primary/90 text-white"
+              disabled={loading}
+              data-testid="button-save-steps"
+            >
+              {loading ? "Duke u ruajtur..." : "Ruaj Hapat"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
