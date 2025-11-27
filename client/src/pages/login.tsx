@@ -13,6 +13,7 @@ import { toast } from "sonner";
 export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [isChecking, setIsChecking] = useState(true);
   const [, setLocation] = useLocation();
 
   // Redirect to dashboard if already logged in
@@ -20,6 +21,8 @@ export default function Login() {
     const userId = localStorage.getItem("userId");
     if (userId) {
       setLocation("/dashboard");
+    } else {
+      setIsChecking(false);
     }
   }, [setLocation]);
 
@@ -62,6 +65,20 @@ export default function Login() {
       setIsLoading(false);
     }
   };
+
+  if (isChecking) {
+    return (
+      <div className="min-h-screen bg-gray-50 font-sans flex flex-col">
+        <Navbar />
+        <div className="flex-grow flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
+            <p className="text-gray-600">Duke u kontrolluar...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans flex flex-col">
