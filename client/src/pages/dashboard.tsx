@@ -407,15 +407,40 @@ export default function Dashboard() {
                       </CardContent>
                     </Card>
                   ) : (
-                    <Card className="bg-primary text-white border-none shadow-lg overflow-hidden relative">
-                      <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-16 -mt-16 blur-3xl"></div>
-                      <CardContent className="p-8 relative z-10">
-                        <h2 className="text-2xl font-bold mb-2">Mirësevini në panelin tuaj, {user.name.split(' ')[0]}! 👋</h2>
-                        <p className="text-white/80 max-w-xl">
-                          Aplikimi juaj është duke u përpunuar nga ekipi ynë. Ne po kontrollojmë çdo detaj për të siguruar që gjithçka është në rregull.
-                        </p>
-                      </CardContent>
-                    </Card>
+                    <div className="space-y-6">
+                      <Card className="bg-primary text-white border-none shadow-lg overflow-hidden relative">
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-16 -mt-16 blur-3xl"></div>
+                        <CardContent className="p-8 relative z-10">
+                          <h2 className="text-2xl font-bold mb-2">Mirësevini në panelin tuaj, {user.name.split(' ')[0]}! 👋</h2>
+                          <p className="text-white/80 max-w-xl">
+                            Aplikimi juaj është duke u përpunuar nga ekipi ynë. Ne po kontrollojmë çdo detaj për të siguruar që gjithçka është në rregull.
+                          </p>
+                        </CardContent>
+                      </Card>
+
+                      {/* Review Data Reminder Card */}
+                      <Card className="border-2 border-green-200 bg-green-50">
+                        <CardContent className="p-6">
+                          <div className="flex items-start gap-4">
+                            <CheckCircle className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" />
+                            <div className="flex-1">
+                              <h3 className="font-bold text-green-900 mb-2">✓ Pagesa u Përfundua me Sukses!</h3>
+                              <p className="text-green-800 text-sm mb-4">
+                                Ju lutem rishikoni të dhënat tuaja dhe konfirmoni nëse gjithçka është në rregull përpara se të vazhdoni me aplikimin.
+                              </p>
+                              <Button
+                                onClick={() => handleReviewData({ packageType: purchasedPackage || "individual", amount: 20 })}
+                                className="bg-green-600 hover:bg-green-700 text-white"
+                                size="sm"
+                                data-testid="button-review-overview"
+                              >
+                                Rishiko & Redakto Të Dhënat
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
                   )}
 
                   {/* Payment Section - Show if payment pending */}
@@ -1106,31 +1131,67 @@ export default function Dashboard() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-xs font-semibold text-gray-600">Emër i Parë</Label>
-                <p className="text-sm font-medium text-gray-900">{profileData.firstName || "—"}</p>
+                <Input
+                  value={profileData.firstName}
+                  onChange={(e) => setProfileData({...profileData, firstName: e.target.value})}
+                  placeholder="Futni emrin e parë"
+                  className="text-sm"
+                  data-testid="input-review-firstname"
+                />
               </div>
               <div className="space-y-2">
                 <Label className="text-xs font-semibold text-gray-600">Emër i Dytë</Label>
-                <p className="text-sm font-medium text-gray-900">{profileData.lastName || "—"}</p>
+                <Input
+                  value={profileData.lastName}
+                  onChange={(e) => setProfileData({...profileData, lastName: e.target.value})}
+                  placeholder="Futni emrin e dytë"
+                  className="text-sm"
+                  data-testid="input-review-lastname"
+                />
               </div>
               <div className="space-y-2 col-span-2">
                 <Label className="text-xs font-semibold text-gray-600">Email</Label>
-                <p className="text-sm font-medium text-gray-900">{profileData.email || "—"}</p>
+                <Input
+                  value={profileData.email}
+                  onChange={(e) => setProfileData({...profileData, email: e.target.value})}
+                  placeholder="email@example.com"
+                  className="text-sm"
+                  data-testid="input-review-email"
+                />
               </div>
               <div className="space-y-2">
                 <Label className="text-xs font-semibold text-gray-600">Telefon</Label>
-                <p className="text-sm font-medium text-gray-900">{profileData.phone || "—"}</p>
+                <Input
+                  value={profileData.phone}
+                  onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
+                  placeholder="+383 4X XXX XXX"
+                  className="text-sm"
+                  data-testid="input-review-phone"
+                />
               </div>
               <div className="space-y-2">
                 <Label className="text-xs font-semibold text-gray-600">Qytet</Label>
-                <p className="text-sm font-medium text-gray-900">{profileData.city || "—"}</p>
+                <Input
+                  value={profileData.city}
+                  onChange={(e) => setProfileData({...profileData, city: e.target.value})}
+                  placeholder="Futni qytetin"
+                  className="text-sm"
+                  data-testid="input-review-city"
+                />
               </div>
               <div className="space-y-2 col-span-2">
                 <Label className="text-xs font-semibold text-gray-600">Vendi i Lindjes</Label>
-                <p className="text-sm font-medium text-gray-900">{profileData.birthCountry || "—"}</p>
+                <Input
+                  value={profileData.birthCountry}
+                  onChange={(e) => setProfileData({...profileData, birthCountry: e.target.value})}
+                  placeholder="Futni vendin e lindjes"
+                  className="text-sm"
+                  data-testid="input-review-birthcountry"
+                />
               </div>
               <div className="space-y-2 col-span-2">
                 <Label className="text-xs font-semibold text-gray-600">Paketa e Zgjedhur</Label>
-                <p className="text-sm font-medium text-gray-900">
+                <p className="text-sm font-medium text-gray-900 bg-gray-50 p-2 rounded">
                   {selectedTransaction ? (
                     selectedTransaction.packageType === "individual" ? "Paket Individuale" :
                     selectedTransaction.packageType === "couple" ? "Paket për Çifte" :
@@ -1140,7 +1201,7 @@ export default function Dashboard() {
               </div>
               <div className="space-y-2 col-span-2">
                 <Label className="text-xs font-semibold text-gray-600">Shuma e Paguar</Label>
-                <p className="text-sm font-medium text-gray-900">
+                <p className="text-sm font-medium text-gray-900 bg-gray-50 p-2 rounded">
                   {selectedTransaction ? `€${parseFloat(selectedTransaction.amount).toFixed(2)}` : "—"}
                 </p>
               </div>
@@ -1148,7 +1209,7 @@ export default function Dashboard() {
 
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-4">
               <p className="text-sm text-blue-800">
-                <strong>Shënim:</strong> Nëse keni nevojë të bëni ndryshime në të dhënat tuaja, ju lutem shkoni në seksionin "Profili" dhe përditësoni informacionin.
+                <strong>ℹ Shënim:</strong> Mund të redaktoni fushat më sipër. Kur të klikoni "Konfirmo", të dhënat do të ruhen.
               </p>
             </div>
           </div>
