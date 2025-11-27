@@ -274,6 +274,26 @@ export default function AdminDashboard() {
     }
   };
 
+  const loadBlogPosts = async () => {
+    try {
+      const response = await fetch("/api/blog/posts");
+      const data = await response.json();
+      setBlogPosts(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Blog posts error:", err);
+    }
+  };
+
+  const loadBlogCategories = async () => {
+    try {
+      const response = await fetch("/api/blog/categories");
+      const data = await response.json();
+      setBlogCategories(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Blog categories error:", err);
+    }
+  };
+
   const handleSaveSettings = async () => {
     setLoading(true);
     try {
