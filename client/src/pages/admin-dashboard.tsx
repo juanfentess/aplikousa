@@ -712,15 +712,58 @@ export default function AdminDashboard() {
                 <p className="text-gray-600 mt-2">Menaxhoni të gjithë klientët tuaj</p>
               </div>
 
+              {selectedClientIds.length > 0 && (
+                <Card className="bg-blue-50 border-blue-200">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <p className="font-semibold text-blue-900">Zgjedhur: {selectedClientIds.length} klient(ë)</p>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" onClick={() => handleBulkUpdatePayment("completed")} className="bg-green-100 hover:bg-green-200">Markoji të Paguar</Button>
+                        <Button size="sm" variant="outline" onClick={() => handleBulkUpdatePayment("pending")} className="bg-yellow-100 hover:bg-yellow-200">Markoji Në Pritje</Button>
+                        <Button size="sm" variant="outline" onClick={handleBulkDelete} className="bg-red-100 hover:bg-red-200 text-red-700">Fshij të Zgjedhur</Button>
+                        <Button size="sm" variant="outline" onClick={() => setSelectedClientIds([])}>Anulo</Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
               <Card>
                 <CardHeader>
-                  <CardTitle>Lista e Klientëve ({clients.length})</CardTitle>
+                  <CardTitle>Lista e Klientëve ({filteredClients.length}/{clients.length})</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    <Input placeholder="Kërko emër ose email..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} data-testid="input-search-clients" />
+                    <Select value={filterPaymentStatus} onValueChange={setFilterPaymentStatus}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Të Gjitha Pageset</SelectItem>
+                        <SelectItem value="completed">✓ Paguar</SelectItem>
+                        <SelectItem value="pending">⏳ Në Pritje</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Select value={filterPackageType} onValueChange={setFilterPackageType}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Të Gjitha Paketat</SelectItem>
+                        <SelectItem value="individual">Individuale</SelectItem>
+                        <SelectItem value="couple">Çifte</SelectItem>
+                        <SelectItem value="family">Familjare</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button onClick={handleBulkSelectAll} className="bg-primary hover:bg-primary/90">
+                      {selectedClientIds.length === filteredClients.length && filteredClients.length > 0 ? "Deselekto Të Gjithë" : "Selekto Të Gjithë"}
+                    </Button>
+                  </div>
+
                   <div className="overflow-x-auto">
                     <table className="w-full">
                       <thead>
                         <tr className="border-b">
+                          <th className="text-left py-3 px-4 font-semibold text-gray-700" style={{width: "40px"}}>
+                            <input type="checkbox" checked={selectedClientIds.length === filteredClients.length && filteredClients.length > 0} onChange={handleBulkSelectAll} />
+                          </th>
                           <th className="text-left py-3 px-4 font-semibold text-gray-700">Emër</th>
                           <th className="text-left py-3 px-4 font-semibold text-gray-700">Email</th>
                           <th className="text-left py-3 px-4 font-semibold text-gray-700">Paketa</th>
@@ -729,9 +772,12 @@ export default function AdminDashboard() {
                         </tr>
                       </thead>
                       <tbody>
-                        {clients.length > 0 ? (
-                          clients.map((client) => (
+                        {filteredClients.length > 0 ? (
+                          filteredClients.map((client) => (
                             <tr key={client.id} className="border-b hover:bg-gray-50 transition">
+                              <td className="py-3 px-4">
+                                <input type="checkbox" checked={selectedClientIds.includes(client.id)} onChange={() => handleBulkSelect(client.id)} />
+                              </td>
                               <td className="py-3 px-4">{client.firstName} {client.lastName}</td>
                               <td className="py-3 px-4 text-sm text-gray-600">{client.email}</td>
                               <td className="py-3 px-4">
@@ -858,6 +904,43 @@ export default function AdminDashboard() {
                   </div>
                 </CardContent>
               </Card>
+            </motion.div>
+          )}
+
+          {/* Analytics Tab */}
+          {activeTab === "analytics" && (
+            <motion.div key="analytics" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
+              <div><h2 className="text-3xl font-bold text-gray-900">Analytics</h2><p className="text-gray-600 mt-2">Analiza në kohë reale e biznesit tuaj</p></div>
+              <div className="grid grid-cols-4 gap-4">
+                <Card><CardContent className="p-6"><p className="text-sm text-gray-600">Total Revenue</p><p className="text-3xl font-bold mt-2">€{analytics?.totalRevenue?.toFixed(2) || 0}</p></CardContent></Card>
+                <Card><CardContent className="p-6"><p className="text-sm text-gray-600">Revenue (Individual)</p><p className="text-3xl font-bold mt-2">€{analytics?.revenueByPackage?.individual?.toFixed(2) || 0}</p></CardContent></Card>
+                <Card><CardContent className="p-6"><p className="text-sm text-gray-600">Revenue (Couple)</p><p className="text-3xl font-bold mt-2">€{analytics?.revenueByPackage?.couple?.toFixed(2) || 0}</p></CardContent></Card>
+                <Card><CardContent className="p-6"><p className="text-sm text-gray-600">Revenue (Family)</p><p className="text-3xl font-bold mt-2">€{analytics?.revenueByPackage?.family?.toFixed(2) || 0}</p></CardContent></Card>
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <Card><CardContent className="p-6"><p className="text-sm text-gray-600">Applications Pending</p><p className="text-3xl font-bold mt-2">{analytics?.applicationsByStatus?.pending || 0}</p></CardContent></Card>
+                <Card><CardContent className="p-6"><p className="text-sm text-gray-600">Applications In Progress</p><p className="text-3xl font-bold mt-2">{analytics?.applicationsByStatus?.inProgress || 0}</p></CardContent></Card>
+                <Card><CardContent className="p-6"><p className="text-sm text-gray-600">Applications Completed</p><p className="text-3xl font-bold mt-2">{analytics?.applicationsByStatus?.completed || 0}</p></CardContent></Card>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Transactions Tab */}
+          {activeTab === "transactions" && (
+            <motion.div key="transactions" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
+              <div className="flex justify-between items-center"><div><h2 className="text-3xl font-bold text-gray-900">Transaksionet</h2><p className="text-gray-600 mt-2">Të gjitha transaksionet e pagesës</p></div><Button onClick={downloadTransactionReport} className="bg-green-600 hover:bg-green-700"><Download className="w-4 h-4 mr-2" />Shkarkimi CSV</Button></div>
+              <Card><CardContent className="p-4"><div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="border-b"><th className="text-left py-2 px-3">ID Përdoruesi</th><th className="text-left py-2 px-3">Lloji i Paketës</th><th className="text-left py-2 px-3">Shuma</th><th className="text-left py-2 px-3">Status</th><th className="text-left py-2 px-3">Data</th></tr></thead><tbody>{allTransactions.map(t => (<tr key={t.id} className="border-b"><td className="py-2 px-3 font-mono text-xs">{t.userId.slice(0, 8)}</td><td className="py-2 px-3 capitalize">{t.packageType}</td><td className="py-2 px-3">€{t.amount}</td><td className="py-2 px-3"><span className={`px-2 py-1 rounded text-xs ${t.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>{t.status}</span></td><td className="py-2 px-3 text-xs">{new Date(t.createdAt).toLocaleDateString('sq-AL')}</td></tr>))}</tbody></table></div></CardContent></Card>
+            </motion.div>
+          )}
+
+          {/* Logs Tab */}
+          {activeTab === "logs" && (
+            <motion.div key="logs" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
+              <div><h2 className="text-3xl font-bold text-gray-900">Regjistrat</h2><p className="text-gray-600 mt-2">Aktiviteti i administratorit dhe historia e emaileve</p></div>
+              <div className="grid grid-cols-2 gap-6">
+                <Card><CardHeader><CardTitle className="text-lg">Activity Logs</CardTitle></CardHeader><CardContent><div className="space-y-2 max-h-96 overflow-y-auto">{activityLogs.length > 0 ? activityLogs.map(log => (<div key={log.id} className="text-sm border-b pb-2"><p className="font-semibold text-gray-800">{log.action}</p><p className="text-xs text-gray-500">{new Date(log.createdAt).toLocaleString('sq-AL')}</p></div>)) : <p className="text-gray-500">No activity logs</p>}</div></CardContent></Card>
+                <Card><CardHeader><CardTitle className="text-lg">Email Logs</CardTitle></CardHeader><CardContent><div className="space-y-2 max-h-96 overflow-y-auto">{emailLogs.length > 0 ? emailLogs.map(log => (<div key={log.id} className="text-sm border-b pb-2"><p className="font-semibold text-gray-800">{log.recipientEmail}</p><p className="text-xs text-gray-600">{log.subject}</p><p className={`text-xs ${log.status === 'sent' ? 'text-green-600' : 'text-red-600'}`}>{log.status}</p><p className="text-xs text-gray-500">{new Date(log.createdAt).toLocaleString('sq-AL')}</p></div>)) : <p className="text-gray-500">No email logs</p>}</div></CardContent></Card>
+              </div>
             </motion.div>
           )}
 
