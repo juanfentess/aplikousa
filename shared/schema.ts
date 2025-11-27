@@ -74,6 +74,7 @@ export const applications = pgTable("applications", {
   spouseFirstName: text("spouse_first_name"),
   spouseLastName: text("spouse_last_name"),
   childrenCount: varchar("children_count"),
+  photoUrl: text("photo_url"),
   notes: text("notes"),
   createdAt: timestamp("created_at").default(sql`now()`),
   updatedAt: timestamp("updated_at").default(sql`now()`),

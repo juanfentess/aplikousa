@@ -9,6 +9,7 @@ import { WebhookHandlers } from "./webhookHandlers";
 import { insertUserSchema, insertEmailTemplateSchema, insertAdminSchema } from "@shared/schema";
 import { z } from "zod";
 import crypto from "crypto";
+import { generateApplicationConfirmationHTML, generateDeclarationHTML } from "./documents";
 
 async function hashPassword(password: string): Promise<string> {
   const { createHash } = await import("crypto");
