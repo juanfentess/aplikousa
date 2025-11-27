@@ -1,3 +1,4 @@
+import { Link } from "wouter";
 import { Facebook, Instagram, Phone, Mail, Clock } from "lucide-react";
 
 export function Footer() {
@@ -10,9 +11,11 @@ export function Footer() {
               <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center">
                 <div className="w-4 h-4 bg-secondary rounded-full" />
               </div>
-              <span className="text-2xl font-bold font-heading">
-                Apliko<span className="text-secondary">USA</span>
-              </span>
+              <Link href="/">
+                <span className="text-2xl font-bold font-heading cursor-pointer">
+                  Apliko<span className="text-secondary">USA</span>
+                </span>
+              </Link>
             </div>
             <p className="text-white/60 leading-relaxed">
               Partneri juaj i besueshëm për rrugëtimin drejt ëndrrës amerikane. Aplikim i sigurt, i shpejtë dhe profesional.
@@ -48,19 +51,19 @@ export function Footer() {
           <div>
             <h3 className="text-lg font-bold mb-6 font-heading">Linqe të Shpejta</h3>
             <ul className="space-y-3 text-white/70">
-              <li><a href="#how-it-works" className="hover:text-white transition-colors">Si funksionon</a></li>
-              <li><a href="#why-us" className="hover:text-white transition-colors">Pse ne</a></li>
-              <li><a href="#pricing" className="hover:text-white transition-colors">Çmimet</a></li>
-              <li><a href="#faq" className="hover:text-white transition-colors">Pyetje të shpeshta</a></li>
+              <li><Link href="/#how-it-works" className="hover:text-white transition-colors cursor-pointer">Si funksionon</Link></li>
+              <li><Link href="/#why-us" className="hover:text-white transition-colors cursor-pointer">Pse ne</Link></li>
+              <li><Link href="/#pricing" className="hover:text-white transition-colors cursor-pointer">Çmimet</Link></li>
+              <li><Link href="/#faq" className="hover:text-white transition-colors cursor-pointer">Pyetje të shpeshta</Link></li>
             </ul>
           </div>
 
           <div>
             <h3 className="text-lg font-bold mb-6 font-heading">Legal</h3>
             <ul className="space-y-3 text-white/70">
-              <li><a href="#" className="hover:text-white transition-colors">Termat dhe Kushtet</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Politika e Privatësisë</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Rimbursimet</a></li>
+              <li><Link href="/terms" className="hover:text-white transition-colors cursor-pointer">Termat dhe Kushtet</Link></li>
+              <li><Link href="/privacy" className="hover:text-white transition-colors cursor-pointer">Politika e Privatësisë</Link></li>
+              <li><Link href="/refunds" className="hover:text-white transition-colors cursor-pointer">Rimbursimet</Link></li>
             </ul>
           </div>
         </div>
