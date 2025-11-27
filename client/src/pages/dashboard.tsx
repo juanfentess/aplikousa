@@ -73,6 +73,7 @@ export default function Dashboard() {
   const [userData, setUserData] = useState<any>(null);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [purchasedPackage, setPurchasedPackage] = useState<string | null>(null);
+  const [userApplication, setUserApplication] = useState<any>(null);
 
   // Load user data on mount
   useEffect(() => {
@@ -132,6 +133,16 @@ export default function Dashboard() {
           })
           .catch(err => console.error("Error loading transactions:", err));
       }, 500);
+
+      // Fetch application data
+      fetch(`/api/applications/${userId}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data) {
+            setUserApplication(data);
+          }
+        })
+        .catch(err => console.error("Error loading application:", err));
     }
   }, []);
 
