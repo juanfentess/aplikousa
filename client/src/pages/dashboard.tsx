@@ -113,8 +113,12 @@ export default function Dashboard() {
           })
           .catch(err => console.error("Error updating payment:", err));
       } else if (params.get("payment") === "cancelled") {
-        // Show error message for declined/cancelled payment
-        toast.error("Pagesa u anulua ose u refuzua. Ju lutem provoni përsëri.");
+        // Show error message for declined/cancelled payment - delay to ensure DOM is ready
+        setTimeout(() => {
+          toast.error("Pagesa u anulua ose u refuzua. Ju lutem provoni përsëri.", {
+            duration: 5000,
+          });
+        }, 500);
         localStorage.removeItem("selectedPackage");
         // Clean URL
         window.history.replaceState({}, document.title, "/dashboard");
