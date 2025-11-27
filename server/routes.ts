@@ -175,6 +175,29 @@ export async function registerRoutes(
     }
   });
 
+  // Get user data
+  app.get("/api/auth/user/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      if (!id) {
+        return res.status(400).json({ error: "Missing user ID" });
+      }
+
+      const user = await storage.getUser(id);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Return user data without password
+      const { password, ...userData } = user;
+      res.json(userData);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ error: "Failed to fetch user" });
+    }
+  });
+
   // Admin Routes
 
   // Admin login

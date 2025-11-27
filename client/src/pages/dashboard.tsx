@@ -67,13 +67,30 @@ export default function Dashboard() {
   });
 
   const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [userData, setUserData] = useState<any>(null);
 
-  // Load user payment status on mount
+  // Load user data on mount
   useEffect(() => {
     const userId = localStorage.getItem("userId");
     if (userId) {
-      // In a real app, you'd fetch from API
-      // For now, just check localStorage
+      // Fetch user data from API
+      fetch(`/api/auth/user/${userId}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.firstName) {
+            setProfileData({
+              firstName: data.firstName || "",
+              lastName: data.lastName || "",
+              email: data.email || "",
+              phone: data.phone || "",
+              birthCountry: data.birthCountry || "",
+              city: data.city || "",
+            });
+            setUserData(data);
+          }
+        })
+        .catch(err => console.error("Error loading user data:", err));
+
       const savedStatus = localStorage.getItem("paymentStatus") || "pending";
       setUserPaymentStatus(savedStatus);
     }
