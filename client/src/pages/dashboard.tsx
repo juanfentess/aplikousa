@@ -255,6 +255,17 @@ export default function Dashboard() {
 
   const applicationSteps = getApplicationSteps();
 
+  // Calculate progress dynamically from application steps
+  const completedSteps = applicationSteps.filter(step => step.status === "completed").length;
+  const progress = (completedSteps / applicationSteps.length) * 100;
+
+  // Calculate overall application status
+  const getApplicationStatus = () => {
+    if (applicationSteps.every(step => step.status === "completed")) return "I Përfunduar";
+    if (applicationSteps.some(step => step.status === "in_progress")) return "Në Përpunim";
+    return "Në Pritje";
+  };
+
   const userId = localStorage.getItem("userId");
   const documents = [
     { 
@@ -273,7 +284,24 @@ export default function Dashboard() {
     },
   ];
 
-  const progress = 60;
+  // Add auto-refresh for application data every 10 seconds
+  useEffect(() => {
+    const userId = localStorage.getItem("userId");
+    if (!userId) return;
+
+    const refreshInterval = setInterval(() => {
+      fetch(`/api/applications/${userId}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data) {
+            setUserApplication(data);
+          }
+        })
+        .catch(err => console.error("Error refreshing application:", err));
+    }, 10000);
+
+    return () => clearInterval(refreshInterval);
+  }, []);
 
   const handleLogout = () => {
     setShowLogoutDialog(true);
@@ -575,10 +603,16 @@ export default function Dashboard() {
                       </CardHeader>
                       <CardContent>
                         <div className="flex items-center gap-2">
-                          <Clock className="h-5 w-5 text-yellow-500" />
-                          <span className="text-2xl font-bold text-gray-900">Në Pritje</span>
+                          {getApplicationStatus() === "I Përfunduar" ? (
+                            <CheckCircle className="h-5 w-5 text-green-500" />
+                          ) : getApplicationStatus() === "Në Përpunim" ? (
+                            <Clock className="h-5 w-5 text-yellow-500" />
+                          ) : (
+                            <AlertCircle className="h-5 w-5 text-gray-500" />
+                          )}
+                          <span className="text-2xl font-bold text-gray-900">{getApplicationStatus()}</span>
                         </div>
-                        <p className="text-xs text-gray-500 mt-1">Përditësuar: Sot, 09:41</p>
+                        <p className="text-xs text-gray-500 mt-1">Përditësuar: Sot</p>
                       </CardContent>
                     </Card>
                     
