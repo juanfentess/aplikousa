@@ -198,6 +198,144 @@ export async function registerRoutes(
     }
   });
 
+  // Handle payment success
+  app.post("/api/payment-success", async (req, res) => {
+    try {
+      const { userId } = req.body;
+
+      if (!userId) {
+        return res.status(400).json({ error: "Missing user ID" });
+      }
+
+      // Get user
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Update payment status
+      await storage.updateUserStripeInfo(userId, { paymentStatus: "completed" });
+
+      // Send payment success email
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <style>
+            body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; }
+            .container { max-width: 600px; margin: 0 auto; background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+            .header { background: linear-gradient(135deg, #0B1B3B 0%, #1a3a52 100%); color: white; padding: 40px 20px; text-align: center; }
+            .header h1 { margin: 0; font-size: 28px; }
+            .success-icon { font-size: 48px; margin-bottom: 15px; }
+            .content { padding: 40px 30px; }
+            .section { margin-bottom: 30px; }
+            .section-title { font-size: 16px; font-weight: 600; color: #0B1B3B; margin-bottom: 15px; }
+            .info-box { background-color: #f0f7ff; border-left: 4px solid #0B1B3B; padding: 15px; border-radius: 4px; margin: 15px 0; }
+            .info-label { font-size: 13px; color: #666; font-weight: 500; }
+            .info-value { font-size: 16px; color: #0B1B3B; font-weight: 600; margin-top: 5px; }
+            .button { display: inline-block; background-color: #0B1B3B; color: white; padding: 12px 30px; border-radius: 4px; text-decoration: none; font-weight: 600; margin: 20px 0; }
+            .button:hover { background-color: #0a1530; }
+            .features { list-style: none; padding: 0; margin: 15px 0; }
+            .features li { padding: 10px 0; padding-left: 25px; position: relative; color: #333; font-size: 14px; }
+            .features li:before { content: "✓"; position: absolute; left: 0; color: #0B1B3B; font-weight: bold; }
+            .footer { background-color: #f9f9f9; padding: 20px 30px; border-top: 1px solid #eee; font-size: 12px; color: #666; text-align: center; }
+            .footer a { color: #0B1B3B; text-decoration: none; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <!-- Header -->
+            <div class="header">
+              <div class="success-icon">✓</div>
+              <h1>Pagesa u Përfundua me Sukses!</h1>
+              <p style="margin: 10px 0 0 0; font-size: 14px; opacity: 0.9;">Faleminderit për besimin tuaj</p>
+            </div>
+
+            <!-- Content -->
+            <div class="content">
+              <!-- Greeting -->
+              <div class="section">
+                <p style="margin: 0; font-size: 16px; color: #333;">Përshëndetje ${user.firstName},</p>
+              </div>
+
+              <!-- Success Message -->
+              <div class="section">
+                <p style="margin: 0; color: #666; line-height: 1.6;">
+                  Jemi të ngazëllyer t'ju informojmë se pagesa juaj për aplikimin e DV Lottery Green Card është marrë dhe përpunuar me sukses. 
+                  Ju mund ta filloni aplikimin tuaj tani dhe të ndjekni statusin në çdo kohë përmes panelimit tuaj.
+                </p>
+              </div>
+
+              <!-- Receipt Section -->
+              <div class="section">
+                <div class="section-title">Detalet e Pagesës</div>
+                <div class="info-box">
+                  <div class="info-label">Shuma e Paguar</div>
+                  <div class="info-value">Sipas Paketës</div>
+                </div>
+                <div class="info-box">
+                  <div class="info-label">Statusi</div>
+                  <div class="info-value" style="color: #10b981;">Përfunduar</div>
+                </div>
+                <div class="info-box">
+                  <div class="info-label">Email Konfirmimi</div>
+                  <div class="info-value">${user.email}</div>
+                </div>
+              </div>
+
+              <!-- What's Next -->
+              <div class="section">
+                <div class="section-title">Hapat e Ardhshëm</div>
+                <ul class="features">
+                  <li>Plotësoni formularin e aplikimit me të dhënat tuaja të plota</li>
+                  <li>Ngarkoni foton tuaj në përputhje me kërkesat zyrtare</li>
+                  <li>Rishikojeni aplikimin tuaj para se ta dorëzoni</li>
+                  <li>Monitoroni statusin e aplikimit në panelin tuaj</li>
+                </ul>
+              </div>
+
+              <!-- CTA Button -->
+              <div style="text-align: center;">
+                <a href="https://aplikousa.com/dashboard" class="button">Shko në Panelin tim</a>
+              </div>
+
+              <!-- Support -->
+              <div class="section" style="margin-top: 30px; padding-top: 30px; border-top: 1px solid #eee;">
+                <p style="margin: 0; font-size: 14px; color: #666;">
+                  Nëse keni pyetje ose keni nevojë për ndihmë, kontaktoni <a href="mailto:info@aplikousa.com" style="color: #0B1B3B; text-decoration: none;">info@aplikousa.com</a>
+                </p>
+              </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="footer">
+              <p style="margin: 0;">© 2025 AplikoUSA. Të gjitha të drejtat e rezervuara.</p>
+              <p style="margin: 10px 0 0 0; font-size: 11px;">
+                <a href="https://aplikousa.com/privacy">Politika e Privatësisë</a> | 
+                <a href="https://aplikousa.com/terms">Termat e Shërbimit</a>
+              </p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `;
+
+      await sendTemplateEmail(
+        user.email,
+        htmlContent,
+        "Pagesa e Suksesshme - AplikoUSA Green Card DV Lottery",
+        user.firstName
+      );
+
+      res.json({ success: true, message: "Payment updated and email sent" });
+    } catch (error) {
+      console.error("Payment success error:", error);
+      res.status(500).json({ error: "Failed to process payment success" });
+    }
+  });
+
   // Admin Routes
 
   // Admin login

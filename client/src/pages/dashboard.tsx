@@ -73,6 +73,28 @@ export default function Dashboard() {
   useEffect(() => {
     const userId = localStorage.getItem("userId");
     if (userId) {
+      // Check if returning from payment success
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("payment") === "success") {
+        // Call API to mark payment as complete
+        fetch("/api/payment-success", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId }),
+        })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              setUserPaymentStatus("completed");
+              localStorage.setItem("paymentStatus", "completed");
+              toast.success("Pagesa u përfundua me sukses! Mirëpresim në aplikimin tuaj.");
+              // Clean URL
+              window.history.replaceState({}, document.title, "/dashboard");
+            }
+          })
+          .catch(err => console.error("Error updating payment:", err));
+      }
+
       // Fetch user data from API
       fetch(`/api/auth/user/${userId}`)
         .then(res => res.json())
@@ -87,12 +109,10 @@ export default function Dashboard() {
               city: data.city || "",
             });
             setUserData(data);
+            setUserPaymentStatus(data.paymentStatus || "pending");
           }
         })
         .catch(err => console.error("Error loading user data:", err));
-
-      const savedStatus = localStorage.getItem("paymentStatus") || "pending";
-      setUserPaymentStatus(savedStatus);
     }
   }, []);
 
