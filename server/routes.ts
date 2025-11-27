@@ -327,7 +327,7 @@ export async function registerRoutes(
       }
 
       // Get user
-      const user = await storage.getUserById(userId);
+      const user = await storage.getUser(userId);
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
@@ -338,7 +338,7 @@ export async function registerRoutes(
         const customer = await stripeService.createCustomer(user.email, userId);
         stripeCustomerId = customer.id;
         // Update user with Stripe customer ID
-        await storage.updateUser(userId, { stripeCustomerId });
+        await storage.updateUserStripeInfo(userId, { stripeCustomerId });
       }
 
       // Get price from product
