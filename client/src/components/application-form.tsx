@@ -776,25 +776,8 @@ export function ApplicationForm() {
           
           <div className="space-y-4 py-4 text-center">
             <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
-              <p className="text-sm text-blue-600 mb-3">Kodi i verifikimit (6 shifra):</p>
-              <div className="text-4xl font-bold tracking-[0.5em] text-primary mb-2">
-                {verificationCode.split('').join(' ')}
-              </div>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => {
-                  navigator.clipboard.writeText(verificationCode);
-                  toast.success("Kodi u kopjua!");
-                }}
-                className="mt-2"
-              >
-                Kopjo kodin
-              </Button>
-            </div>
-
-            <div className="bg-amber-50 p-4 rounded-lg border border-amber-200 text-sm text-amber-800">
-              <p>Nëse nuk keni marrë email, përdorni kodin sipër për verifikim.</p>
+              <p className="text-sm text-blue-600 mb-3">Kodi i verifikimit u dërgua në email tuaj</p>
+              <p className="text-sm text-gray-600">Ju lutem kontrolloni kutinë e postës tuaj dhe futni kodin e marrë në faqen e ardhshme.</p>
             </div>
           </div>
 
