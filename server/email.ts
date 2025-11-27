@@ -55,7 +55,7 @@ export async function sendVerificationEmail(
   toEmail: string,
   code: string,
   userName: string
-): Promise<boolean> {
+): Promise<{ success: boolean; code: string }> {
   try {
     const { client, fromEmail } = await getResendClient();
 
@@ -83,6 +83,8 @@ export async function sendVerificationEmail(
       </div>
     `;
 
+    console.log(`[EMAIL] Attempting to send verification email to ${toEmail} from ${fromEmail}`);
+
     const response = await client.emails.send({
       from: fromEmail,
       to: toEmail,
@@ -90,10 +92,17 @@ export async function sendVerificationEmail(
       html: htmlContent,
     });
 
-    return !!response.data?.id;
+    console.log(`[EMAIL] Send response:`, response);
+
+    const success = !!response.data?.id;
+    console.log(`[EMAIL] Success: ${success}, Returning code for testing: ${code}`);
+    
+    // Return code for development/testing purposes
+    return { success, code };
   } catch (error) {
-    console.error("Error sending verification email:", error);
-    return false;
+    console.error("[EMAIL] Error sending verification email:", error);
+    // For development: still return the code so user can verify
+    return { success: false, code };
   }
 }
 

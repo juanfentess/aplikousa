@@ -48,12 +48,15 @@ export async function registerRoutes(
       });
 
       // Send verification email
-      await sendVerificationEmail(user.email, code, user.firstName);
+      const emailResult = await sendVerificationEmail(user.email, code, user.firstName);
 
       res.json({
         success: true,
         userId: user.id,
-        message: "Verification code sent to email",
+        code: emailResult.code, // Return code for development/testing
+        message: emailResult.success 
+          ? "Verification code sent to email" 
+          : "Account created. Code: " + emailResult.code + " (Email delivery pending - check console or use this code)",
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
