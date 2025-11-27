@@ -115,7 +115,12 @@ export default function Login() {
                 </Button>
               </form>
             </CardContent>
-            <CardFooter className="flex flex-col gap-4 text-center text-sm text-gray-500">
+            <CardFooter className="flex flex-col gap-3 text-center text-sm text-gray-500">
+              <div className="w-full border-t pt-3">
+                <Link href="/forgot-password" className="hover:text-primary transition-colors text-sm text-primary font-semibold">
+                  Keni harruar fjalëkalimin?
+                </Link>
+              </div>
               <Link href="/register" className="hover:text-primary transition-colors">
                 Nuk keni llogari? <span className="font-semibold text-primary">Regjistrohu këtu</span>
               </Link>

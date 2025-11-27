@@ -2,6 +2,7 @@ import { db } from "./db";
 import {
   users,
   verificationCodes,
+  passwordResetTokens,
   emailTemplates,
   admins,
   applications,
@@ -21,7 +22,7 @@ import {
   type Transaction,
   type InsertTransaction,
 } from "@shared/schema";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, gt } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -38,6 +39,11 @@ export interface IStorage {
   createVerificationCode(code: InsertVerificationCode): Promise<VerificationCode>;
   getVerificationCode(userId: string, code: string): Promise<VerificationCode | undefined>;
   deleteVerificationCode(id: string): Promise<void>;
+
+  // Password reset
+  createPasswordResetToken(userId: string, token: string, expiresAt: Date): Promise<any>;
+  getPasswordResetToken(token: string): Promise<any | undefined>;
+  deletePasswordResetToken(id: string): Promise<void>;
 
   // Email templates
   createEmailTemplate(template: InsertEmailTemplate): Promise<EmailTemplate>;
@@ -122,6 +128,29 @@ export class Storage implements IStorage {
 
   async deleteVerificationCode(id: string): Promise<void> {
     await db.delete(verificationCodes).where(eq(verificationCodes.id, id));
+  }
+
+  // Password reset tokens
+  async createPasswordResetToken(userId: string, token: string, expiresAt: Date): Promise<any> {
+    // Delete any existing tokens for this user
+    await db.delete(passwordResetTokens).where(eq(passwordResetTokens.userId, userId));
+    // Create new token
+    const result = await db.insert(passwordResetTokens).values({ userId, token, expiresAt }).returning();
+    return result[0];
+  }
+
+  async getPasswordResetToken(token: string): Promise<any | undefined> {
+    const result = await db.select()
+      .from(passwordResetTokens)
+      .where(and(
+        eq(passwordResetTokens.token, token),
+        gt(passwordResetTokens.expiresAt, new Date())
+      ));
+    return result[0];
+  }
+
+  async deletePasswordResetToken(id: string): Promise<void> {
+    await db.delete(passwordResetTokens).where(eq(passwordResetTokens.id, id));
   }
 
   // Email templates
