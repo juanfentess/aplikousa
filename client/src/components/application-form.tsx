@@ -79,6 +79,9 @@ export function ApplicationForm() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [creatingAccount, setCreatingAccount] = useState(false);
+  const [showCodeDialog, setShowCodeDialog] = useState(false);
+  const [verificationCode, setVerificationCode] = useState("");
+  const [userId, setUserId] = useState("");
   const [, setLocation] = useLocation();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -191,16 +194,18 @@ export function ApplicationForm() {
 
       const data = await response.json();
       
-      // Close dialog and redirect to verification
+      // Show code dialog
+      setVerificationCode(data.code);
+      setUserId(data.userId);
+      setShowCodeDialog(true);
+      
+      // Close password dialog
       setShowPasswordDialog(false);
       form.reset();
       setFileName(null);
       setSpouseFileName(null);
       setPassword("");
       setConfirmPassword("");
-      
-      // Redirect to verify email page with userId
-      setLocation(`/verify-email?userId=${data.userId}`);
     } catch (err) {
       console.error("Registration error:", err);
       alert("Gabim gjatë regjistrimit");
@@ -753,6 +758,58 @@ export function ApplicationForm() {
           </Form>
         </div>
       </div>
+
+      {/* Code Display Dialog */}
+      <Dialog open={showCodeDialog} onOpenChange={setShowCodeDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="mx-auto w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mb-4">
+              <Check className="h-6 w-6 text-green-600" />
+            </div>
+            <DialogTitle className="text-center text-xl">Llogaria u krijua me sukses! ✓</DialogTitle>
+            <DialogDescription className="text-center pt-2">
+              Ja kodi juaj i verifikimit:
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4 text-center">
+            <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
+              <p className="text-sm text-blue-600 mb-3">Kodi i verifikimit (6 shifra):</p>
+              <div className="text-4xl font-bold tracking-[0.5em] text-primary mb-2">
+                {verificationCode.split('').join(' ')}
+              </div>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => {
+                  navigator.clipboard.writeText(verificationCode);
+                  toast.success("Kodi u kopjua!");
+                }}
+                className="mt-2"
+              >
+                Kopjo kodin
+              </Button>
+            </div>
+
+            <div className="bg-amber-50 p-4 rounded-lg border border-amber-200 text-sm text-amber-800">
+              <p>Nëse nuk keni marrë email, përdorni kodin sipër për verifikim.</p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button 
+              onClick={() => {
+                setShowCodeDialog(false);
+                setLocation(`/verify-email?userId=${userId}&code=${verificationCode}`);
+              }}
+              className="w-full bg-primary hover:bg-primary/90 text-white"
+              data-testid="button-go-to-verify"
+            >
+              Vazhdo në verifikim
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
         <DialogContent className="sm:max-w-md">

@@ -15,13 +15,19 @@ export default function VerifyEmail() {
   const [verified, setVerified] = useState(false);
   const [error, setError] = useState("");
 
-  const userId = new URLSearchParams(window.location.search).get("userId");
+  const searchParams = new URLSearchParams(window.location.search);
+  const userId = searchParams.get("userId");
+  const prefilledCode = searchParams.get("code");
 
   useEffect(() => {
     if (!userId) {
       setLocation("/");
     }
-  }, [userId, setLocation]);
+    // Pre-fill code if provided in URL
+    if (prefilledCode) {
+      setCode(prefilledCode);
+    }
+  }, [userId, setLocation, prefilledCode]);
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
