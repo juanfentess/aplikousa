@@ -104,12 +104,47 @@ export function Hero() {
           transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
           className="relative hidden md:block"
         >
-          <div className="relative z-10 bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10 shadow-2xl rotate-3 hover:rotate-0 transition-transform duration-500">
-             <div className="aspect-[4/3] rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center relative overflow-hidden group">
-                <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1529101091760-6149d4c8f092?q=80&w=2574&auto=format&fit=crop')] bg-cover bg-center opacity-90 group-hover:scale-105 transition-transform duration-700"></div>
-                <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur px-4 py-2 rounded-lg shadow-lg">
-                  <p className="text-sm font-bold text-primary">Green Card Lottery</p>
-                  <p className="text-xs text-gray-600">Official Entry</p>
+          <div className="relative z-10 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md rounded-2xl p-8 border border-white/20 shadow-2xl rotate-3 hover:rotate-0 transition-transform duration-500">
+             <div className="aspect-[4/3] rounded-xl bg-gradient-to-br from-green-400/30 via-blue-400/20 to-purple-400/30 flex flex-col items-center justify-center relative overflow-hidden group border border-white/30">
+                {/* Animated Background */}
+                <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1529101091760-6149d4c8f092?q=80&w=2574&auto=format&fit=crop')] bg-cover bg-center opacity-40 group-hover:opacity-60 transition-opacity duration-700"></div>
+                
+                {/* Decorative Elements */}
+                <motion.div 
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                  className="absolute top-4 right-4 w-16 h-16 border-2 border-green-400/50 rounded-full opacity-40"
+                />
+                <motion.div 
+                  animate={{ rotate: -360 }}
+                  transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+                  className="absolute bottom-6 left-4 w-12 h-12 border-2 border-blue-400/50 rounded-full opacity-30"
+                />
+                
+                {/* Center Content */}
+                <div className="relative z-10 text-center space-y-4">
+                  <motion.div 
+                    animate={{ scale: [1, 1.1, 1] }}
+                    transition={{ duration: 3, repeat: Infinity }}
+                    className="text-5xl font-bold text-white drop-shadow-lg"
+                  >
+                    🎯
+                  </motion.div>
+                  <div className="space-y-2">
+                    <p className="text-lg font-bold text-white drop-shadow-md">Green Card Lottery</p>
+                    <p className="text-sm text-white/80 drop-shadow">Përfundoji në 3 hapa</p>
+                  </div>
+                  <div className="flex justify-center gap-3 pt-2">
+                    <div className="w-2 h-2 rounded-full bg-green-400 opacity-80"></div>
+                    <div className="w-2 h-2 rounded-full bg-blue-400 opacity-80"></div>
+                    <div className="w-2 h-2 rounded-full bg-purple-400 opacity-80"></div>
+                  </div>
+                </div>
+                
+                {/* Bottom Badge */}
+                <div className="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur px-4 py-3 rounded-lg shadow-lg group-hover:shadow-xl transition-shadow">
+                  <p className="text-xs font-bold text-primary mb-1">✓ Zyrtar & Sigur</p>
+                  <p className="text-[11px] text-gray-600">Aplikimi direkt në USCIS</p>
                 </div>
              </div>
           </div>
