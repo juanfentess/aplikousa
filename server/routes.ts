@@ -376,10 +376,10 @@ export async function registerRoutes(
   // Stripe Checkout
   app.post("/api/checkout", async (req, res) => {
     try {
-      const { userId, productId } = req.body;
+      const { userId, packageType } = req.body;
 
-      if (!userId || !productId) {
-        return res.status(400).json({ error: "Missing userId or productId" });
+      if (!userId || !packageType) {
+        return res.status(400).json({ error: "Missing userId or packageType" });
       }
 
       // Get user
@@ -397,14 +397,24 @@ export async function registerRoutes(
         await storage.updateUserStripeInfo(userId, { stripeCustomerId });
       }
 
-      // Get price from product
-      const priceId = await stripeService.getPriceFromProduct(productId);
+      // Package details
+      const packages: Record<string, { name: string; amount: number }> = {
+        individual: { name: "Individual Package", amount: 20 },
+        couple: { name: "Couple Package", amount: 35 },
+        family: { name: "Family Package", amount: 50 },
+      };
 
-      // Create checkout session
+      const pkg = packages[packageType];
+      if (!pkg) {
+        return res.status(400).json({ error: "Invalid package type" });
+      }
+
+      // Create checkout session with amount
       const baseUrl = `${req.protocol}://${req.get("host")}`;
-      const session = await stripeService.createCheckoutSession(
+      const session = await stripeService.createCheckoutSessionWithAmount(
         stripeCustomerId,
-        priceId,
+        pkg.amount,
+        pkg.name,
         `${baseUrl}/dashboard?payment=success`,
         `${baseUrl}/dashboard?payment=cancelled`
       );

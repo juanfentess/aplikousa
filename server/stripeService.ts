@@ -31,6 +31,27 @@ export class StripeService {
     });
   }
 
+  async createCheckoutSessionWithAmount(customerId: string, amount: number, productName: string, successUrl: string, cancelUrl: string) {
+    const stripe = await getUncachableStripeClient();
+    return await stripe.checkout.sessions.create({
+      customer: customerId,
+      payment_method_types: ['card'],
+      line_items: [{
+        price_data: {
+          currency: 'eur',
+          product_data: {
+            name: productName,
+          },
+          unit_amount: Math.round(amount * 100), // Convert to cents
+        },
+        quantity: 1,
+      }],
+      mode: 'payment',
+      success_url: successUrl,
+      cancel_url: cancelUrl,
+    });
+  }
+
   async getProduct(productId: string) {
     return await storage.getProduct(productId);
   }

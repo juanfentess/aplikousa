@@ -108,22 +108,12 @@ export default function Dashboard() {
         return;
       }
 
-      // Map package type to Stripe product ID
-      const productIds: Record<string, string> = {
-        individual: "prod_TV7Ys2UMWEGndb", // 20€
-        couple: "prod_TV7YLEvYXfVUOR",     // 35€
-        family: "prod_TV7YKG4TXTFwmr",     // 50€
-      };
-
-      const productId = productIds[packageType];
-      console.log("Sending checkout request with productId:", productId);
-
       const response = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId,
-          productId,
+          packageType,
         }),
       });
 
