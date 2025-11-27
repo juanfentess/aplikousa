@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { Menu, X, Flag, User } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
