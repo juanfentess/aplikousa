@@ -5,6 +5,7 @@ import {
   emailTemplates,
   admins,
   applications,
+  transactions,
 } from "@shared/schema";
 import {
   type User,
@@ -17,8 +18,10 @@ import {
   type InsertAdmin,
   type Application,
   type InsertApplication,
+  type Transaction,
+  type InsertTransaction,
 } from "@shared/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -50,6 +53,11 @@ export interface IStorage {
   getApplication(userId: string): Promise<Application | undefined>;
   getApplications(): Promise<Application[]>;
   updateApplicationStatus(id: string, status: string): Promise<Application>;
+
+  // Transactions
+  createTransaction(transaction: InsertTransaction): Promise<Transaction>;
+  getTransactions(userId: string): Promise<Transaction[]>;
+  updateTransactionStatus(id: string, status: string): Promise<Transaction>;
 
   // Stripe
   getProduct(productId: string): Promise<any>;
