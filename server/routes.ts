@@ -2,6 +2,8 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { sendVerificationEmail, sendTemplateEmail } from "./email";
+import { stripeService } from "./stripeService";
+import { getStripePublishableKey } from "./stripeClient";
 import { insertUserSchema, insertEmailTemplateSchema, insertAdminSchema } from "@shared/schema";
 import { z } from "zod";
 import crypto from "crypto";
@@ -281,6 +283,51 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error sending custom email:", error);
       res.status(500).json({ error: "Failed to send email" });
+    }
+  });
+
+  // Stripe Routes
+  app.get("/api/stripe/publishable-key", async (req, res) => {
+    try {
+      const key = await getStripePublishableKey();
+      res.json({ publishableKey: key });
+    } catch (error) {
+      console.error("Error getting publishable key:", error);
+      res.status(500).json({ error: "Failed to get publishable key" });
+    }
+  });
+
+  app.post("/api/checkout", async (req, res) => {
+    try {
+      const { userId, priceId } = req.body;
+
+      if (!userId || !priceId) {
+        return res.status(400).json({ error: "Missing userId or priceId" });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      let customerId = user.stripeCustomerId;
+      if (!customerId) {
+        const customer = await stripeService.createCustomer(user.email, user.id);
+        await storage.updateUserStripeInfo(user.id, { stripeCustomerId: customer.id });
+        customerId = customer.id;
+      }
+
+      const session = await stripeService.createCheckoutSession(
+        customerId,
+        priceId,
+        `${process.env.REPLIT_DOMAINS || 'localhost:5000'}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+        `${process.env.REPLIT_DOMAINS || 'localhost:5000'}/checkout/cancel`
+      );
+
+      res.json({ url: session.url });
+    } catch (error) {
+      console.error("Error creating checkout session:", error);
+      res.status(500).json({ error: "Failed to create checkout session" });
     }
   });
 

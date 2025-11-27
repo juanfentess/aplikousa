@@ -26,6 +26,7 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   getUser(id: string): Promise<User | undefined>;
   updateUserVerification(userId: string): Promise<void>;
+  updateUserStripeInfo(userId: string, stripeInfo: { stripeCustomerId?: string; stripeSubscriptionId?: string; paymentStatus?: string }): Promise<User>;
 
   // Verification codes
   createVerificationCode(code: InsertVerificationCode): Promise<VerificationCode>;
@@ -49,6 +50,10 @@ export interface IStorage {
   getApplication(userId: string): Promise<Application | undefined>;
   getApplications(): Promise<Application[]>;
   updateApplicationStatus(id: string, status: string): Promise<Application>;
+
+  // Stripe
+  getProduct(productId: string): Promise<any>;
+  getSubscription(subscriptionId: string): Promise<any>;
 }
 
 export class Storage implements IStorage {
@@ -70,6 +75,11 @@ export class Storage implements IStorage {
 
   async updateUserVerification(userId: string): Promise<void> {
     await db.update(users).set({ isVerified: true }).where(eq(users.id, userId));
+  }
+
+  async updateUserStripeInfo(userId: string, stripeInfo: { stripeCustomerId?: string; stripeSubscriptionId?: string; paymentStatus?: string }): Promise<User> {
+    const result = await db.update(users).set(stripeInfo).where(eq(users.id, userId)).returning();
+    return result[0];
   }
 
   // Verification codes
@@ -159,6 +169,25 @@ export class Storage implements IStorage {
       .where(eq(applications.id, id))
       .returning();
     return result[0];
+  }
+
+  // Stripe operations - query from stripe schema
+  async getProduct(productId: string): Promise<any> {
+    try {
+      const result = await db.execute(`SELECT * FROM stripe.products WHERE id = '${productId}' LIMIT 1`);
+      return (result as any).rows?.[0] || null;
+    } catch {
+      return null;
+    }
+  }
+
+  async getSubscription(subscriptionId: string): Promise<any> {
+    try {
+      const result = await db.execute(`SELECT * FROM stripe.subscriptions WHERE id = '${subscriptionId}' LIMIT 1`);
+      return (result as any).rows?.[0] || null;
+    } catch {
+      return null;
+    }
   }
 }
 

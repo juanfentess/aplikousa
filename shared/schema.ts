@@ -15,6 +15,9 @@ export const users = pgTable("users", {
   city: text("city"),
   isVerified: boolean("is_verified").default(false),
   package: varchar("package", { length: 20 }), // individual, couple, family
+  stripeCustomerId: text("stripe_customer_id"),
+  stripeSubscriptionId: text("stripe_subscription_id"),
+  paymentStatus: varchar("payment_status", { length: 20 }).default("pending"), // pending, completed, failed
   createdAt: timestamp("created_at").default(sql`now()`),
 });
 
