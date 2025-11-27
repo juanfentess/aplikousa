@@ -47,6 +47,7 @@ export default function Dashboard() {
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showPaymentSuccessDialog, setShowPaymentSuccessDialog] = useState(false);
   const [userPaymentStatus, setUserPaymentStatus] = useState("pending");
 
   // State for profile form
@@ -90,7 +91,7 @@ export default function Dashboard() {
               setUserPaymentStatus("completed");
               localStorage.setItem("paymentStatus", "completed");
               localStorage.removeItem("selectedPackage");
-              toast.success("Pagesa u përfundua me sukses! Mirëpresim në aplikimin tuaj.");
+              setShowPaymentSuccessDialog(true);
               // Clean URL
               window.history.replaceState({}, document.title, "/dashboard");
             }
@@ -117,15 +118,17 @@ export default function Dashboard() {
         })
         .catch(err => console.error("Error loading user data:", err));
 
-      // Fetch transactions
-      fetch(`/api/transactions/${userId}`)
-        .then(res => res.json())
-        .then(data => {
-          if (Array.isArray(data)) {
-            setTransactions(data);
-          }
-        })
-        .catch(err => console.error("Error loading transactions:", err));
+      // Fetch transactions with a slight delay to ensure payment is recorded
+      setTimeout(() => {
+        fetch(`/api/transactions/${userId}`)
+          .then(res => res.json())
+          .then(data => {
+            if (Array.isArray(data)) {
+              setTransactions(data);
+            }
+          })
+          .catch(err => console.error("Error loading transactions:", err));
+      }, 500);
     }
   }, []);
 
@@ -863,11 +866,118 @@ export default function Dashboard() {
                   </Card>
                 </motion.div>
               )}
+
+              {/* TRANSACTIONS TAB */}
+              {activeTab === "transactions" && (
+                <motion.div
+                  key="transactions"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="space-y-6"
+                >
+                  <Card className="border-gray-100 shadow-md">
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <Wallet className="mr-2 h-5 w-5 text-primary" />
+                        Historiku i Transaksioneve
+                      </CardTitle>
+                      <CardDescription>Të gjitha pagesat tuaja dhe statusi i tyre</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      {transactions.length === 0 ? (
+                        <div className="text-center py-8">
+                          <Wallet className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                          <p className="text-gray-500">Nuk ka transaksione të regjistruara ende</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {transactions.map((transaction: any) => {
+                            const packageNames: Record<string, string> = {
+                              individual: "Paket Individuale",
+                              couple: "Paket për Çifte",
+                              family: "Paket Familjare",
+                            };
+
+                            const statusColors: Record<string, { bg: string; text: string; label: string }> = {
+                              pending: { bg: "bg-yellow-100", text: "text-yellow-800", label: "Duke u përpunuar" },
+                              completed: { bg: "bg-green-100", text: "text-green-800", label: "Përfunduar" },
+                              failed: { bg: "bg-red-100", text: "text-red-800", label: "Dështuar" },
+                            };
+
+                            const statusInfo = statusColors[transaction.status] || statusColors.pending;
+                            const createdDate = new Date(transaction.createdAt).toLocaleDateString("sq-AL", {
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            });
+
+                            return (
+                              <div
+                                key={transaction.id}
+                                className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-primary/20 transition"
+                                data-testid={`transaction-row-${transaction.id}`}
+                              >
+                                <div className="flex items-center gap-4 flex-1">
+                                  <div className="p-3 bg-white rounded-full border-2 border-primary/10">
+                                    <CreditCard className="h-5 w-5 text-primary" />
+                                  </div>
+                                  <div>
+                                    <p className="font-semibold text-gray-900">{packageNames[transaction.packageType]}</p>
+                                    <p className="text-sm text-gray-500">{createdDate}</p>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                  <div className="text-right">
+                                    <p className="font-bold text-gray-900">€{parseFloat(transaction.amount).toFixed(2)}</p>
+                                    <Badge className={`${statusInfo.bg} ${statusInfo.text} hover:${statusInfo.bg} border-0 mt-1`}>
+                                      {statusInfo.label}
+                                    </Badge>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
             </AnimatePresence>
 
           </div>
         </div>
       </div>
+
+      {/* Payment Success Dialog */}
+      <Dialog open={showPaymentSuccessDialog} onOpenChange={setShowPaymentSuccessDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="mx-auto w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4">
+              <CheckCircle className="h-8 w-8 text-green-600" />
+            </div>
+            <DialogTitle className="text-center text-2xl font-bold">Pagesa u Përfundua me Sukses! ✓</DialogTitle>
+            <DialogDescription className="text-center pt-4">
+              Faleminderit për pagesën tuaj. Tani mund të vazhdoni me aplikimin tuaj. Një email konfirmimi ka qenë dërguar në adresën tuaj.
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter className="flex gap-3 sm:flex-row">
+            <Button
+              onClick={() => {
+                setShowPaymentSuccessDialog(false);
+                setActiveTab("transactions");
+              }}
+              className="flex-1 bg-primary hover:bg-primary/90 text-white"
+            >
+              Shiko Transaksionet
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Password Change Dialog */}
       <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
