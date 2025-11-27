@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import heroBg from "@assets/generated_images/abstract_us_flag_background.png";
+import heroCard from "@assets/generated_images/green_card_lottery_professional_hero_image.png";
 
 export function Hero() {
   const scrollToSection = (id: string) => {
@@ -104,144 +105,98 @@ export function Hero() {
           transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
           className="relative hidden md:block"
         >
-          {/* Outer Glow Effect */}
-          <div className="absolute -inset-4 bg-gradient-to-r from-secondary/20 via-blue-500/10 to-purple-500/10 rounded-3xl blur-2xl opacity-60"></div>
+          {/* Glow Effect */}
+          <div className="absolute -inset-3 bg-gradient-to-r from-secondary/30 via-blue-500/20 to-transparent rounded-3xl blur-3xl opacity-40"></div>
           
           <div className="relative z-10">
-            {/* Main Card with Premium Border */}
-            <div className="relative bg-gradient-to-br from-slate-800/40 via-blue-900/30 to-slate-900/50 backdrop-blur-xl rounded-3xl border border-white/15 shadow-[0_20px_60px_rgba(0,0,0,0.3)] overflow-hidden">
+            {/* Premium Card Container */}
+            <div className="relative rounded-3xl overflow-hidden shadow-[0_25px_70px_rgba(0,0,0,0.4)] border border-white/10">
               
-              {/* Animated Background Gradients */}
-              <div className="absolute inset-0 overflow-hidden">
-                <motion.div 
-                  animate={{ 
-                    x: [0, 100, 0],
-                    y: [0, 50, 0]
-                  }}
-                  transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
-                  className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-cyan-500/20 via-transparent to-transparent rounded-full blur-3xl"
+              {/* Main Background Image */}
+              <div className="absolute inset-0">
+                <img 
+                  src={heroCard}
+                  alt="Green Card Lottery Professional"
+                  className="w-full h-full object-cover"
                 />
-                <motion.div 
-                  animate={{ 
-                    x: [0, -50, 0],
-                    y: [0, -100, 0]
-                  }}
-                  transition={{ duration: 20, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-                  className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-purple-500/20 via-transparent to-transparent rounded-full blur-3xl"
-                />
+                {/* Gradient Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/60 via-transparent to-primary/40"></div>
               </div>
 
-              {/* Content Container */}
-              <div className="relative aspect-[4/3] flex flex-col items-center justify-center p-8">
+              {/* Content Overlay */}
+              <div className="relative aspect-[4/3] flex flex-col justify-between p-10">
                 
-                {/* Top Right Premium Badge */}
-                <motion.div 
-                  animate={{ y: [0, -8, 0], rotate: [0, 2, -2, 0] }}
-                  transition={{ duration: 4, repeat: Infinity }}
-                  className="absolute top-6 right-6 z-30"
-                >
-                  <div className="bg-gradient-to-br from-secondary to-red-600 text-white px-4 py-3 rounded-2xl font-bold text-sm shadow-[0_10px_25px_rgba(230,57,70,0.4)] border border-white/20 backdrop-blur-sm">
-                    <div className="flex flex-col items-center gap-1">
-                      <span className="text-lg">100%</span>
-                      <span className="text-xs font-medium">Pa Gabime</span>
+                {/* Top Section - Badge */}
+                <div className="flex justify-between items-start">
+                  <div></div>
+                  <motion.div 
+                    animate={{ y: [0, -6, 0] }}
+                    transition={{ duration: 3, repeat: Infinity }}
+                    className="z-20"
+                  >
+                    <div className="bg-secondary text-white px-5 py-3 rounded-2xl font-bold text-sm shadow-[0_12px_30px_rgba(230,57,70,0.5)] border border-white/20 backdrop-blur-md">
+                      <div className="text-center">
+                        <p className="text-2xl font-bold">100%</p>
+                        <p className="text-xs font-medium">Pa Gabime</p>
+                      </div>
                     </div>
-                  </div>
-                </motion.div>
+                  </motion.div>
+                </div>
 
-                {/* Center Content Area */}
-                <div className="flex flex-col items-center justify-center gap-8">
-                  
-                  {/* Premium Icon - Target with animated elements */}
-                  <div className="relative w-20 h-20">
-                    {/* Outer rotating circle */}
-                    <motion.div 
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-                      className="absolute inset-0 border-2 border-transparent border-t-secondary border-r-secondary rounded-full opacity-70"
-                    />
-                    
-                    {/* Middle pulsing circle */}
-                    <motion.div 
-                      animate={{ scale: [1, 1.2, 1], opacity: [0.4, 0.8, 0.4] }}
-                      transition={{ duration: 3, repeat: Infinity }}
-                      className="absolute inset-2 border border-secondary rounded-full opacity-60"
-                    />
-                    
-                    {/* Center target */}
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-4 h-4 bg-gradient-to-br from-secondary to-red-600 rounded-full shadow-lg shadow-secondary/50"></div>
-                    </div>
-                    
-                    {/* Arrow animation */}
-                    <motion.div 
-                      animate={{ x: [0, 4, 0], y: [0, -4, 0] }}
-                      transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-                      className="absolute -top-1 -right-1 text-secondary text-2xl font-bold opacity-80"
-                    >
-                      →
-                    </motion.div>
-                  </div>
+                {/* Middle Section - Main Content */}
+                <div className="flex flex-col items-center justify-center gap-6 text-center">
+                  {/* Animated Icon Badge */}
+                  <motion.div 
+                    animate={{ scale: [1, 1.08, 1] }}
+                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                    className="bg-white/95 backdrop-blur-sm rounded-full p-4 shadow-xl"
+                  >
+                    <div className="text-3xl">✓</div>
+                  </motion.div>
 
-                  {/* Text Content */}
-                  <div className="text-center space-y-4">
-                    <h3 className="text-3xl font-bold text-white font-heading tracking-tight drop-shadow-lg">
+                  {/* Main Headline */}
+                  <div className="space-y-3">
+                    <h3 className="text-4xl font-bold text-white font-heading drop-shadow-lg">
                       Green Card Lottery
                     </h3>
-                    <p className="text-white/90 text-sm font-medium drop-shadow">
+                    <p className="text-white/95 text-lg font-medium drop-shadow-md">
                       Përfundoji në 3 hapa të thjeshtë
                     </p>
                   </div>
 
-                  {/* Steps Progress Indicator */}
-                  <div className="flex items-center gap-3">
+                  {/* Progress Dots */}
+                  <div className="flex items-center gap-4 pt-2">
                     <motion.div 
-                      animate={{ scale: [1, 1.2, 1] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                      className="w-3 h-3 rounded-full bg-gradient-to-r from-emerald-400 to-teal-500 shadow-lg shadow-emerald-400/50"
+                      animate={{ scale: [1, 1.3, 1] }}
+                      transition={{ duration: 2.5, repeat: Infinity }}
+                      className="w-3.5 h-3.5 rounded-full bg-emerald-400 shadow-lg shadow-emerald-400/60"
                     />
                     <motion.div 
-                      animate={{ scale: [1, 1.2, 1] }}
-                      transition={{ duration: 2, repeat: Infinity, delay: 0.3 }}
-                      className="w-3 h-3 rounded-full bg-gradient-to-r from-blue-400 to-cyan-500 shadow-lg shadow-blue-400/50"
+                      animate={{ scale: [1, 1.3, 1] }}
+                      transition={{ duration: 2.5, repeat: Infinity, delay: 0.25 }}
+                      className="w-3.5 h-3.5 rounded-full bg-blue-400 shadow-lg shadow-blue-400/60"
                     />
                     <motion.div 
-                      animate={{ scale: [1, 1.2, 1] }}
-                      transition={{ duration: 2, repeat: Infinity, delay: 0.6 }}
-                      className="w-3 h-3 rounded-full bg-gradient-to-r from-purple-400 to-pink-500 shadow-lg shadow-purple-400/50"
+                      animate={{ scale: [1, 1.3, 1] }}
+                      transition={{ duration: 2.5, repeat: Infinity, delay: 0.5 }}
+                      className="w-3.5 h-3.5 rounded-full bg-purple-400 shadow-lg shadow-purple-400/60"
                     />
                   </div>
                 </div>
-              </div>
 
-              {/* Bottom Premium Section */}
-              <div className="relative bg-gradient-to-r from-white/98 to-white/95 backdrop-blur-sm px-8 py-5 border-t border-white/30">
-                <motion.div 
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5 }}
-                  className="space-y-2"
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg text-green-600">✓</span>
-                    <p className="text-sm font-bold text-primary">Zyrtar & 100% Sigur</p>
+                {/* Bottom Section - Info Bar */}
+                <div className="bg-white/95 backdrop-blur-sm rounded-2xl px-6 py-4 shadow-lg">
+                  <div className="flex items-center gap-3">
+                    <span className="text-xl text-green-600 font-bold">✓</span>
+                    <div>
+                      <p className="text-sm font-bold text-primary">Zyrtar & 100% Sigur</p>
+                      <p className="text-xs text-gray-600">Aplikimi direkt në USCIS</p>
+                    </div>
                   </div>
-                  <p className="text-xs text-gray-600 font-medium">
-                    Aplikimi direkt në USCIS - Nuk janë mashtrues
-                  </p>
-                </motion.div>
+                </div>
               </div>
             </div>
           </div>
-          
-          {/* Floating elements */}
-          <motion.div 
-            animate={{ y: [0, -10, 0] }}
-            transition={{ duration: 4, repeat: Infinity }}
-            className="absolute -top-10 -right-10 bg-secondary text-white p-4 rounded-xl shadow-xl z-20"
-          >
-            <p className="font-bold text-xl">100%</p>
-            <p className="text-xs opacity-90">Pa Gabime</p>
-          </motion.div>
         </motion.div>
       </div>
     </section>
