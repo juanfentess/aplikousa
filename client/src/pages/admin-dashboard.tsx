@@ -599,6 +599,35 @@ export default function AdminDashboard() {
                                   <Button
                                     size="sm"
                                     variant="outline"
+                                    className="text-purple-600 hover:text-purple-700"
+                                    title="Përditëso Hapat"
+                                    onClick={async () => {
+                                      // Fetch application for this client
+                                      try {
+                                        const appResponse = await fetch(`/api/applications/${client.id}`);
+                                        const app = await appResponse.json();
+                                        if (app && app.id) {
+                                          setSelectedApplicationForSteps(app);
+                                          setApplicationStepsData({
+                                            registrationStatus: app.registrationStatus || "pending",
+                                            paymentStatus: app.paymentStatus || "pending",
+                                            formStatus: app.formStatus || "pending",
+                                            photoStatus: app.photoStatus || "pending",
+                                            submissionStatus: app.submissionStatus || "pending",
+                                          });
+                                          setShowUpdateStepsDialog(true);
+                                        }
+                                      } catch (err) {
+                                        toast.error("Gabim në ngarkim të aplikimit");
+                                      }
+                                    }}
+                                    data-testid={`button-update-steps-client-${client.id}`}
+                                  >
+                                    <PenTool className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
                                     className="text-blue-600 hover:text-blue-700"
                                     title="Kyqu si Klient"
                                     onClick={() => handleLoginAsClient(client.id)}

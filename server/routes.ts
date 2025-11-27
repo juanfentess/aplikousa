@@ -643,6 +643,7 @@ export async function registerRoutes(httpServer: HTTPServer, app: Express): Prom
         const { id } = req.params;
         const steps = req.body;
 
+        console.log("[Update Steps] Updating application with ID:", id, "Steps:", steps);
         const application = await storage.updateApplicationSteps(id, steps);
         
         // If submission status is completed, send professional email to client
