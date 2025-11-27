@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { useSearchParams } from "react-use";
 import { motion } from "framer-motion";
 import { AlertCircle, CheckCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,14 +9,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { toast } from "sonner";
 
 export default function VerifyEmail() {
-  const [searchParams] = useSearchParams();
   const [, setLocation] = useLocation();
   const [code, setCode] = useState("");
   const [verifying, setVerifying] = useState(false);
   const [verified, setVerified] = useState(false);
   const [error, setError] = useState("");
 
-  const userId = searchParams.get("userId");
+  const userId = new URLSearchParams(window.location.search).get("userId");
 
   useEffect(() => {
     if (!userId) {

@@ -126,11 +126,48 @@ export function ApplicationForm() {
 
     setIsSubmitting(true);
     
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    
-    setIsSubmitting(false);
-    setShowPasswordDialog(true);
+    try {
+      // Register user with backend
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName: values.firstName,
+          lastName: values.lastName,
+          email: values.email,
+          password,
+          phone: values.phone,
+          birthCountry: values.birthCountry,
+          city: values.city,
+          package: values.package,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        form.setError("terms", { message: error.error || "Registration failed" });
+        setIsSubmitting(false);
+        return;
+      }
+
+      const data = await response.json();
+      
+      // Close dialog and redirect to verification
+      setShowPasswordDialog(false);
+      form.reset();
+      setFileName(null);
+      setSpouseFileName(null);
+      setPassword("");
+      setConfirmPassword("");
+      
+      // Redirect to verify email page with userId
+      setLocation(`/verify-email?userId=${data.userId}`);
+    } catch (err) {
+      form.setError("terms", { message: "Gabim gjatë regjistrimit" });
+      console.error(err);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   const handleCreateAccount = async (e: React.FormEvent) => {
@@ -144,14 +181,8 @@ export function ApplicationForm() {
       return;
     }
 
-    setCreatingAccount(true);
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setCreatingAccount(false);
-    setShowPasswordDialog(false);
-    form.reset();
-    setFileName(null);
-    setSpouseFileName(null);
-    setLocation("/dashboard");
+    // Trigger the form submission which will call onSubmit
+    form.handleSubmit(onSubmit)();
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, isSpouse = false) => {
