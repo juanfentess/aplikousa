@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Check } from "lucide-react";
+import whyUsImage from "@assets/generated_images/happy_family_with_green_card_approval.png";
 
 const benefits = [
   "Kontroll i fotos sipas rregullave strikte të DV Lottery",
@@ -25,7 +26,7 @@ export function WhyUs() {
               <div className="absolute -top-10 -left-10 w-40 h-40 bg-secondary/10 rounded-full blur-3xl"></div>
               <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-100">
                 <img 
-                  src="https://images.unsplash.com/photo-1565514020176-db2e03865743?q=80&w=2574&auto=format&fit=crop" 
+                  src={whyUsImage}
                   alt="Happy family looking at results" 
                   className="w-full h-auto object-cover"
                 />
