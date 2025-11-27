@@ -170,6 +170,9 @@ async function getStripePublishableKey(): Promise<string> {
 }
 
 export async function registerRoutes(httpServer: HTTPServer, app: Express): Promise<void> {
+  // Enable JSON parsing
+  app.use(express.json());
+
   // Seed default admin user if none exists
   try {
     const existingAdmin = await storage.getAdminByEmail("admin@aplikousa.com");
