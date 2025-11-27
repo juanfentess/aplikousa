@@ -238,40 +238,8 @@ export async function registerRoutes(httpServer: HTTPServer, app: Express): Prom
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
       });
 
-      const verificationUrl = `https://${req.get("host")}/verify-email?userId=${user.id}&code=${code}`;
-      const htmlContent = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <style>
-            body { font-family: Arial, sans-serif; background-color: #f5f5f5; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; background-color: white; border-radius: 8px; }
-            h1 { color: #0B1B3B; text-align: center; }
-            p { color: #555; line-height: 1.6; }
-            .button { display: inline-block; padding: 12px 30px; margin: 20px auto; background-color: #E63946; color: white; text-decoration: none; border-radius: 5px; text-align: center; }
-            .code { font-size: 24px; font-weight: bold; color: #0B1B3B; text-align: center; letter-spacing: 5px; margin: 20px 0; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <h1>AplikoUSA - Verifikoni Email-in</h1>
-            <p>Përshëndetje ${firstName},</p>
-            <p>Faleminderit që regjistroheni në AplikoUSA. Për të verifikuar email-in tuaj, përdorni kodin më poshtë:</p>
-            <div class="code">${code}</div>
-            <p>Ky kod skadohet brenda 24 orësh.</p>
-            <p>Nëse nuk keni regjistruar këtë llogari, ju lutem injoroni këtë mesazh.</p>
-            <p>Përshëndetje,<br>AplikoUSA Team</p>
-          </div>
-        </body>
-        </html>
-      `;
-
-      await sendTemplateEmail(
-        email,
-        `Verifikoni Email-in - AplikoUSA`,
-        htmlContent
-      );
+      // Send verification email
+      await sendVerificationEmail(email, code, firstName);
 
       res.json({ userId: user.id });
     } catch (error: any) {
