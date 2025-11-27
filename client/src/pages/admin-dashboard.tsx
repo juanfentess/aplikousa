@@ -155,6 +155,7 @@ export default function AdminDashboard() {
 
     setLoading(true);
     try {
+      console.log("Sending email:", sendEmailData);
       const response = await fetch("/api/admin/send-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -166,16 +167,18 @@ export default function AdminDashboard() {
       });
 
       const data = await response.json();
+      console.log("Email response:", data, response.status);
+      
       if (response.ok) {
-        toast.success("Email dërguar me sukses!");
-        setShowSendEmailDialog(false);
+        toast.success("✅ Email dërguar me sukses!", { duration: 3000 });
         setSendEmailData({ recipientEmail: "", templateId: "" });
+        setTimeout(() => setActiveTab("dashboard"), 1500);
       } else {
-        toast.error(data.error || "Gabim në dërgim");
+        toast.error("❌ " + (data.error || "Gabim në dërgim"), { duration: 3000 });
       }
     } catch (err) {
-      toast.error("Gabim gjatë dërgimit të emailit");
-      console.error(err);
+      toast.error("❌ Gabim gjatë dërgimit të emailit", { duration: 3000 });
+      console.error("Send email error:", err);
     } finally {
       setLoading(false);
     }
