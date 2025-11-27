@@ -23,6 +23,7 @@ import {
   type InsertTransaction,
 } from "@shared/schema";
 import { eq, and, desc, gt } from "drizzle-orm";
+import bcrypt from "bcrypt";
 
 export interface IStorage {
   // Users
@@ -56,6 +57,7 @@ export interface IStorage {
   // Admins
   createAdmin(admin: InsertAdmin): Promise<Admin>;
   getAdminByEmail(email: string): Promise<Admin | undefined>;
+  verifyAdminPassword(plainPassword: string, hashedPassword: string): Promise<boolean>;
 
   // Applications
   createApplication(app: InsertApplication): Promise<Application>;
@@ -188,13 +190,21 @@ export class Storage implements IStorage {
 
   // Admins
   async createAdmin(admin: InsertAdmin): Promise<Admin> {
-    const result = await db.insert(admins).values(admin).returning();
+    const hashedPassword = await bcrypt.hash(admin.password, 10);
+    const result = await db.insert(admins).values({
+      ...admin,
+      password: hashedPassword,
+    }).returning();
     return result[0];
   }
 
   async getAdminByEmail(email: string): Promise<Admin | undefined> {
     const result = await db.select().from(admins).where(eq(admins.email, email));
     return result[0];
+  }
+
+  async verifyAdminPassword(plainPassword: string, hashedPassword: string): Promise<boolean> {
+    return await bcrypt.compare(plainPassword, hashedPassword);
   }
 
   // Applications

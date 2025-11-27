@@ -712,8 +712,9 @@ export async function registerRoutes(httpServer: HTTPServer, app: Express): Prom
         return res.status(401).json({ error: "Invalid credentials" });
       }
       
-      console.log("[Admin Login] Password check:", password === admin.password);
-      if (admin.password !== password) {
+      const passwordMatch = await storage.verifyAdminPassword(password, admin.password);
+      console.log("[Admin Login] Password check:", passwordMatch);
+      if (!passwordMatch) {
         console.log("[Admin Login] Password mismatch");
         return res.status(401).json({ error: "Invalid credentials" });
       }
