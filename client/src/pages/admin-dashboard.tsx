@@ -53,9 +53,18 @@ export default function AdminDashboard() {
   const [showSendEmailDialog, setShowSendEmailDialog] = useState(false);
   const [showClientDialog, setShowClientDialog] = useState(false);
   const [showClientDetailsDialog, setShowClientDetailsDialog] = useState(false);
+  const [showUpdateStepsDialog, setShowUpdateStepsDialog] = useState(false);
   const [selectedClientDetails, setSelectedClientDetails] = useState<any>(null);
+  const [selectedApplicationForSteps, setSelectedApplicationForSteps] = useState<any>(null);
   const [editingTemplate, setEditingTemplate] = useState<any>(null);
   const [editingClient, setEditingClient] = useState<any>(null);
+  const [applicationStepsData, setApplicationStepsData] = useState({
+    registrationStatus: "completed",
+    paymentStatus: "completed",
+    formStatus: "pending",
+    photoStatus: "pending",
+    submissionStatus: "pending",
+  });
   const [formData, setFormData] = useState({
     name: "",
     subject: "",
@@ -608,6 +617,18 @@ export default function AdminDashboard() {
                               </div>
                             </div>
                             <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setSelectedApplicationForSteps(app);
+                                  setShowUpdateStepsDialog(true);
+                                }}
+                                data-testid={`button-update-steps-${app.id}`}
+                              >
+                                <PenTool className="w-4 h-4 mr-2" />
+                                Përditëso Hapat
+                              </Button>
                               <Button
                                 size="sm"
                                 variant="outline"
