@@ -13,15 +13,15 @@ export function Hero() {
   };
 
   return (
-    <section className="relative min-h-screen flex items-center pt-20 overflow-hidden bg-primary">
+    <section className="relative min-h-screen flex items-center pt-20 overflow-hidden bg-primary dark:bg-slate-950">
       {/* Background Image with Overlay */}
       <div className="absolute inset-0 z-0">
         <img 
           src={heroBg} 
           alt="USA Flag Abstract Background" 
-          className="w-full h-full object-cover opacity-40 mix-blend-overlay"
+          className="w-full h-full object-cover opacity-40 mix-blend-overlay dark:opacity-20"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/90 via-primary/80 to-background" />
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/90 dark:from-slate-950/90 via-primary/80 dark:via-slate-900/80 to-background dark:to-slate-950" />
       </div>
 
       {/* Animated Shapes */}

@@ -38,13 +38,13 @@ const testimonials = [
 
 export function Testimonials() {
   return (
-    <section className="py-24 bg-gray-50 overflow-hidden">
+    <section className="py-24 bg-gray-50 dark:bg-slate-900 overflow-hidden">
       <div className="container mx-auto px-4 md:px-6">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 font-heading">
+          <h2 className="text-3xl md:text-4xl font-bold text-primary dark:text-white mb-4 font-heading">
             Çfarë thonë klientët tanë?
           </h2>
-          <p className="text-gray-600 text-lg">
+          <p className="text-gray-600 dark:text-slate-300 text-lg">
             Kënaqësia e klientëve është prioriteti ynë. Ja disa nga përvojat e tyre.
           </p>
         </div>
@@ -66,18 +66,18 @@ export function Testimonials() {
                     viewport={{ once: true }}
                     transition={{ delay: index * 0.1 }}
                   >
-                    <Card className="h-full border-none shadow-md hover:shadow-lg transition-shadow">
+                    <Card className="h-full border-none shadow-md hover:shadow-lg transition-shadow bg-white dark:bg-slate-800">
                       <CardContent className="p-6 flex flex-col h-full">
                         <div className="mb-4 text-secondary">
-                          <Quote className="w-8 h-8 opacity-20" />
+                          <Quote className="w-8 h-8 opacity-20 dark:opacity-10" />
                         </div>
-                        <p className="text-gray-600 italic mb-6 flex-grow">
+                        <p className="text-gray-600 dark:text-slate-300 italic mb-6 flex-grow">
                           "{testimonial.text}"
                         </p>
-                        <div className="flex items-center justify-between mt-auto border-t pt-4 border-gray-100">
+                        <div className="flex items-center justify-between mt-auto border-t pt-4 border-gray-100 dark:border-slate-700">
                           <div>
-                            <p className="font-bold text-primary">{testimonial.name}</p>
-                            <p className="text-xs text-gray-500">{testimonial.location}</p>
+                            <p className="font-bold text-primary dark:text-white">{testimonial.name}</p>
+                            <p className="text-xs text-gray-500 dark:text-slate-400">{testimonial.location}</p>
                           </div>
                           <div className="flex">
                             {Array.from({ length: testimonial.rating }).map((_, i) => (

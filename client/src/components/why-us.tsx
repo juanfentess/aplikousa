@@ -13,7 +13,7 @@ const benefits = [
 
 export function WhyUs() {
   return (
-    <section id="why-us" className="py-24 bg-white overflow-hidden">
+    <section id="why-us" className="py-24 bg-white dark:bg-slate-900 overflow-hidden">
       <div className="container mx-auto px-4 md:px-6">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           <motion.div
@@ -23,8 +23,8 @@ export function WhyUs() {
             transition={{ duration: 0.6 }}
           >
             <div className="relative">
-              <div className="absolute -top-10 -left-10 w-40 h-40 bg-secondary/10 rounded-full blur-3xl"></div>
-              <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-100">
+              <div className="absolute -top-10 -left-10 w-40 h-40 bg-secondary/10 dark:bg-secondary/5 rounded-full blur-3xl"></div>
+              <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-100 dark:border-slate-700">
                 <img 
                   src={whyUsImage}
                   alt="Happy family looking at results" 
@@ -46,10 +46,10 @@ export function WhyUs() {
             className="space-y-8"
           >
             <div>
-              <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6 font-heading">
+              <h2 className="text-3xl md:text-4xl font-bold text-primary dark:text-white mb-6 font-heading">
                 Pse të zgjedhësh <span className="text-secondary">AplikoUSA</span>?
               </h2>
-              <p className="text-lg text-gray-600 leading-relaxed">
+              <p className="text-lg text-gray-600 dark:text-slate-300 leading-relaxed">
                 Aplikimi për Green Card ka rregulla strikte. Një gabim i vogël në foto ose në të dhëna mund t'ju skualifikojë automatikisht. Ne sigurohemi që kjo të mos ndodhë.
               </p>
             </div>
@@ -64,10 +64,10 @@ export function WhyUs() {
                   transition={{ delay: index * 0.1 }}
                   className="flex items-start gap-3"
                 >
-                  <div className="mt-1 w-6 h-6 rounded-full bg-green-100 flex items-center justify-center shrink-0">
-                    <Check className="w-4 h-4 text-green-600" />
+                  <div className="mt-1 w-6 h-6 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center shrink-0">
+                    <Check className="w-4 h-4 text-green-600 dark:text-green-400" />
                   </div>
-                  <span className="text-gray-700 font-medium">{benefit}</span>
+                  <span className="text-gray-700 dark:text-slate-200 font-medium">{benefit}</span>
                 </motion.div>
               ))}
             </div>
