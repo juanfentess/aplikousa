@@ -34,24 +34,24 @@ const faqs = [
 
 export function FAQ() {
   return (
-    <section id="faq" className="py-24 bg-white">
+    <section id="faq" className="py-24 bg-white dark:bg-slate-900">
       <div className="container mx-auto px-4 md:px-6 max-w-3xl">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 font-heading">
+          <h2 className="text-3xl md:text-4xl font-bold text-primary dark:text-white mb-4 font-heading">
             Pyetje të Shpeshta
           </h2>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-slate-300">
             Gjeni përgjigjet për pyetjet më të zakonshme rreth procesit të Lotarisë Amerikane.
           </p>
         </div>
 
         <Accordion type="single" collapsible className="w-full">
           {faqs.map((faq, index) => (
-            <AccordionItem key={index} value={`item-${index}`} className="border-b border-gray-200 px-4 hover:bg-gray-50 transition-colors rounded-lg mb-2">
-              <AccordionTrigger className="text-left text-gray-900 font-medium py-4 hover:no-underline [&[data-state=open]]:text-primary">
+            <AccordionItem key={index} value={`item-${index}`} className="border-b border-gray-200 dark:border-slate-700 px-4 hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors rounded-lg mb-2">
+              <AccordionTrigger className="text-left text-gray-900 dark:text-white font-medium py-4 hover:no-underline [&[data-state=open]]:text-primary dark:[&[data-state=open]]:text-orange-400">
                 {faq.question}
               </AccordionTrigger>
-              <AccordionContent className="text-gray-600 pb-4 leading-relaxed">
+              <AccordionContent className="text-gray-600 dark:text-slate-300 pb-4 leading-relaxed">
                 {faq.answer}
               </AccordionContent>
             </AccordionItem>

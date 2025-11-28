@@ -57,12 +57,12 @@ export function Hero() {
             Aplikimet janë hapur
           </div>
           
-          <h1 className="text-4xl md:text-6xl font-bold leading-tight font-heading">
-            Apliko për <span className="text-secondary">Green Card</span> (DV Lottery) nga shtëpia
+          <h1 className="text-4xl md:text-6xl font-bold leading-tight font-heading text-white dark:text-white">
+            Apliko për <span className="text-secondary dark:text-orange-400">Green Card</span> (DV Lottery) nga shtëpia
           </h1>
           
-          <p className="text-lg md:text-xl text-white/80 leading-relaxed max-w-lg">
-            Ne plotësojmë formularin për ju, kontrollojmë foton dhe ju kursejmë gabimet – gjithçka profesionale dhe e sigurt për vetëm <span className="font-bold text-white">20€</span>.
+          <p className="text-lg md:text-xl text-white dark:text-slate-100 leading-relaxed max-w-lg">
+            Ne plotësojmë formularin për ju, kontrollojmë foton dhe ju kursejmë gabimet – gjithçka profesionale dhe e sigurt për vetëm <span className="font-bold text-white dark:text-white">20€</span>.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 pt-4">
@@ -87,7 +87,7 @@ export function Hero() {
             </Button>
           </div>
           
-          <div className="flex items-center gap-4 pt-8 text-sm text-white/60">
+          <div className="flex items-center gap-4 pt-8 text-sm text-white dark:text-slate-200">
             <div className="flex -space-x-2">
               {[1, 2, 3, 4].map((i) => (
                 <div key={i} className="w-8 h-8 rounded-full bg-gray-300 border-2 border-primary flex items-center justify-center text-xs font-bold text-primary bg-gradient-to-br from-gray-100 to-gray-300">

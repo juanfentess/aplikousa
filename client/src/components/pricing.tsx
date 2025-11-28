@@ -103,9 +103,9 @@ export function Pricing() {
                 <CardContent className="pt-8 px-6 pb-8 flex-grow">
                   <ul className="space-y-4">
                     {plan.features.map((feature, i) => (
-                      <li key={i} className="flex items-start gap-3 text-white/90 text-sm">
-                        <div className="w-5 h-5 rounded-full bg-secondary/20 flex items-center justify-center shrink-0 mt-0.5">
-                          <Check className="w-3 h-3 text-secondary" />
+                      <li key={i} className="flex items-start gap-3 text-white dark:text-slate-100 text-sm">
+                        <div className="w-5 h-5 rounded-full bg-secondary/20 dark:bg-secondary/30 flex items-center justify-center shrink-0 mt-0.5">
+                          <Check className="w-3 h-3 text-secondary dark:text-orange-400" />
                         </div>
                         {feature}
                       </li>
@@ -128,11 +128,11 @@ export function Pricing() {
         </div>
         
         <div className="mt-12 text-center">
-           <div className="inline-flex items-center gap-2 bg-white/5 rounded-full px-4 py-2 border border-white/10">
+           <div className="inline-flex items-center gap-2 bg-white/5 dark:bg-slate-800/50 rounded-full px-4 py-2 border border-white/10 dark:border-slate-700/50">
               <div className="flex">
                 {[1,2,3,4,5].map(i => <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />)}
               </div>
-              <span className="text-sm text-white/80">Vlerësuar 4.9/5 nga klientët tanë</span>
+              <span className="text-sm text-white dark:text-slate-200">Vlerësuar 4.9/5 nga klientët tanë</span>
            </div>
         </div>
       </div>

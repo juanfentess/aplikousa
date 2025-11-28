@@ -54,11 +54,11 @@ export function Navbar() {
     >
       <div className="container mx-auto px-4 md:px-6 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 group">
-          <div className="relative w-8 h-8 flex items-center justify-center bg-primary rounded-full text-white overflow-hidden group-hover:scale-105 transition-transform">
+          <div className="relative w-8 h-8 flex items-center justify-center bg-primary dark:bg-secondary rounded-full text-white overflow-hidden group-hover:scale-105 transition-transform">
             <Flag className="w-4 h-4 fill-current" />
           </div>
-          <span className={cn("text-xl font-bold font-heading", scrolled ? "text-primary" : "text-white")}>
-            Apliko<span className="text-secondary">USA</span>
+          <span className={cn("text-xl font-bold font-heading", scrolled ? "text-primary dark:text-white" : "text-white")}>
+            Apliko<span className="text-secondary dark:text-orange-400">USA</span>
           </span>
         </Link>
 
