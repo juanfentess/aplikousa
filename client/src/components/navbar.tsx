@@ -1,13 +1,20 @@
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
-import { Menu, X, Flag, User } from "lucide-react";
+import { Menu, X, Flag, User, Moon, Sun } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useTheme } from "next-themes";
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -41,7 +48,7 @@ export function Navbar() {
       className={cn(
         "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
         scrolled
-          ? "bg-white/80 backdrop-blur-md shadow-sm py-4"
+          ? "dark:bg-slate-900/80 bg-white/80 backdrop-blur-md shadow-sm py-4"
           : "bg-transparent py-6"
       )}
     >
@@ -70,12 +77,31 @@ export function Navbar() {
             </button>
           ))}
           
+          {mounted && (
+            <button
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className={cn(
+                "p-2 rounded-lg transition-colors",
+                scrolled 
+                  ? "hover:bg-gray-100 dark:hover:bg-slate-800" 
+                  : "hover:bg-white/10"
+              )}
+              data-testid="button-toggle-theme"
+            >
+              {theme === "dark" ? (
+                <Sun className={scrolled ? "text-foreground" : "text-white"} size={20} />
+              ) : (
+                <Moon className={scrolled ? "text-foreground" : "text-white"} size={20} />
+              )}
+            </button>
+          )}
+
           <Link href="/login">
             <Button 
               variant="ghost" 
               className={cn(
                 "gap-2 hover:bg-white/10", 
-                scrolled ? "text-foreground hover:text-primary hover:bg-gray-100" : "text-white hover:text-white"
+                scrolled ? "text-foreground hover:text-primary hover:bg-gray-100 dark:text-slate-100 dark:hover:bg-slate-800" : "text-white hover:text-white"
               )}
             >
               <User className="w-4 h-4" />
@@ -91,13 +117,28 @@ export function Navbar() {
           </Button>
         </div>
 
-        {/* Mobile Toggle */}
-        <button
-          className="md:hidden text-primary"
-          onClick={() => setIsOpen(!isOpen)}
-        >
-          {isOpen ? <X className={scrolled ? "text-foreground" : "text-white"} /> : <Menu className={scrolled ? "text-foreground" : "text-white"} />}
-        </button>
+        {/* Mobile Buttons */}
+        <div className="md:hidden flex items-center gap-2">
+          {mounted && (
+            <button
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className="p-2"
+              data-testid="button-toggle-theme-mobile"
+            >
+              {theme === "dark" ? (
+                <Sun className={scrolled ? "text-foreground" : "text-white"} size={20} />
+              ) : (
+                <Moon className={scrolled ? "text-foreground" : "text-white"} size={20} />
+              )}
+            </button>
+          )}
+          <button
+            className="md:hidden text-primary"
+            onClick={() => setIsOpen(!isOpen)}
+          >
+            {isOpen ? <X className={scrolled ? "text-foreground" : "text-white"} /> : <Menu className={scrolled ? "text-foreground" : "text-white"} />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile Menu */}
@@ -107,14 +148,14 @@ export function Navbar() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="absolute top-full left-0 right-0 bg-white shadow-lg border-t md:hidden"
+            className="absolute top-full left-0 right-0 bg-white dark:bg-slate-900 shadow-lg border-t dark:border-slate-700 md:hidden"
           >
             <div className="flex flex-col p-4 gap-4">
               {navLinks.map((link) => (
                 <button
                   key={link.name}
                   onClick={() => scrollToSection(link.id)}
-                  className="text-left text-foreground font-medium py-2 border-b border-gray-100 last:border-0"
+                  className="text-left text-foreground dark:text-slate-100 font-medium py-2 border-b border-gray-100 dark:border-slate-700 last:border-0"
                 >
                   {link.name}
                 </button>
