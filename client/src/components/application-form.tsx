@@ -523,19 +523,19 @@ export function ApplicationForm() {
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
-                    className="space-y-6 overflow-hidden border-t pt-6 border-gray-200"
+                    className="space-y-6 overflow-hidden border-t pt-6 border-gray-200 dark:border-slate-700"
                   >
-                    <h3 className="text-lg font-semibold text-secondary">Të dhënat e Bashkëshortit/es</h3>
-                    <div className="bg-secondary/5 p-6 rounded-xl space-y-6 border border-secondary/10">
+                    <h3 className="text-lg font-semibold text-secondary dark:text-orange-400">Të dhënat e Bashkëshortit/es</h3>
+                    <div className="bg-secondary/5 dark:bg-orange-900/10 p-6 rounded-xl space-y-6 border border-secondary/10 dark:border-orange-800/30">
                       <div className="grid md:grid-cols-2 gap-6">
                         <FormField
                           control={form.control}
                           name="spouseFirstName"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Emri</FormLabel>
+                              <FormLabel className="dark:text-slate-200">Emri</FormLabel>
                               <FormControl>
-                                <Input placeholder="Emri i bashkëshortit/es" {...field} className="h-11 bg-white" />
+                                <Input placeholder="Emri i bashkëshortit/es" {...field} className="h-11 bg-white dark:bg-slate-700 dark:text-white dark:border-slate-600 dark:placeholder:text-slate-400" />
                               </FormControl>
                             </FormItem>
                           )}
@@ -545,9 +545,9 @@ export function ApplicationForm() {
                           name="spouseLastName"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Mbiemri</FormLabel>
+                              <FormLabel className="dark:text-slate-200">Mbiemri</FormLabel>
                               <FormControl>
-                                <Input placeholder="Mbiemri i bashkëshortit/es" {...field} className="h-11 bg-white" />
+                                <Input placeholder="Mbiemri i bashkëshortit/es" {...field} className="h-11 bg-white dark:bg-slate-700 dark:text-white dark:border-slate-600 dark:placeholder:text-slate-400" />
                               </FormControl>
                             </FormItem>
                           )}
@@ -555,7 +555,7 @@ export function ApplicationForm() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label className="text-sm font-medium">Data e Lindjes</Label>
+                        <Label className="text-sm font-medium dark:text-slate-200">Data e Lindjes</Label>
                         <div className="grid grid-cols-3 gap-4">
                           <FormField
                             control={form.control}
@@ -563,7 +563,7 @@ export function ApplicationForm() {
                             render={({ field }) => (
                               <FormItem>
                                 <FormControl>
-                                  <Input placeholder="Dita" type="number" min="1" max="31" {...field} className="h-11 bg-white" />
+                                  <Input placeholder="Dita" type="number" min="1" max="31" {...field} className="h-11 bg-white dark:bg-slate-700 dark:text-white dark:border-slate-600 dark:placeholder:text-slate-400" />
                                 </FormControl>
                               </FormItem>
                             )}
@@ -575,7 +575,7 @@ export function ApplicationForm() {
                               <FormItem>
                                 <FormControl>
                                   <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                    <SelectTrigger className="h-11 bg-white">
+                                    <SelectTrigger className="h-11 bg-white dark:bg-slate-700 dark:text-white dark:border-slate-600">
                                       <SelectValue placeholder="Muaji" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -596,7 +596,7 @@ export function ApplicationForm() {
                             render={({ field }) => (
                               <FormItem>
                                 <FormControl>
-                                  <Input placeholder="Viti" type="number" min="1900" max="2025" {...field} className="h-11 bg-white" />
+                                  <Input placeholder="Viti" type="number" min="1900" max="2025" {...field} className="h-11 bg-white dark:bg-slate-700 dark:text-white dark:border-slate-600 dark:placeholder:text-slate-400" />
                                 </FormControl>
                               </FormItem>
                             )}
@@ -605,8 +605,8 @@ export function ApplicationForm() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label className="text-sm font-medium">Foto e Bashkëshortit/es</Label>
-                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-secondary transition-colors bg-white cursor-pointer relative">
+                        <Label className="text-sm font-medium dark:text-slate-200">Foto e Bashkëshortit/es</Label>
+                        <div className="border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-lg p-8 text-center hover:border-secondary dark:hover:border-orange-400 transition-colors bg-white dark:bg-slate-700 cursor-pointer relative">
                           <input 
                             type="file" 
                             accept=".jpg,.jpeg,.png" 
@@ -639,10 +639,10 @@ export function ApplicationForm() {
                   name="maritalStatus"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Statusi Martesor</FormLabel>
+                      <FormLabel className="dark:text-slate-200">Statusi Martesor</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value} disabled={selectedPackage !== "individual"}>
                         <FormControl>
-                          <SelectTrigger className="h-11 bg-gray-50">
+                          <SelectTrigger className="h-11 bg-gray-50 dark:bg-slate-700 dark:text-white dark:border-slate-600">
                             <SelectValue placeholder="Zgjidhni statusin" />
                           </SelectTrigger>
                         </FormControl>
@@ -662,10 +662,10 @@ export function ApplicationForm() {
                   name="childrenCount"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Numri i fëmijëve (nën 21 vjeç)</FormLabel>
+                      <FormLabel className="dark:text-slate-200">Numri i fëmijëve (nën 21 vjeç)</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
-                          <SelectTrigger className="h-11 bg-gray-50">
+                          <SelectTrigger className="h-11 bg-gray-50 dark:bg-slate-700 dark:text-white dark:border-slate-600">
                             <SelectValue placeholder="Zgjidhni numrin" />
                           </SelectTrigger>
                         </FormControl>
@@ -689,10 +689,10 @@ export function ApplicationForm() {
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="bg-blue-50 p-4 rounded-lg border border-blue-100 flex items-start gap-3"
+                    className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-100 dark:border-blue-800/50 flex items-start gap-3"
                   >
-                    <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />
-                    <p className="text-sm text-blue-800">
+                    <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
+                    <p className="text-sm text-blue-800 dark:text-blue-300">
                       Për fëmijët, ne do t'ju kontaktojmë më vonë për të marrë detajet e tyre (emrat, datëlindjet dhe fotot), për të mos e rënduar këtë formular tani.
                     </p>
                   </motion.div>
@@ -704,11 +704,11 @@ export function ApplicationForm() {
                 name="message"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Mesazh ose komente shtesë (Opsionale)</FormLabel>
+                    <FormLabel className="dark:text-slate-200">Mesazh ose komente shtesë (Opsionale)</FormLabel>
                     <FormControl>
                       <Textarea 
                         placeholder="Keni ndonjë pyetje ose paqartësi?" 
-                        className="resize-none bg-gray-50" 
+                        className="resize-none bg-gray-50 dark:bg-slate-700 dark:text-white dark:border-slate-600 dark:placeholder:text-slate-400" 
                         {...field} 
                       />
                     </FormControl>
@@ -721,7 +721,7 @@ export function ApplicationForm() {
                 control={form.control}
                 name="terms"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 bg-blue-50/50">
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 bg-blue-50/50 dark:bg-blue-900/20 dark:border-blue-800/50">
                     <FormControl>
                       <Checkbox
                         checked={field.value}
@@ -729,10 +729,10 @@ export function ApplicationForm() {
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
-                      <FormLabel>
+                      <FormLabel className="dark:text-slate-200">
                         Deklaroj se të dhënat e vendosura janë të sakta
                       </FormLabel>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-muted-foreground dark:text-slate-400">
                         Ju jeni përgjegjës për vërtetësinë e informacionit të dhënë.
                       </p>
                     </div>
@@ -763,21 +763,21 @@ export function ApplicationForm() {
 
       {/* Code Display Dialog */}
       <Dialog open={showCodeDialog} onOpenChange={setShowCodeDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md dark:bg-slate-800 dark:border-slate-700">
           <DialogHeader>
-            <div className="mx-auto w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mb-4">
-              <Check className="h-6 w-6 text-green-600" />
+            <div className="mx-auto w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center mb-4">
+              <Check className="h-6 w-6 text-green-600 dark:text-green-400" />
             </div>
-            <DialogTitle className="text-center text-xl">Llogaria u krijua me sukses! ✓</DialogTitle>
-            <DialogDescription className="text-center pt-2">
+            <DialogTitle className="text-center text-xl dark:text-white">Llogaria u krijua me sukses! ✓</DialogTitle>
+            <DialogDescription className="text-center pt-2 dark:text-slate-400">
               Ja kodi juaj i verifikimit:
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4 py-4 text-center">
-            <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
-              <p className="text-sm text-blue-600 mb-3">Kodi i verifikimit u dërgua në email tuaj</p>
-              <p className="text-sm text-gray-600">Ju lutem kontrolloni kutinë e postës tuaj dhe futni kodin e marrë në faqen e ardhshme.</p>
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-6 rounded-lg border border-blue-200 dark:border-blue-800/50">
+              <p className="text-sm text-blue-600 dark:text-blue-400 mb-3">Kodi i verifikimit u dërgua në email tuaj</p>
+              <p className="text-sm text-gray-600 dark:text-slate-400">Ju lutem kontrolloni kutinë e postës tuaj dhe futni kodin e marrë në faqen e ardhshme.</p>
             </div>
           </div>
 
@@ -797,20 +797,20 @@ export function ApplicationForm() {
       </Dialog>
 
       <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md dark:bg-slate-800 dark:border-slate-700">
           <DialogHeader>
-            <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-              <User className="h-6 w-6 text-primary" />
+            <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center mb-4">
+              <User className="h-6 w-6 text-primary dark:text-blue-400" />
             </div>
-            <DialogTitle className="text-center text-xl">Krijoni Llogarinë Tuaj</DialogTitle>
-            <DialogDescription className="text-center pt-2">
+            <DialogTitle className="text-center text-xl dark:text-white">Krijoni Llogarinë Tuaj</DialogTitle>
+            <DialogDescription className="text-center pt-2 dark:text-slate-400">
               Për të ndjekur statusin e aplikimit tuaj, ju lutem vendosni një fjalëkalim për të krijuar llogarinë.
             </DialogDescription>
           </DialogHeader>
           
           <form onSubmit={handleCreateAccount} className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="password">Fjalëkalimi i Ri</Label>
+              <Label htmlFor="password" className="dark:text-slate-200">Fjalëkalimi i Ri</Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -819,11 +819,12 @@ export function ApplicationForm() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   placeholder="Të paktën 6 karaktere"
+                  className="dark:bg-slate-700 dark:text-white dark:border-slate-600 dark:placeholder:text-slate-400"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -831,7 +832,7 @@ export function ApplicationForm() {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Konfirmo Fjalëkalimin</Label>
+              <Label htmlFor="confirmPassword" className="dark:text-slate-200">Konfirmo Fjalëkalimin</Label>
               <Input
                 id="confirmPassword"
                 type="password"
@@ -839,6 +840,7 @@ export function ApplicationForm() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
                 placeholder="Përsërit fjalëkalimin"
+                className="dark:bg-slate-700 dark:text-white dark:border-slate-600 dark:placeholder:text-slate-400"
               />
             </div>
 
