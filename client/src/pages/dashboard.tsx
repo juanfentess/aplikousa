@@ -380,20 +380,20 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white to-gray-50 dark:from-slate-950 dark:to-slate-900 font-sans">
+    <div className="min-h-screen bg-gradient-to-br from-white to-gray-50 dark:from-[#0f172a] dark:via-[#1e293b] dark:to-[#0f172a] font-sans transition-colors duration-300">
       {/* Header with Theme Toggle */}
-      <div className="sticky top-0 z-40 border-b border-gray-200 dark:border-slate-800 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md">
+      <div className="sticky top-0 z-40 border-b border-gray-200 dark:border-blue-900/30 bg-white/80 dark:bg-[#0f172a]/80 backdrop-blur-xl">
         <div className="container mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">AplikoUSA Dashboard</h1>
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary dark:from-blue-400 dark:to-cyan-400 bg-clip-text text-transparent">AplikoUSA Dashboard</h1>
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="rounded-full"
+            className="rounded-full hover:bg-gray-100 dark:hover:bg-blue-900/30"
             data-testid="button-theme-toggle"
           >
             {theme === "dark" ? (
-              <Sun className="h-5 w-5 text-yellow-500" />
+              <Sun className="h-5 w-5 text-amber-400" />
             ) : (
               <Moon className="h-5 w-5 text-slate-600" />
             )}
@@ -411,28 +411,28 @@ export default function Dashboard() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <Card className="border-0 shadow-xl dark:shadow-2xl bg-gradient-to-b from-primary/5 to-transparent dark:from-slate-800 dark:to-slate-900 sticky top-32">
+              <Card className="border-0 shadow-xl dark:shadow-2xl dark:shadow-blue-900/30 bg-gradient-to-b from-primary/5 to-transparent dark:from-blue-950/60 dark:to-blue-950/20 dark:border dark:border-blue-900/30 sticky top-32">
                 <CardContent className="p-8">
                   <div className="flex flex-col items-center text-center mb-6">
                     <motion.div
                       whileHover={{ scale: 1.05 }}
                       transition={{ duration: 0.2 }}
                     >
-                      <Avatar className="w-24 h-24 mb-4 border-3 border-primary/20 shadow-lg">
+                      <Avatar className="w-24 h-24 mb-4 border-3 border-primary/20 dark:border-blue-500/40 shadow-lg">
                         <AvatarImage src={user.avatar} alt={user.name} />
-                        <AvatarFallback className="bg-gradient-to-br from-primary/10 to-secondary/10 text-primary text-xl font-bold">
+                        <AvatarFallback className="bg-gradient-to-br from-primary/10 to-secondary/10 dark:from-blue-900/40 dark:to-cyan-900/40 text-primary dark:text-blue-400 text-xl font-bold">
                           {user.name.split(' ').map(n => n[0]).join('')}
                         </AvatarFallback>
                       </Avatar>
                     </motion.div>
-                    <h3 className="font-bold text-lg dark:text-white">{user.name}</h3>
-                    <p className="text-sm text-gray-500 dark:text-slate-400 truncate">{user.email}</p>
-                    <Badge className="mt-3 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400 hover:bg-yellow-100 dark:hover:bg-yellow-900/30 border-yellow-200 dark:border-yellow-800">
+                    <h3 className="font-bold text-lg dark:text-blue-100">{user.name}</h3>
+                    <p className="text-sm text-gray-500 dark:text-blue-300/60 truncate">{user.email}</p>
+                    <Badge className="mt-3 bg-amber-100 dark:bg-amber-900/40 text-amber-900 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/50 border-amber-200 dark:border-amber-900/60">
                       Duke u shqyrtuar
                     </Badge>
                   </div>
                   
-                  <Separator className="my-6 dark:bg-slate-700" />
+                  <Separator className="my-6 dark:bg-blue-900/40" />
                   
                   <nav className="space-y-2">
                     {[
@@ -447,8 +447,8 @@ export default function Dashboard() {
                           variant={activeTab === id ? "default" : "ghost"} 
                           className={`w-full justify-start rounded-lg transition-all ${
                             activeTab === id 
-                              ? "bg-gradient-to-r from-primary to-secondary text-white shadow-lg" 
-                              : "dark:hover:bg-slate-800"
+                              ? "bg-gradient-to-r from-primary to-secondary dark:from-blue-600 dark:to-cyan-600 text-white shadow-lg dark:shadow-blue-900/50" 
+                              : "dark:text-blue-200 dark:hover:bg-blue-900/30"
                           }`}
                           onClick={() => setActiveTab(id)}
                           data-testid={`tab-${id}`}
@@ -460,12 +460,12 @@ export default function Dashboard() {
                     ))}
                   </nav>
                   
-                  <Separator className="my-6 dark:bg-slate-700" />
+                  <Separator className="my-6 dark:bg-blue-900/40" />
                   
                   <motion.div whileHover={{ x: 4 }} transition={{ duration: 0.2 }}>
                     <Button 
                       variant="ghost" 
-                      className="w-full justify-start text-red-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
+                      className="w-full justify-start text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
                       onClick={handleLogout}
                       data-testid="button-logout"
                     >
@@ -498,14 +498,14 @@ export default function Dashboard() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                     >
-                      <Card className="border-0 shadow-xl bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 overflow-hidden relative">
+                      <Card className="border-0 shadow-xl dark:shadow-2xl dark:shadow-red-900/30 bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-950/40 dark:to-orange-950/40 dark:border dark:border-red-900/40 overflow-hidden relative">
                         <div className="absolute top-0 right-0 w-96 h-96 bg-red-100/20 dark:bg-red-500/10 rounded-full -mr-48 -mt-48 blur-3xl"></div>
                         <CardContent className="p-8 relative z-10">
                           <div className="flex items-start gap-4">
                             <AlertCircle className="h-8 w-8 text-red-600 dark:text-red-400 flex-shrink-0 mt-1" />
                             <div>
                               <h2 className="text-2xl font-bold mb-2 text-red-900 dark:text-red-300">Pagesa e Kërkuar 💳</h2>
-                              <p className="text-red-800 dark:text-red-200 max-w-xl font-medium">
+                              <p className="text-red-800 dark:text-red-200/80 max-w-xl font-medium">
                                 Për të vazhduar me aplikimin tuaj, ju duhet të përfundoni pagesën. Zgjidhni paketën tuaj më poshtë.
                               </p>
                             </div>
@@ -519,11 +519,11 @@ export default function Dashboard() {
                       animate={{ opacity: 1, y: 0 }}
                       className="space-y-6"
                     >
-                      <Card className="border-0 shadow-2xl bg-gradient-to-br from-primary via-primary/80 to-secondary text-white overflow-hidden relative">
-                        <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full -mr-48 -mt-48 blur-3xl"></div>
+                      <Card className="border-0 shadow-2xl dark:shadow-3xl dark:shadow-blue-900/50 bg-gradient-to-br from-primary via-primary/80 to-secondary dark:from-blue-700 dark:via-blue-600 dark:to-cyan-600 text-white overflow-hidden relative">
+                        <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 dark:bg-white/5 rounded-full -mr-48 -mt-48 blur-3xl"></div>
                         <CardContent className="p-10 relative z-10">
                           <h2 className="text-3xl font-bold mb-3">Mirësevini në panelin tuaj, {user.name.split(' ')[0]}! 👋</h2>
-                          <p className="text-white/90 max-w-2xl text-lg">
+                          <p className="text-white/90 dark:text-blue-100/80 max-w-2xl text-lg">
                             Aplikimi juaj është duke u përpunuar nga ekipi ynë. Ne po kontrollojmë çdo detaj për të siguruar që gjithçka është në rregull.
                           </p>
                         </CardContent>
@@ -532,10 +532,10 @@ export default function Dashboard() {
                       {/* Status Cards Grid */}
                       <div className="grid md:grid-cols-3 gap-4">
                         <motion.div whileHover={{ y: -5 }} transition={{ duration: 0.2 }}>
-                          <Card className="border-0 shadow-lg dark:shadow-xl bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 relative overflow-hidden">
+                          <Card className="border-0 shadow-lg dark:shadow-xl dark:shadow-green-900/30 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/20 dark:border dark:border-green-900/30 relative overflow-hidden">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-green-100/20 dark:bg-green-500/10 rounded-full -mr-16 -mt-16"></div>
                             <CardHeader className="pb-3 relative z-10">
-                              <CardTitle className="text-sm font-medium text-gray-600 dark:text-slate-400">Statusi i Aplikimit</CardTitle>
+                              <CardTitle className="text-sm font-medium text-gray-600 dark:text-green-300/70">Statusi i Aplikimit</CardTitle>
                             </CardHeader>
                             <CardContent className="relative z-10">
                               <div className="flex items-center gap-3">
@@ -546,21 +546,21 @@ export default function Dashboard() {
                                 ) : (
                                   <AlertCircle className="h-6 w-6 text-gray-600 dark:text-slate-400" />
                                 )}
-                                <span className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">{getApplicationStatus()}</span>
+                                <span className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary dark:from-green-600 dark:to-emerald-500 bg-clip-text text-transparent">{getApplicationStatus()}</span>
                               </div>
                             </CardContent>
                           </Card>
                         </motion.div>
 
                         <motion.div whileHover={{ y: -5 }} transition={{ duration: 0.2 }}>
-                          <Card className="border-0 shadow-lg dark:shadow-xl bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 relative overflow-hidden">
+                          <Card className="border-0 shadow-lg dark:shadow-xl dark:shadow-blue-900/30 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/20 dark:border dark:border-blue-900/30 relative overflow-hidden">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-blue-100/20 dark:bg-blue-500/10 rounded-full -mr-16 -mt-16"></div>
                             <CardHeader className="pb-3 relative z-10">
-                              <CardTitle className="text-sm font-medium text-gray-600 dark:text-slate-400">Kompletimi</CardTitle>
+                              <CardTitle className="text-sm font-medium text-gray-600 dark:text-blue-300/70">Kompletimi</CardTitle>
                             </CardHeader>
                             <CardContent className="relative z-10">
                               <div className="flex items-center gap-3 mb-3">
-                                <span className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">{Math.round(progress)}%</span>
+                                <span className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary dark:from-blue-600 dark:to-cyan-500 bg-clip-text text-transparent">{Math.round(progress)}%</span>
                               </div>
                               <Progress value={progress} className="h-2" />
                             </CardContent>
@@ -568,30 +568,30 @@ export default function Dashboard() {
                         </motion.div>
 
                         <motion.div whileHover={{ y: -5 }} transition={{ duration: 0.2 }}>
-                          <Card className="border-0 shadow-lg dark:shadow-xl bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 relative overflow-hidden">
+                          <Card className="border-0 shadow-lg dark:shadow-xl dark:shadow-purple-900/30 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/20 dark:border dark:border-purple-900/30 relative overflow-hidden">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-purple-100/20 dark:bg-purple-500/10 rounded-full -mr-16 -mt-16"></div>
                             <CardHeader className="pb-3 relative z-10">
-                              <CardTitle className="text-sm font-medium text-gray-600 dark:text-slate-400">Dokumentet</CardTitle>
+                              <CardTitle className="text-sm font-medium text-gray-600 dark:text-purple-300/70">Dokumentet</CardTitle>
                             </CardHeader>
                             <CardContent className="relative z-10">
                               <div className="flex items-center gap-3">
                                 <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
-                                <span className="text-lg font-bold text-gray-900 dark:text-white">Të Ngarkuara</span>
+                                <span className="text-lg font-bold text-gray-900 dark:text-blue-100">Të Ngarkuara</span>
                               </div>
-                              <p className="text-xs text-gray-600 dark:text-slate-400 mt-2">Fotoja është verifikuar</p>
+                              <p className="text-xs text-gray-600 dark:text-blue-300/60 mt-2">Fotoja është verifikuar</p>
                             </CardContent>
                           </Card>
                         </motion.div>
                       </div>
 
                       {/* Timeline */}
-                      <Card className="border-0 shadow-xl dark:shadow-2xl">
+                      <Card className="border-0 shadow-xl dark:shadow-2xl dark:shadow-blue-900/40 dark:bg-gradient-to-br dark:from-blue-950/50 dark:to-slate-950">
                         <CardHeader>
-                          <CardTitle className="text-xl">Ecuria e Aplikimit</CardTitle>
-                          <CardDescription>Ndiqni hapat e procesit tuaj në kohë reale</CardDescription>
+                          <CardTitle className="text-xl dark:text-blue-100">Ecuria e Aplikimit</CardTitle>
+                          <CardDescription className="dark:text-blue-300/60">Ndiqni hapat e procesit tuaj në kohë reale</CardDescription>
                         </CardHeader>
                         <CardContent>
-                          <div className="space-y-6 relative pl-4 border-l-2 border-gradient-to-b from-primary to-secondary ml-2">
+                          <div className="space-y-6 relative pl-4 border-l-2 border-gradient-to-b from-primary to-secondary dark:from-blue-500 dark:to-cyan-500 ml-2">
                             {applicationSteps.map((step, idx) => (
                               <motion.div 
                                 key={step.id}
@@ -600,23 +600,23 @@ export default function Dashboard() {
                                 transition={{ delay: idx * 0.1 }}
                                 className="relative pl-6 pb-1"
                               >
-                                <div className={`absolute -left-[29px] top-0 w-6 h-6 rounded-full border-4 border-white dark:border-slate-900 flex items-center justify-center transition-all
-                                  ${step.status === 'completed' ? 'bg-green-500 shadow-lg' : 
-                                    step.status === 'in_progress' ? 'bg-yellow-500 shadow-lg' : 'bg-gray-300 dark:bg-slate-600'}
+                                <div className={`absolute -left-[29px] top-0 w-6 h-6 rounded-full border-4 border-white dark:border-[#0f172a] flex items-center justify-center transition-all
+                                  ${step.status === 'completed' ? 'bg-green-500 shadow-lg dark:shadow-green-900/50' : 
+                                    step.status === 'in_progress' ? 'bg-yellow-500 shadow-lg dark:shadow-yellow-900/50' : 'bg-gray-300 dark:bg-blue-800/60'}
                                 `}>
                                   {step.status === 'completed' && <CheckCircle className="w-3 h-3 text-white" />}
                                   {step.status === 'in_progress' && <Clock className="w-3 h-3 text-white" />}
                                 </div>
                                 
                                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
-                                  <h4 className={`font-semibold text-lg transition-colors ${step.status === 'pending' ? 'text-gray-400 dark:text-slate-500' : 'text-gray-900 dark:text-white'}`}>
+                                  <h4 className={`font-semibold text-lg transition-colors ${step.status === 'pending' ? 'text-gray-400 dark:text-blue-400/40' : 'text-gray-900 dark:text-blue-100'}`}>
                                     {step.title}
                                   </h4>
-                                  <span className="text-sm text-gray-500 dark:text-slate-400">{step.date}</span>
+                                  <span className="text-sm text-gray-500 dark:text-blue-300/60">{step.date}</span>
                                 </div>
                                 
                                 {step.status === 'in_progress' && (
-                                  <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-2 bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded-lg inline-block">
+                                  <p className="text-sm text-yellow-700 dark:text-yellow-300/90 mt-2 bg-yellow-50 dark:bg-yellow-900/30 dark:border dark:border-yellow-800/50 p-3 rounded-lg inline-block">
                                     Ekipi ynë po kontrollon foton tuaj për të siguruar që përputhet me standardet e DV Lottery.
                                   </p>
                                 )}
@@ -635,13 +635,13 @@ export default function Dashboard() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.2 }}
                     >
-                      <Card className="border-0 shadow-xl dark:shadow-2xl">
-                        <CardHeader className="bg-gradient-to-r from-primary/5 to-secondary/5 dark:from-primary/10 dark:to-secondary/10 pb-4">
+                      <Card className="border-0 shadow-xl dark:shadow-2xl dark:shadow-blue-900/40 dark:bg-gradient-to-br dark:from-blue-950/50 dark:to-slate-950">
+                        <CardHeader className="bg-gradient-to-r from-primary/5 to-secondary/5 dark:from-blue-900/30 dark:to-cyan-900/30 dark:border-b dark:border-blue-900/40 pb-4">
                           <div className="flex items-center gap-3">
-                            <div className="p-2 bg-primary/10 dark:bg-primary/20 rounded-lg">
+                            <div className="p-2 bg-primary/10 dark:bg-blue-600/30 rounded-lg">
                               <CreditCard className="h-5 w-5 text-primary dark:text-blue-400" />
                             </div>
-                            <CardTitle>Zgjidhni Paketën tuaj</CardTitle>
+                            <CardTitle className="dark:text-blue-100">Zgjidhni Paketën tuaj</CardTitle>
                           </div>
                         </CardHeader>
                         <CardContent className="p-8">
@@ -658,21 +658,21 @@ export default function Dashboard() {
                               >
                                 <Card className={`border-2 rounded-xl transition-all relative overflow-hidden
                                   ${pkg.popular 
-                                    ? 'border-primary shadow-2xl dark:shadow-lg dark:shadow-primary/30 scale-105 md:scale-100' 
-                                    : 'border-gray-200 dark:border-slate-700 hover:border-primary dark:hover:border-primary'
+                                    ? 'border-primary dark:border-cyan-500 shadow-2xl dark:shadow-lg dark:shadow-cyan-900/40 scale-105 md:scale-100 dark:bg-gradient-to-br dark:from-cyan-950/40 dark:to-blue-950/40' 
+                                    : 'border-gray-200 dark:border-blue-900/40 hover:border-primary dark:hover:border-blue-500 dark:bg-gradient-to-br dark:from-blue-950/20 dark:to-slate-950'
                                   }`}
                                 >
                                   {pkg.popular && (
-                                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 bg-gradient-to-r from-primary to-secondary text-white px-4 py-1 rounded-full text-xs font-bold shadow-lg">
+                                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 bg-gradient-to-r from-primary to-secondary dark:from-cyan-600 dark:to-blue-600 text-white px-4 py-1 rounded-full text-xs font-bold shadow-lg dark:shadow-cyan-900/50">
                                       MË I KËRKUAR
                                     </div>
                                   )}
                                   <CardContent className="p-8 text-center">
-                                    <h3 className="font-bold text-xl mb-2 dark:text-white">{pkg.name}</h3>
-                                    <p className="text-sm text-gray-600 dark:text-slate-400 mb-6">{pkg.desc}</p>
-                                    <div className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-8">{pkg.price}</div>
+                                    <h3 className="font-bold text-xl mb-2 dark:text-blue-100">{pkg.name}</h3>
+                                    <p className="text-sm text-gray-600 dark:text-blue-300/70 mb-6">{pkg.desc}</p>
+                                    <div className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary dark:from-cyan-400 dark:to-blue-400 bg-clip-text text-transparent mb-8">{pkg.price}</div>
                                     <Button 
-                                      className="w-full bg-gradient-to-r from-primary to-secondary hover:shadow-lg text-white rounded-lg h-12 text-base font-semibold"
+                                      className="w-full bg-gradient-to-r from-primary to-secondary dark:from-blue-600 dark:to-cyan-600 hover:shadow-lg dark:hover:shadow-blue-900/50 text-white rounded-lg h-12 text-base font-semibold"
                                       onClick={() => handlePayment(pkg.type as "individual" | "couple" | "family")}
                                       disabled={checkoutLoading}
                                       data-testid={`button-pay-${pkg.type}`}
@@ -701,10 +701,10 @@ export default function Dashboard() {
                   transition={{ duration: 0.3 }}
                   className="space-y-6"
                 >
-                  <Card className="border-0 shadow-xl dark:shadow-2xl">
+                  <Card className="border-0 shadow-xl dark:shadow-2xl dark:shadow-blue-900/40 dark:bg-gradient-to-br dark:from-blue-950/50 dark:to-slate-950">
                     <CardHeader>
-                      <CardTitle>Përmbledhja e Aplikimit</CardTitle>
-                      <CardDescription>Detajet e plota të aplikimit tuaj</CardDescription>
+                      <CardTitle className="dark:text-blue-100">Përmbledhja e Aplikimit</CardTitle>
+                      <CardDescription className="dark:text-blue-300/60">Detajet e plota të aplikimit tuaj</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="grid md:grid-cols-2 gap-8">
@@ -722,9 +722,9 @@ export default function Dashboard() {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: idx * 0.05 }}
                           >
-                            <div className="p-4 rounded-lg bg-gray-50 dark:bg-slate-800/50">
-                              <p className="text-xs text-gray-500 dark:text-slate-400 font-bold mb-1">{item.label}</p>
-                              <p className="text-lg font-semibold text-gray-900 dark:text-white">{item.value}</p>
+                            <div className="p-4 rounded-lg bg-gray-50 dark:bg-blue-900/20 dark:border dark:border-blue-900/40">
+                              <p className="text-xs text-gray-500 dark:text-blue-400/70 font-bold mb-1">{item.label}</p>
+                              <p className="text-lg font-semibold text-gray-900 dark:text-blue-100">{item.value}</p>
                             </div>
                           </motion.div>
                         ))}
@@ -732,10 +732,10 @@ export default function Dashboard() {
                     </CardContent>
                   </Card>
 
-                  <Card className="border-0 shadow-xl dark:shadow-2xl">
+                  <Card className="border-0 shadow-xl dark:shadow-2xl dark:shadow-blue-900/40 dark:bg-gradient-to-br dark:from-blue-950/50 dark:to-slate-950">
                     <CardHeader>
-                      <CardTitle>Dokumentet Tuaja</CardTitle>
-                      <CardDescription>Shkarkoni kopjet e dokumenteve të aplikimit</CardDescription>
+                      <CardTitle className="dark:text-blue-100">Dokumentet Tuaja</CardTitle>
+                      <CardDescription className="dark:text-blue-300/60">Shkarkoni kopjet e dokumenteve të aplikimit</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-3">
@@ -744,26 +744,26 @@ export default function Dashboard() {
                             key={doc.id}
                             whileHover={{ x: 4 }}
                             transition={{ duration: 0.2 }}
-                            className="flex items-center justify-between p-4 border border-gray-200 dark:border-slate-700 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors"
+                            className="flex items-center justify-between p-4 border border-gray-200 dark:border-blue-900/40 rounded-lg hover:bg-gray-50 dark:hover:bg-blue-900/20 transition-colors"
                           >
                             <div className="flex items-center gap-4">
                               <div className={`w-12 h-12 rounded-lg flex items-center justify-center
-                                ${doc.icon === 'red' ? 'bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400' : 
-                                  doc.icon === 'blue' ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' : 
-                                  'bg-purple-100 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400'}
+                                ${doc.icon === 'red' ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400' : 
+                                  doc.icon === 'blue' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 
+                                  'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400'}
                               `}>
                                 <FileText className="w-6 h-6" />
                               </div>
                               <div>
-                                <p className="font-semibold text-gray-900 dark:text-white">{doc.name}</p>
-                                <p className="text-xs text-gray-500 dark:text-slate-400">{doc.type}</p>
+                                <p className="font-semibold text-gray-900 dark:text-blue-100">{doc.name}</p>
+                                <p className="text-xs text-gray-500 dark:text-blue-300/60">{doc.type}</p>
                               </div>
                             </div>
                             <Button 
                               variant="ghost" 
                               size="icon"
                               onClick={() => downloadDocument(doc.url, doc.name)}
-                              className="hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg"
+                              className="hover:bg-gray-100 dark:hover:bg-blue-900/30 rounded-lg"
                               data-testid={`button-download-${doc.id}`}
                             >
                               <Download className="w-5 h-5 text-primary dark:text-blue-400" />
@@ -786,15 +786,15 @@ export default function Dashboard() {
                   transition={{ duration: 0.3 }}
                   className="space-y-6"
                 >
-                  <Card className="border-0 shadow-xl dark:shadow-2xl">
-                    <CardHeader className="flex flex-row items-center justify-between pb-6">
+                  <Card className="border-0 shadow-xl dark:shadow-2xl dark:shadow-blue-900/40 dark:bg-gradient-to-br dark:from-blue-950/50 dark:to-slate-950">
+                    <CardHeader className="flex flex-row items-center justify-between pb-6 dark:border-b dark:border-blue-900/40">
                       <div>
-                        <CardTitle>Profili Juaj</CardTitle>
-                        <CardDescription>Menaxhoni të dhënat e llogarisë tuaj</CardDescription>
+                        <CardTitle className="dark:text-blue-100">Profili Juaj</CardTitle>
+                        <CardDescription className="dark:text-blue-300/60">Menaxhoni të dhënat e llogarisë tuaj</CardDescription>
                       </div>
                       <Button 
                         onClick={() => setEditingProfile(!editingProfile)}
-                        className={`rounded-lg transition-all ${editingProfile ? 'bg-gray-200 dark:bg-slate-700 text-gray-900 dark:text-white' : 'bg-gradient-to-r from-primary to-secondary text-white'}`}
+                        className={`rounded-lg transition-all ${editingProfile ? 'bg-gray-200 dark:bg-blue-900/40 dark:border dark:border-blue-900/60 text-gray-900 dark:text-blue-100' : 'bg-gradient-to-r from-primary to-secondary dark:from-blue-600 dark:to-cyan-600 text-white'}`}
                         data-testid="button-edit-profile"
                       >
                         {editingProfile ? "Anulo" : "Redakto"}
@@ -806,22 +806,22 @@ export default function Dashboard() {
                           <>
                             <div className="grid md:grid-cols-2 gap-6">
                               <div className="space-y-2">
-                                <Label htmlFor="firstName" className="dark:text-slate-200">Emri</Label>
+                                <Label htmlFor="firstName" className="dark:text-blue-200">Emri</Label>
                                 <Input
                                   id="firstName"
                                   value={profileData.firstName}
                                   onChange={(e) => setProfileData({...profileData, firstName: e.target.value})}
-                                  className="dark:bg-slate-700 dark:border-slate-600 dark:text-white rounded-lg"
+                                  className="dark:bg-blue-900/30 dark:border-blue-900/60 dark:text-blue-100 rounded-lg"
                                   data-testid="input-first-name"
                                 />
                               </div>
                               <div className="space-y-2">
-                                <Label htmlFor="lastName" className="dark:text-slate-200">Mbiemri</Label>
+                                <Label htmlFor="lastName" className="dark:text-blue-200">Mbiemri</Label>
                                 <Input
                                   id="lastName"
                                   value={profileData.lastName}
                                   onChange={(e) => setProfileData({...profileData, lastName: e.target.value})}
-                                  className="dark:bg-slate-700 dark:border-slate-600 dark:text-white rounded-lg"
+                                  className="dark:bg-blue-900/30 dark:border-blue-900/60 dark:text-blue-100 rounded-lg"
                                   data-testid="input-last-name"
                                 />
                               </div>
@@ -829,23 +829,23 @@ export default function Dashboard() {
 
                             <div className="grid md:grid-cols-2 gap-6">
                               <div className="space-y-2">
-                                <Label htmlFor="email" className="dark:text-slate-200">Email</Label>
+                                <Label htmlFor="email" className="dark:text-blue-200">Email</Label>
                                 <Input
                                   id="email"
                                   type="email"
                                   value={profileData.email}
                                   onChange={(e) => setProfileData({...profileData, email: e.target.value})}
-                                  className="dark:bg-slate-700 dark:border-slate-600 dark:text-white rounded-lg"
+                                  className="dark:bg-blue-900/30 dark:border-blue-900/60 dark:text-blue-100 rounded-lg"
                                   data-testid="input-email"
                                 />
                               </div>
                               <div className="space-y-2">
-                                <Label htmlFor="phone" className="dark:text-slate-200">Telefoni</Label>
+                                <Label htmlFor="phone" className="dark:text-blue-200">Telefoni</Label>
                                 <Input
                                   id="phone"
                                   value={profileData.phone}
                                   onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
-                                  className="dark:bg-slate-700 dark:border-slate-600 dark:text-white rounded-lg"
+                                  className="dark:bg-blue-900/30 dark:border-blue-900/60 dark:text-blue-100 rounded-lg"
                                   data-testid="input-phone"
                                 />
                               </div>
@@ -853,22 +853,22 @@ export default function Dashboard() {
 
                             <div className="grid md:grid-cols-2 gap-6">
                               <div className="space-y-2">
-                                <Label htmlFor="birthCountry" className="dark:text-slate-200">Shteti i Lindjes</Label>
+                                <Label htmlFor="birthCountry" className="dark:text-blue-200">Shteti i Lindjes</Label>
                                 <Input
                                   id="birthCountry"
                                   value={profileData.birthCountry}
                                   onChange={(e) => setProfileData({...profileData, birthCountry: e.target.value})}
-                                  className="dark:bg-slate-700 dark:border-slate-600 dark:text-white rounded-lg"
+                                  className="dark:bg-blue-900/30 dark:border-blue-900/60 dark:text-blue-100 rounded-lg"
                                   data-testid="input-birth-country"
                                 />
                               </div>
                               <div className="space-y-2">
-                                <Label htmlFor="city" className="dark:text-slate-200">Qyteti</Label>
+                                <Label htmlFor="city" className="dark:text-blue-200">Qyteti</Label>
                                 <Input
                                   id="city"
                                   value={profileData.city}
                                   onChange={(e) => setProfileData({...profileData, city: e.target.value})}
-                                  className="dark:bg-slate-700 dark:border-slate-600 dark:text-white rounded-lg"
+                                  className="dark:bg-blue-900/30 dark:border-blue-900/60 dark:text-blue-100 rounded-lg"
                                   data-testid="input-city"
                                 />
                               </div>
@@ -877,7 +877,7 @@ export default function Dashboard() {
                             <div className="flex gap-3 pt-4">
                               <Button 
                                 onClick={handleSaveProfile}
-                                className="bg-gradient-to-r from-primary to-secondary hover:shadow-lg text-white rounded-lg"
+                                className="bg-gradient-to-r from-primary to-secondary dark:from-blue-600 dark:to-cyan-600 hover:shadow-lg dark:hover:shadow-blue-900/50 text-white rounded-lg"
                                 data-testid="button-save-profile"
                               >
                                 <Save className="w-4 h-4 mr-2" />
@@ -886,7 +886,7 @@ export default function Dashboard() {
                               <Button 
                                 variant="outline"
                                 onClick={() => setEditingProfile(false)}
-                                className="rounded-lg dark:border-slate-600 dark:text-white"
+                                className="rounded-lg dark:border-blue-900/60 dark:text-blue-200 dark:hover:bg-blue-900/20"
                               >
                                 Anulo
                               </Button>
@@ -907,10 +907,10 @@ export default function Dashboard() {
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: idx * 0.05 }}
-                                className="p-4 rounded-lg bg-gray-50 dark:bg-slate-800/50"
+                                className="p-4 rounded-lg bg-gray-50 dark:bg-blue-900/20 dark:border dark:border-blue-900/40"
                               >
-                                <p className="text-xs text-gray-500 dark:text-slate-400 font-bold mb-1">{item.label}</p>
-                                <p className="text-lg font-semibold text-gray-900 dark:text-white">{item.value}</p>
+                                <p className="text-xs text-gray-500 dark:text-blue-400/70 font-bold mb-1">{item.label}</p>
+                                <p className="text-lg font-semibold text-gray-900 dark:text-blue-100">{item.value}</p>
                               </motion.div>
                             ))}
                           </div>
@@ -931,15 +931,15 @@ export default function Dashboard() {
                   transition={{ duration: 0.3 }}
                   className="space-y-6"
                 >
-                  <Card className="border-0 shadow-xl dark:shadow-2xl">
+                  <Card className="border-0 shadow-xl dark:shadow-2xl dark:shadow-blue-900/40 dark:bg-gradient-to-br dark:from-blue-950/50 dark:to-slate-950">
                     <CardHeader>
-                      <CardTitle>Siguria & Fjalëkalimi</CardTitle>
-                      <CardDescription>Ndryshoni fjalëkalimin tuaj rregullisht për siguri maksimale</CardDescription>
+                      <CardTitle className="dark:text-blue-100">Siguria & Fjalëkalimi</CardTitle>
+                      <CardDescription className="dark:text-blue-300/60">Ndryshoni fjalëkalimin tuaj rregullisht për siguri maksimale</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <Button 
                         onClick={() => setShowPasswordDialog(true)}
-                        className="bg-gradient-to-r from-primary to-secondary hover:shadow-lg text-white rounded-lg"
+                        className="bg-gradient-to-r from-primary to-secondary dark:from-blue-600 dark:to-cyan-600 hover:shadow-lg dark:hover:shadow-blue-900/50 text-white rounded-lg"
                         data-testid="button-change-password"
                       >
                         Ndrysho Fjalëkalimin
@@ -959,10 +959,10 @@ export default function Dashboard() {
                   transition={{ duration: 0.3 }}
                   className="space-y-6"
                 >
-                  <Card className="border-0 shadow-xl dark:shadow-2xl">
+                  <Card className="border-0 shadow-xl dark:shadow-2xl dark:shadow-blue-900/40 dark:bg-gradient-to-br dark:from-blue-950/50 dark:to-slate-950">
                     <CardHeader>
-                      <CardTitle>Historiku i Transaksioneve</CardTitle>
-                      <CardDescription>Shikoni të gjitha pagesën tuaja</CardDescription>
+                      <CardTitle className="dark:text-blue-100">Historiku i Transaksioneve</CardTitle>
+                      <CardDescription className="dark:text-blue-300/60">Shikoni të gjitha pagesën tuaja</CardDescription>
                     </CardHeader>
                     <CardContent>
                       {transactions.length > 0 ? (
@@ -971,18 +971,18 @@ export default function Dashboard() {
                             <motion.div
                               key={trans.id}
                               whileHover={{ x: 4 }}
-                              className="flex items-center justify-between p-4 border border-gray-200 dark:border-slate-700 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors"
+                              className="flex items-center justify-between p-4 border border-gray-200 dark:border-blue-900/40 rounded-lg hover:bg-gray-50 dark:hover:bg-blue-900/20 transition-colors"
                             >
                               <div>
-                                <p className="font-semibold text-gray-900 dark:text-white">{trans.description}</p>
-                                <p className="text-sm text-gray-500 dark:text-slate-400">{new Date(trans.createdAt).toLocaleDateString('sq-AL')}</p>
+                                <p className="font-semibold text-gray-900 dark:text-blue-100">{trans.description}</p>
+                                <p className="text-sm text-gray-500 dark:text-blue-300/60">{new Date(trans.createdAt).toLocaleDateString('sq-AL')}</p>
                               </div>
-                              <p className="font-bold text-lg bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">{trans.amount}€</p>
+                              <p className="font-bold text-lg bg-gradient-to-r from-primary to-secondary dark:from-cyan-400 dark:to-blue-400 bg-clip-text text-transparent">{trans.amount}€</p>
                             </motion.div>
                           ))}
                         </div>
                       ) : (
-                        <p className="text-center text-gray-500 dark:text-slate-400 py-8">Nuk ka transaksione për të shfaqur</p>
+                        <p className="text-center text-gray-500 dark:text-blue-300/60 py-8">Nuk ka transaksione për të shfaqur</p>
                       )}
                     </CardContent>
                   </Card>
@@ -995,60 +995,60 @@ export default function Dashboard() {
 
       {/* Dialogs */}
       <Dialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
-        <DialogContent className="dark:bg-slate-800 dark:border-slate-700">
+        <DialogContent className="dark:bg-blue-950 dark:border-blue-900/40">
           <DialogHeader>
-            <DialogTitle className="dark:text-white">Jeni i sigurt?</DialogTitle>
-            <DialogDescription className="dark:text-slate-400">
+            <DialogTitle className="dark:text-blue-100">Jeni i sigurt?</DialogTitle>
+            <DialogDescription className="dark:text-blue-300/60">
               A dëshironi të dilni nga llogaria juaj?
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowLogoutDialog(false)} className="dark:border-slate-600 dark:text-white">Anulo</Button>
+            <Button variant="outline" onClick={() => setShowLogoutDialog(false)} className="dark:border-blue-900/60 dark:text-blue-200 dark:hover:bg-blue-900/20">Anulo</Button>
             <Button onClick={confirmLogout} className="bg-red-500 hover:bg-red-600 text-white">Dil</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
-        <DialogContent className="dark:bg-slate-800 dark:border-slate-700">
+        <DialogContent className="dark:bg-blue-950 dark:border-blue-900/40">
           <DialogHeader>
-            <DialogTitle className="dark:text-white">Ndrysho Fjalëkalimin</DialogTitle>
+            <DialogTitle className="dark:text-blue-100">Ndrysho Fjalëkalimin</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="currentPassword" className="dark:text-slate-200">Fjalëkalimi Aktual</Label>
+              <Label htmlFor="currentPassword" className="dark:text-blue-200">Fjalëkalimi Aktual</Label>
               <Input
                 id="currentPassword"
                 type={showCurrentPassword ? "text" : "password"}
                 value={passwordData.currentPassword}
                 onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})}
-                className="dark:bg-slate-700 dark:border-slate-600 dark:text-white rounded-lg"
+                className="dark:bg-blue-900/30 dark:border-blue-900/60 dark:text-blue-100 rounded-lg"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="newPassword" className="dark:text-slate-200">Fjalëkalimi i Ri</Label>
+              <Label htmlFor="newPassword" className="dark:text-blue-200">Fjalëkalimi i Ri</Label>
               <Input
                 id="newPassword"
                 type={showNewPassword ? "text" : "password"}
                 value={passwordData.newPassword}
                 onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
-                className="dark:bg-slate-700 dark:border-slate-600 dark:text-white rounded-lg"
+                className="dark:bg-blue-900/30 dark:border-blue-900/60 dark:text-blue-100 rounded-lg"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword" className="dark:text-slate-200">Konfirmo Fjalëkalimin</Label>
+              <Label htmlFor="confirmPassword" className="dark:text-blue-200">Konfirmo Fjalëkalimin</Label>
               <Input
                 id="confirmPassword"
                 type="password"
                 value={passwordData.confirmPassword}
                 onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
-                className="dark:bg-slate-700 dark:border-slate-600 dark:text-white rounded-lg"
+                className="dark:bg-blue-900/30 dark:border-blue-900/60 dark:text-blue-100 rounded-lg"
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowPasswordDialog(false)} className="dark:border-slate-600 dark:text-white">Anulo</Button>
-            <Button onClick={handleChangePassword} className="bg-gradient-to-r from-primary to-secondary text-white">Ruaj</Button>
+            <Button variant="outline" onClick={() => setShowPasswordDialog(false)} className="dark:border-blue-900/60 dark:text-blue-200 dark:hover:bg-blue-900/20">Anulo</Button>
+            <Button onClick={handleChangePassword} className="bg-gradient-to-r from-primary to-secondary dark:from-blue-600 dark:to-cyan-600 text-white">Ruaj</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
