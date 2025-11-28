@@ -23,7 +23,13 @@ export default function VerifyEmail() {
 
   useEffect(() => {
     // Use stored userId from localStorage (most reliable)
-    const finalUserId = storedUserId || urlUserId;
+    let finalUserId = storedUserId || urlUserId;
+    
+    // If we have a URL userId but it's not in localStorage, store it
+    if (urlUserId && !storedUserId) {
+      localStorage.setItem("userId", urlUserId);
+      finalUserId = urlUserId;
+    }
     
     if (!finalUserId) {
       setLocation("/");

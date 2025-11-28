@@ -195,8 +195,10 @@ export function ApplicationForm() {
 
       const data = await response.json();
       
-      // Save userId for verification
+      // Save userId for verification in both state and localStorage
       setUserId(data.userId);
+      localStorage.setItem("userId", data.userId);
+      setVerificationCode("");
       
       // Show code dialog - user will enter code from email
       setShowCodeDialog(true);
