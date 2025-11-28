@@ -228,14 +228,14 @@ export function ApplicationForm() {
   };
 
   return (
-    <section id="apply" className="py-24 bg-gray-50">
+    <section id="apply" className="py-24 bg-gray-50 dark:bg-slate-900">
       <div className="container mx-auto px-4 md:px-6 max-w-4xl">
-        <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12 border border-gray-100">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8 md:p-12 border border-gray-100 dark:border-slate-700">
           <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-primary mb-3 font-heading">
+            <h2 className="text-3xl font-bold text-primary dark:text-white mb-3 font-heading">
               Apliko Tani për Green Card
             </h2>
-            <p className="text-gray-500">
+            <p className="text-gray-500 dark:text-slate-400">
               Plotësoni formularin e mëposhtëm me kujdes. Ne do të rishikojmë gjithçka para dërgimit.
             </p>
           </div>
@@ -245,7 +245,7 @@ export function ApplicationForm() {
               
               {/* Package Selection */}
               <div className="space-y-4">
-                <Label className="text-lg font-semibold text-primary">Zgjidhni Paketën</Label>
+                <Label className="text-lg font-semibold text-primary dark:text-white">Zgjidhni Paketën</Label>
                 <FormField
                   control={form.control}
                   name="package"
@@ -261,9 +261,9 @@ export function ApplicationForm() {
                             <FormControl>
                               <RadioGroupItem value="individual" className="peer sr-only" />
                             </FormControl>
-                            <FormLabel className="flex flex-col items-center justify-between rounded-xl border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 [&:has([data-state=checked])]:border-primary cursor-pointer transition-all">
-                              <User className="mb-3 h-6 w-6 text-primary" />
-                              <span className="font-bold">Individual (20€)</span>
+                            <FormLabel className="flex flex-col items-center justify-between rounded-xl border-2 border-muted bg-popover dark:bg-slate-700 dark:border-slate-600 p-4 hover:bg-accent dark:hover:bg-slate-600 hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 dark:peer-data-[state=checked]:bg-primary/20 [&:has([data-state=checked])]:border-primary cursor-pointer transition-all">
+                              <User className="mb-3 h-6 w-6 text-primary dark:text-blue-400" />
+                              <span className="font-bold text-primary dark:text-white">Individual (20€)</span>
                             </FormLabel>
                           </FormItem>
                           
@@ -271,9 +271,9 @@ export function ApplicationForm() {
                             <FormControl>
                               <RadioGroupItem value="couple" className="peer sr-only" />
                             </FormControl>
-                            <FormLabel className="flex flex-col items-center justify-between rounded-xl border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-secondary peer-data-[state=checked]:bg-secondary/5 [&:has([data-state=checked])]:border-secondary cursor-pointer transition-all">
-                              <Users className="mb-3 h-6 w-6 text-secondary" />
-                              <span className="font-bold text-secondary">Çifti (35€)</span>
+                            <FormLabel className="flex flex-col items-center justify-between rounded-xl border-2 border-muted bg-popover dark:bg-slate-700 dark:border-slate-600 p-4 hover:bg-accent dark:hover:bg-slate-600 hover:text-accent-foreground peer-data-[state=checked]:border-secondary peer-data-[state=checked]:bg-secondary/5 dark:peer-data-[state=checked]:bg-secondary/20 [&:has([data-state=checked])]:border-secondary cursor-pointer transition-all">
+                              <Users className="mb-3 h-6 w-6 text-secondary dark:text-orange-400" />
+                              <span className="font-bold text-secondary dark:text-white">Çifti (35€)</span>
                             </FormLabel>
                           </FormItem>
                           
@@ -281,9 +281,9 @@ export function ApplicationForm() {
                             <FormControl>
                               <RadioGroupItem value="family" className="peer sr-only" />
                             </FormControl>
-                            <FormLabel className="flex flex-col items-center justify-between rounded-xl border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 [&:has([data-state=checked])]:border-primary cursor-pointer transition-all">
-                              <Crown className="mb-3 h-6 w-6 text-yellow-500" />
-                              <span className="font-bold">Familjare (50€)</span>
+                            <FormLabel className="flex flex-col items-center justify-between rounded-xl border-2 border-muted bg-popover dark:bg-slate-700 dark:border-slate-600 p-4 hover:bg-accent dark:hover:bg-slate-600 hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 dark:peer-data-[state=checked]:bg-primary/20 [&:has([data-state=checked])]:border-primary cursor-pointer transition-all">
+                              <Crown className="mb-3 h-6 w-6 text-yellow-500 dark:text-yellow-400" />
+                              <span className="font-bold text-primary dark:text-white">Familjare (50€)</span>
                             </FormLabel>
                           </FormItem>
                         </RadioGroup>
@@ -294,9 +294,9 @@ export function ApplicationForm() {
                 />
               </div>
 
-              <div className="h-px bg-gray-200 my-6" />
+              <div className="h-px bg-gray-200 dark:bg-slate-700 my-6" />
               
-              <h3 className="text-lg font-semibold text-primary">Të dhënat e Aplikantit Kryesor</h3>
+              <h3 className="text-lg font-semibold text-primary dark:text-white">Të dhënat e Aplikantit Kryesor</h3>
 
               <div className="grid md:grid-cols-2 gap-6">
                 <FormField
@@ -304,9 +304,9 @@ export function ApplicationForm() {
                   name="firstName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Emri</FormLabel>
+                      <FormLabel className="dark:text-slate-200">Emri</FormLabel>
                       <FormControl>
-                        <Input placeholder="Emri juaj" {...field} className="h-11 bg-gray-50" />
+                        <Input placeholder="Emri juaj" {...field} className="h-11 bg-gray-50 dark:bg-slate-700 dark:text-white dark:border-slate-600 dark:placeholder:text-slate-400" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -317,9 +317,9 @@ export function ApplicationForm() {
                   name="lastName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Mbiemri</FormLabel>
+                      <FormLabel className="dark:text-slate-200">Mbiemri</FormLabel>
                       <FormControl>
-                        <Input placeholder="Mbiemri juaj" {...field} className="h-11 bg-gray-50" />
+                        <Input placeholder="Mbiemri juaj" {...field} className="h-11 bg-gray-50 dark:bg-slate-700 dark:text-white dark:border-slate-600 dark:placeholder:text-slate-400" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -333,9 +333,9 @@ export function ApplicationForm() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email Adresa</FormLabel>
+                      <FormLabel className="dark:text-slate-200">Email Adresa</FormLabel>
                       <FormControl>
-                        <Input type="email" placeholder="email@shembull.com" {...field} className="h-11 bg-gray-50" />
+                        <Input type="email" placeholder="email@shembull.com" {...field} className="h-11 bg-gray-50 dark:bg-slate-700 dark:text-white dark:border-slate-600 dark:placeholder:text-slate-400" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -346,9 +346,9 @@ export function ApplicationForm() {
                   name="phone"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Numri i Telefonit</FormLabel>
+                      <FormLabel className="dark:text-slate-200">Numri i Telefonit</FormLabel>
                       <FormControl>
-                        <Input placeholder="+383 4X XXX XXX" {...field} className="h-11 bg-gray-50" />
+                        <Input placeholder="+383 4X XXX XXX" {...field} className="h-11 bg-gray-50 dark:bg-slate-700 dark:text-white dark:border-slate-600 dark:placeholder:text-slate-400" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -362,10 +362,10 @@ export function ApplicationForm() {
                   name="birthCountry"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Shteti i Lindjes</FormLabel>
+                      <FormLabel className="dark:text-slate-200">Shteti i Lindjes</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
-                          <SelectTrigger className="h-11 bg-gray-50">
+                          <SelectTrigger className="h-11 bg-gray-50 dark:bg-slate-700 dark:text-white dark:border-slate-600">
                             <SelectValue placeholder="Zgjidhni shtetin" />
                           </SelectTrigger>
                         </FormControl>
@@ -386,9 +386,9 @@ export function ApplicationForm() {
                   name="city"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Qyteti i Banimit</FormLabel>
+                      <FormLabel className="dark:text-slate-200">Qyteti i Banimit</FormLabel>
                       <FormControl>
-                        <Input placeholder="p.sh. Prishtinë" {...field} className="h-11 bg-gray-50" />
+                        <Input placeholder="p.sh. Prishtinë" {...field} className="h-11 bg-gray-50 dark:bg-slate-700 dark:text-white dark:border-slate-600 dark:placeholder:text-slate-400" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -397,7 +397,7 @@ export function ApplicationForm() {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Data e Lindjes</Label>
+                <Label className="text-sm font-medium dark:text-slate-200">Data e Lindjes</Label>
                 <div className="grid grid-cols-3 gap-4">
                   <FormField
                     control={form.control}
@@ -405,7 +405,7 @@ export function ApplicationForm() {
                     render={({ field }) => (
                       <FormItem>
                         <FormControl>
-                          <Input placeholder="Dita" type="number" min="1" max="31" {...field} className="h-11 bg-gray-50" />
+                          <Input placeholder="Dita" type="number" min="1" max="31" {...field} className="h-11 bg-gray-50 dark:bg-slate-700 dark:text-white dark:border-slate-600 dark:placeholder:text-slate-400" />
                         </FormControl>
                       </FormItem>
                     )}
@@ -417,7 +417,7 @@ export function ApplicationForm() {
                       <FormItem>
                         <FormControl>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <SelectTrigger className="h-11 bg-gray-50">
+                            <SelectTrigger className="h-11 bg-gray-50 dark:bg-slate-700 dark:text-white dark:border-slate-600">
                               <SelectValue placeholder="Muaji" />
                             </SelectTrigger>
                             <SelectContent>
@@ -438,7 +438,7 @@ export function ApplicationForm() {
                     render={({ field }) => (
                       <FormItem>
                         <FormControl>
-                          <Input placeholder="Viti" type="number" min="1900" max="2025" {...field} className="h-11 bg-gray-50" />
+                          <Input placeholder="Viti" type="number" min="1900" max="2025" {...field} className="h-11 bg-gray-50 dark:bg-slate-700 dark:text-white dark:border-slate-600 dark:placeholder:text-slate-400" />
                         </FormControl>
                       </FormItem>
                     )}
@@ -462,7 +462,7 @@ export function ApplicationForm() {
                 name="gender"
                 render={({ field }) => (
                   <FormItem className="space-y-3">
-                    <FormLabel>Gjinia</FormLabel>
+                    <FormLabel className="dark:text-slate-200">Gjinia</FormLabel>
                     <FormControl>
                       <RadioGroup
                         onValueChange={field.onChange}
@@ -473,13 +473,13 @@ export function ApplicationForm() {
                           <FormControl>
                             <RadioGroupItem value="male" />
                           </FormControl>
-                          <FormLabel className="font-normal">Mashkull</FormLabel>
+                          <FormLabel className="font-normal dark:text-slate-300">Mashkull</FormLabel>
                         </FormItem>
                         <FormItem className="flex items-center space-x-3 space-y-0">
                           <FormControl>
                             <RadioGroupItem value="female" />
                           </FormControl>
-                          <FormLabel className="font-normal">Femër</FormLabel>
+                          <FormLabel className="font-normal dark:text-slate-300">Femër</FormLabel>
                         </FormItem>
                       </RadioGroup>
                     </FormControl>
@@ -489,8 +489,8 @@ export function ApplicationForm() {
               />
 
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Foto e Aplikantit Kryesor</Label>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-primary transition-colors bg-gray-50 cursor-pointer relative">
+                <Label className="text-sm font-medium dark:text-slate-200">Foto e Aplikantit Kryesor</Label>
+                <div className="border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-lg p-8 text-center hover:border-primary dark:hover:border-orange-400 transition-colors bg-gray-50 dark:bg-slate-700 cursor-pointer relative">
                    <input 
                     type="file" 
                     accept=".jpg,.jpeg,.png" 
