@@ -17,8 +17,11 @@ import {
   Save,
   X,
   CreditCard,
-  Wallet
+  Wallet,
+  Moon,
+  Sun
 } from "lucide-react";
+import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -51,6 +54,7 @@ export default function Dashboard() {
   const [showReviewDataDialog, setShowReviewDataDialog] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
   const [userPaymentStatus, setUserPaymentStatus] = useState("pending");
+  const { theme, setTheme } = useTheme();
 
   // State for profile form
   const [profileData, setProfileData] = useState({
@@ -213,7 +217,6 @@ export default function Dashboard() {
     }
   };
 
-  // Mock data
   const userEmail = profileData.email || "user@example.com";
   const user = {
     name: profileData.firstName && profileData.lastName ? `${profileData.firstName} ${profileData.lastName}` : "Përdoruesi",
@@ -264,12 +267,9 @@ export default function Dashboard() {
   };
 
   const applicationSteps = getApplicationSteps();
-
-  // Calculate progress dynamically from application steps
   const completedSteps = applicationSteps.filter(step => step.status === "completed").length;
   const progress = (completedSteps / applicationSteps.length) * 100;
 
-  // Calculate overall application status
   const getApplicationStatus = () => {
     if (applicationSteps.every(step => step.status === "completed")) return "I Përfunduar";
     if (applicationSteps.some(step => step.status === "in_progress")) return "Në Përpunim";
@@ -294,7 +294,6 @@ export default function Dashboard() {
     },
   ];
 
-  // Add auto-refresh for application data every 10 seconds
   useEffect(() => {
     const userId = localStorage.getItem("userId");
     if (!userId) return;
@@ -319,7 +318,6 @@ export default function Dashboard() {
 
   const confirmLogout = async () => {
     setShowLogoutDialog(false);
-    // Clear all stored data
     localStorage.removeItem("userId");
     localStorage.removeItem("paymentStatus");
     localStorage.removeItem("selectedPackage");
@@ -328,13 +326,11 @@ export default function Dashboard() {
   };
 
   const handleSaveProfile = async () => {
-    // Validate form
     if (!profileData.firstName || !profileData.lastName || !profileData.email) {
       toast.error("Ju lutem plotësoni të gjitha fushat e detyrueshme");
       return;
     }
     
-    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
     setEditingProfile(false);
     toast.success("Profili u përditësua me sukses!");
@@ -356,7 +352,6 @@ export default function Dashboard() {
       return;
     }
 
-    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
     setShowPasswordDialog(false);
     setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
@@ -376,7 +371,6 @@ export default function Dashboard() {
 
   const downloadDocument = (docUrl: string, docName: string) => {
     try {
-      // Open the document URL in a new window for viewing/saving
       window.open(docUrl, '_blank');
       toast.success(`${docName} po hapet...`);
     } catch (error) {
@@ -386,91 +380,102 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans">
-      <div className="container mx-auto px-4 md:px-6 pt-8 pb-20">
+    <div className="min-h-screen bg-gradient-to-br from-white to-gray-50 dark:from-slate-950 dark:to-slate-900 font-sans">
+      {/* Header with Theme Toggle */}
+      <div className="sticky top-0 z-40 border-b border-gray-200 dark:border-slate-800 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md">
+        <div className="container mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">AplikoUSA Dashboard</h1>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            className="rounded-full"
+            data-testid="button-theme-toggle"
+          >
+            {theme === "dark" ? (
+              <Sun className="h-5 w-5 text-yellow-500" />
+            ) : (
+              <Moon className="h-5 w-5 text-slate-600" />
+            )}
+          </Button>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-4 md:px-6 py-8 pb-20">
         <div className="grid lg:grid-cols-12 gap-8">
           
           {/* Sidebar */}
           <div className="lg:col-span-3">
-            <Card className="border-gray-100 shadow-md sticky top-28">
-              <CardContent className="p-6">
-                <div className="flex flex-col items-center text-center mb-6">
-                  <Avatar className="w-20 h-20 mb-4 border-2 border-primary/10">
-                    <AvatarImage src={user.avatar} alt={user.name} />
-                    <AvatarFallback className="bg-primary/5 text-primary text-xl font-bold">
-                      {user.name.split(' ').map(n => n[0]).join('')}
-                    </AvatarFallback>
-                  </Avatar>
-                  <h3 className="font-bold text-lg">{user.name}</h3>
-                  <p className="text-sm text-gray-500 truncate">{user.email}</p>
-                  <Badge className="mt-3 bg-yellow-100 text-yellow-800 hover:bg-yellow-100 border-yellow-200">
-                    Duke u shqyrtuar
-                  </Badge>
-                </div>
-                
-                <Separator className="my-4" />
-                
-                <nav className="space-y-2">
-                  <Button 
-                    variant={activeTab === "overview" ? "secondary" : "ghost"} 
-                    className="w-full justify-start"
-                    onClick={() => setActiveTab("overview")}
-                    data-testid="tab-overview"
-                  >
-                    <LayoutDashboard className="mr-2 h-4 w-4" />
-                    Pasqyra
-                  </Button>
-                  <Button 
-                    variant={activeTab === "application" ? "secondary" : "ghost"} 
-                    className="w-full justify-start"
-                    onClick={() => setActiveTab("application")}
-                    data-testid="tab-application"
-                  >
-                    <FileText className="mr-2 h-4 w-4" />
-                    Aplikimi Im
-                  </Button>
-                  <Button 
-                    variant={activeTab === "profile" ? "secondary" : "ghost"} 
-                    className="w-full justify-start"
-                    onClick={() => setActiveTab("profile")}
-                    data-testid="tab-profile"
-                  >
-                    <User className="mr-2 h-4 w-4" />
-                    Profili
-                  </Button>
-                  <Button 
-                    variant={activeTab === "settings" ? "secondary" : "ghost"} 
-                    className="w-full justify-start"
-                    onClick={() => setActiveTab("settings")}
-                    data-testid="tab-settings"
-                  >
-                    <Settings className="mr-2 h-4 w-4" />
-                    Cilësimet
-                  </Button>
-                  <Button 
-                    variant={activeTab === "transactions" ? "secondary" : "ghost"} 
-                    className="w-full justify-start"
-                    onClick={() => setActiveTab("transactions")}
-                    data-testid="tab-transactions"
-                  >
-                    <Wallet className="mr-2 h-4 w-4" />
-                    Transaksionet
-                  </Button>
-                </nav>
-                
-                <Separator className="my-4" />
-                
-                <Button 
-                  variant="ghost" 
-                  className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50"
-                  onClick={handleLogout}
-                  data-testid="button-logout"
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Dilni
-                </Button>
-              </CardContent>
-            </Card>
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Card className="border-0 shadow-xl dark:shadow-2xl bg-gradient-to-b from-primary/5 to-transparent dark:from-slate-800 dark:to-slate-900 sticky top-32">
+                <CardContent className="p-8">
+                  <div className="flex flex-col items-center text-center mb-6">
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <Avatar className="w-24 h-24 mb-4 border-3 border-primary/20 shadow-lg">
+                        <AvatarImage src={user.avatar} alt={user.name} />
+                        <AvatarFallback className="bg-gradient-to-br from-primary/10 to-secondary/10 text-primary text-xl font-bold">
+                          {user.name.split(' ').map(n => n[0]).join('')}
+                        </AvatarFallback>
+                      </Avatar>
+                    </motion.div>
+                    <h3 className="font-bold text-lg dark:text-white">{user.name}</h3>
+                    <p className="text-sm text-gray-500 dark:text-slate-400 truncate">{user.email}</p>
+                    <Badge className="mt-3 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400 hover:bg-yellow-100 dark:hover:bg-yellow-900/30 border-yellow-200 dark:border-yellow-800">
+                      Duke u shqyrtuar
+                    </Badge>
+                  </div>
+                  
+                  <Separator className="my-6 dark:bg-slate-700" />
+                  
+                  <nav className="space-y-2">
+                    {[
+                      { id: "overview", label: "Pasqyra", icon: LayoutDashboard },
+                      { id: "application", label: "Aplikimi Im", icon: FileText },
+                      { id: "profile", label: "Profili", icon: User },
+                      { id: "settings", label: "Cilësimet", icon: Settings },
+                      { id: "transactions", label: "Transaksionet", icon: Wallet },
+                    ].map(({ id, label, icon: Icon }) => (
+                      <motion.div key={id} whileHover={{ x: 4 }} transition={{ duration: 0.2 }}>
+                        <Button 
+                          variant={activeTab === id ? "default" : "ghost"} 
+                          className={`w-full justify-start rounded-lg transition-all ${
+                            activeTab === id 
+                              ? "bg-gradient-to-r from-primary to-secondary text-white shadow-lg" 
+                              : "dark:hover:bg-slate-800"
+                          }`}
+                          onClick={() => setActiveTab(id)}
+                          data-testid={`tab-${id}`}
+                        >
+                          <Icon className="mr-2 h-4 w-4" />
+                          {label}
+                        </Button>
+                      </motion.div>
+                    ))}
+                  </nav>
+                  
+                  <Separator className="my-6 dark:bg-slate-700" />
+                  
+                  <motion.div whileHover={{ x: 4 }} transition={{ duration: 0.2 }}>
+                    <Button 
+                      variant="ghost" 
+                      className="w-full justify-start text-red-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
+                      onClick={handleLogout}
+                      data-testid="button-logout"
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Dilni
+                    </Button>
+                  </motion.div>
+                </CardContent>
+              </Card>
+            </motion.div>
           </div>
 
           {/* Main Content */}
@@ -481,212 +486,208 @@ export default function Dashboard() {
               {activeTab === "overview" && (
                 <motion.div
                   key="overview"
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
                   className="space-y-6"
                 >
-                  {/* Welcome Banner or Payment Required */}
+                  {/* Welcome Banner */}
                   {userPaymentStatus === "pending" ? (
-                    <Card className="bg-red-50 border-red-200 shadow-lg overflow-hidden relative">
-                      <CardContent className="p-8">
-                        <div className="flex items-start gap-4">
-                          <AlertCircle className="h-6 w-6 text-red-600 flex-shrink-0 mt-1" />
-                          <div>
-                            <h2 className="text-2xl font-bold mb-2 text-red-900">Pagesa e Kërkuar 💳</h2>
-                            <p className="text-red-700 max-w-xl">
-                              Për të vazhduar me aplikimin tuaj, ju duhet të përfundoni pagesën. Zgjidhni paketën tuaj më poshtë.
-                            </p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ) : (
-                    <div className="space-y-6">
-                      <Card className="bg-primary text-white border-none shadow-lg overflow-hidden relative">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-16 -mt-16 blur-3xl"></div>
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                    >
+                      <Card className="border-0 shadow-xl bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 overflow-hidden relative">
+                        <div className="absolute top-0 right-0 w-96 h-96 bg-red-100/20 dark:bg-red-500/10 rounded-full -mr-48 -mt-48 blur-3xl"></div>
                         <CardContent className="p-8 relative z-10">
-                          <h2 className="text-2xl font-bold mb-2">Mirësevini në panelin tuaj, {user.name.split(' ')[0]}! 👋</h2>
-                          <p className="text-white/80 max-w-xl">
+                          <div className="flex items-start gap-4">
+                            <AlertCircle className="h-8 w-8 text-red-600 dark:text-red-400 flex-shrink-0 mt-1" />
+                            <div>
+                              <h2 className="text-2xl font-bold mb-2 text-red-900 dark:text-red-300">Pagesa e Kërkuar 💳</h2>
+                              <p className="text-red-800 dark:text-red-200 max-w-xl font-medium">
+                                Për të vazhduar me aplikimin tuaj, ju duhet të përfundoni pagesën. Zgjidhni paketën tuaj më poshtë.
+                              </p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="space-y-6"
+                    >
+                      <Card className="border-0 shadow-2xl bg-gradient-to-br from-primary via-primary/80 to-secondary text-white overflow-hidden relative">
+                        <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full -mr-48 -mt-48 blur-3xl"></div>
+                        <CardContent className="p-10 relative z-10">
+                          <h2 className="text-3xl font-bold mb-3">Mirësevini në panelin tuaj, {user.name.split(' ')[0]}! 👋</h2>
+                          <p className="text-white/90 max-w-2xl text-lg">
                             Aplikimi juaj është duke u përpunuar nga ekipi ynë. Ne po kontrollojmë çdo detaj për të siguruar që gjithçka është në rregull.
                           </p>
                         </CardContent>
                       </Card>
 
-                      {/* Review Data Reminder Card */}
-                      <Card className="border-2 border-green-200 bg-green-50">
-                        <CardContent className="p-6">
-                          <div className="flex items-start gap-4">
-                            <CheckCircle className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" />
-                            <div className="flex-1">
-                              <h3 className="font-bold text-green-900 mb-2">✓ Pagesa u Përfundua me Sukses!</h3>
-                              <p className="text-green-800 text-sm mb-4">
-                                Ju lutem rishikoni të dhënat tuaja dhe konfirmoni nëse gjithçka është në rregull përpara se të vazhdoni me aplikimin.
-                              </p>
-                              <Button
-                                onClick={() => handleReviewData({ packageType: purchasedPackage || "individual", amount: 20 })}
-                                className="bg-green-600 hover:bg-green-700 text-white"
-                                size="sm"
-                                data-testid="button-review-overview"
+                      {/* Status Cards Grid */}
+                      <div className="grid md:grid-cols-3 gap-4">
+                        <motion.div whileHover={{ y: -5 }} transition={{ duration: 0.2 }}>
+                          <Card className="border-0 shadow-lg dark:shadow-xl bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-green-100/20 dark:bg-green-500/10 rounded-full -mr-16 -mt-16"></div>
+                            <CardHeader className="pb-3 relative z-10">
+                              <CardTitle className="text-sm font-medium text-gray-600 dark:text-slate-400">Statusi i Aplikimit</CardTitle>
+                            </CardHeader>
+                            <CardContent className="relative z-10">
+                              <div className="flex items-center gap-3">
+                                {getApplicationStatus() === "I Përfunduar" ? (
+                                  <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
+                                ) : getApplicationStatus() === "Në Përpunim" ? (
+                                  <Clock className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
+                                ) : (
+                                  <AlertCircle className="h-6 w-6 text-gray-600 dark:text-slate-400" />
+                                )}
+                                <span className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">{getApplicationStatus()}</span>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </motion.div>
+
+                        <motion.div whileHover={{ y: -5 }} transition={{ duration: 0.2 }}>
+                          <Card className="border-0 shadow-lg dark:shadow-xl bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-100/20 dark:bg-blue-500/10 rounded-full -mr-16 -mt-16"></div>
+                            <CardHeader className="pb-3 relative z-10">
+                              <CardTitle className="text-sm font-medium text-gray-600 dark:text-slate-400">Kompletimi</CardTitle>
+                            </CardHeader>
+                            <CardContent className="relative z-10">
+                              <div className="flex items-center gap-3 mb-3">
+                                <span className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">{Math.round(progress)}%</span>
+                              </div>
+                              <Progress value={progress} className="h-2" />
+                            </CardContent>
+                          </Card>
+                        </motion.div>
+
+                        <motion.div whileHover={{ y: -5 }} transition={{ duration: 0.2 }}>
+                          <Card className="border-0 shadow-lg dark:shadow-xl bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-purple-100/20 dark:bg-purple-500/10 rounded-full -mr-16 -mt-16"></div>
+                            <CardHeader className="pb-3 relative z-10">
+                              <CardTitle className="text-sm font-medium text-gray-600 dark:text-slate-400">Dokumentet</CardTitle>
+                            </CardHeader>
+                            <CardContent className="relative z-10">
+                              <div className="flex items-center gap-3">
+                                <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
+                                <span className="text-lg font-bold text-gray-900 dark:text-white">Të Ngarkuara</span>
+                              </div>
+                              <p className="text-xs text-gray-600 dark:text-slate-400 mt-2">Fotoja është verifikuar</p>
+                            </CardContent>
+                          </Card>
+                        </motion.div>
+                      </div>
+
+                      {/* Timeline */}
+                      <Card className="border-0 shadow-xl dark:shadow-2xl">
+                        <CardHeader>
+                          <CardTitle className="text-xl">Ecuria e Aplikimit</CardTitle>
+                          <CardDescription>Ndiqni hapat e procesit tuaj në kohë reale</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-6 relative pl-4 border-l-2 border-gradient-to-b from-primary to-secondary ml-2">
+                            {applicationSteps.map((step, idx) => (
+                              <motion.div 
+                                key={step.id}
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: idx * 0.1 }}
+                                className="relative pl-6 pb-1"
                               >
-                                Rishiko & Redakto Të Dhënat
-                              </Button>
-                            </div>
+                                <div className={`absolute -left-[29px] top-0 w-6 h-6 rounded-full border-4 border-white dark:border-slate-900 flex items-center justify-center transition-all
+                                  ${step.status === 'completed' ? 'bg-green-500 shadow-lg' : 
+                                    step.status === 'in_progress' ? 'bg-yellow-500 shadow-lg' : 'bg-gray-300 dark:bg-slate-600'}
+                                `}>
+                                  {step.status === 'completed' && <CheckCircle className="w-3 h-3 text-white" />}
+                                  {step.status === 'in_progress' && <Clock className="w-3 h-3 text-white" />}
+                                </div>
+                                
+                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                                  <h4 className={`font-semibold text-lg transition-colors ${step.status === 'pending' ? 'text-gray-400 dark:text-slate-500' : 'text-gray-900 dark:text-white'}`}>
+                                    {step.title}
+                                  </h4>
+                                  <span className="text-sm text-gray-500 dark:text-slate-400">{step.date}</span>
+                                </div>
+                                
+                                {step.status === 'in_progress' && (
+                                  <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-2 bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded-lg inline-block">
+                                    Ekipi ynë po kontrollon foton tuaj për të siguruar që përputhet me standardet e DV Lottery.
+                                  </p>
+                                )}
+                              </motion.div>
+                            ))}
                           </div>
                         </CardContent>
                       </Card>
-                    </div>
+                    </motion.div>
                   )}
 
-                  {/* Payment Section - Show if payment pending */}
+                  {/* Payment Section */}
                   {userPaymentStatus === "pending" && (
-                    <Card className="border-2 border-primary/20 shadow-md">
-                      <CardHeader className="bg-primary/5 pb-4">
-                        <div className="flex items-center gap-2">
-                          <CreditCard className="h-5 w-5 text-primary" />
-                          <CardTitle>Zgjidhni Paketën tuaj</CardTitle>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="p-6">
-                        <div className="grid md:grid-cols-3 gap-4">
-                          {/* Individual Package */}
-                          <Card className="border-2 border-gray-200 hover:border-primary hover:shadow-lg transition-all">
-                            <CardContent className="p-6 text-center">
-                              <h3 className="font-bold text-lg mb-2">Individual</h3>
-                              <p className="text-sm text-gray-600 mb-4">Për një person</p>
-                              <div className="text-3xl font-bold text-primary mb-4">20€</div>
-                              <Button 
-                                className="w-full bg-primary hover:bg-primary/90" 
-                                onClick={() => handlePayment("individual")}
-                                disabled={checkoutLoading}
-                                data-testid="button-pay-individual"
-                              >
-                                {checkoutLoading ? "Duke u përpunuar..." : "Paguaj Tani"}
-                              </Button>
-                            </CardContent>
-                          </Card>
-
-                          {/* Couple Package */}
-                          <Card className="border-2 border-primary relative">
-                            <div className="absolute -top-2 right-4 bg-primary text-white px-3 py-1 rounded-full text-xs font-bold">MË I KËRKUAR</div>
-                            <CardContent className="p-6 text-center">
-                              <h3 className="font-bold text-lg mb-2">Çifti (Partnerë)</h3>
-                              <p className="text-sm text-gray-600 mb-4">Për dy persona</p>
-                              <div className="text-3xl font-bold text-primary mb-4">35€</div>
-                              <Button 
-                                className="w-full bg-primary hover:bg-primary/90" 
-                                onClick={() => handlePayment("couple")}
-                                disabled={checkoutLoading}
-                                data-testid="button-pay-couple"
-                              >
-                                {checkoutLoading ? "Duke u përpunuar..." : "Paguaj Tani"}
-                              </Button>
-                            </CardContent>
-                          </Card>
-
-                          {/* Family Package */}
-                          <Card className="border-2 border-gray-200 hover:border-primary hover:shadow-lg transition-all">
-                            <CardContent className="p-6 text-center">
-                              <h3 className="font-bold text-lg mb-2">Familjare</h3>
-                              <p className="text-sm text-gray-600 mb-4">Për prindërit dhe fëmijët</p>
-                              <div className="text-3xl font-bold text-primary mb-4">50€</div>
-                              <Button 
-                                className="w-full bg-primary hover:bg-primary/90" 
-                                onClick={() => handlePayment("family")}
-                                disabled={checkoutLoading}
-                                data-testid="button-pay-family"
-                              >
-                                {checkoutLoading ? "Duke u përpunuar..." : "Paguaj Tani"}
-                              </Button>
-                            </CardContent>
-                          </Card>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
-
-                  {/* Status Cards */}
-                  <div className="grid md:grid-cols-3 gap-6">
-                    <Card>
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium text-gray-500">Statusi i Aplikimit</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="flex items-center gap-2">
-                          {getApplicationStatus() === "I Përfunduar" ? (
-                            <CheckCircle className="h-5 w-5 text-green-500" />
-                          ) : getApplicationStatus() === "Në Përpunim" ? (
-                            <Clock className="h-5 w-5 text-yellow-500" />
-                          ) : (
-                            <AlertCircle className="h-5 w-5 text-gray-500" />
-                          )}
-                          <span className="text-2xl font-bold text-gray-900">{getApplicationStatus()}</span>
-                        </div>
-                        <p className="text-xs text-gray-500 mt-1">Përditësuar: Sot</p>
-                      </CardContent>
-                    </Card>
-                    
-                    <Card>
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium text-gray-500">Kompletimi</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="flex items-center gap-2">
-                          <span className="text-2xl font-bold text-gray-900">{progress}%</span>
-                        </div>
-                        <Progress value={progress} className="h-2 mt-2" />
-                      </CardContent>
-                    </Card>
-                    
-                    <Card>
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium text-gray-500">Dokumentet</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="flex items-center gap-2">
-                          <CheckCircle className="h-5 w-5 text-green-500" />
-                          <span className="text-2xl font-bold text-gray-900">Të Ngarkuara</span>
-                        </div>
-                        <p className="text-xs text-gray-500 mt-1">Fotoja është verifikuar</p>
-                      </CardContent>
-                    </Card>
-                  </div>
-
-                  {/* Timeline */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Ecuria e Aplikimit</CardTitle>
-                      <CardDescription>Ndiqni hapat e procesit tuaj në kohë reale</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-6 relative pl-4 border-l-2 border-gray-100 ml-2">
-                        {applicationSteps.map((step) => (
-                          <div key={step.id} className="relative pl-6 pb-1">
-                            <div className={`absolute -left-[29px] top-0 w-6 h-6 rounded-full border-4 border-white flex items-center justify-center
-                              ${step.status === 'completed' ? 'bg-green-500' : 
-                                step.status === 'in_progress' ? 'bg-yellow-500' : 'bg-gray-200'}
-                            `}>
-                              {step.status === 'completed' && <CheckCircle className="w-3 h-3 text-white" />}
-                              {step.status === 'in_progress' && <Clock className="w-3 h-3 text-white" />}
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 }}
+                    >
+                      <Card className="border-0 shadow-xl dark:shadow-2xl">
+                        <CardHeader className="bg-gradient-to-r from-primary/5 to-secondary/5 dark:from-primary/10 dark:to-secondary/10 pb-4">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 bg-primary/10 dark:bg-primary/20 rounded-lg">
+                              <CreditCard className="h-5 w-5 text-primary dark:text-blue-400" />
                             </div>
-                            
-                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
-                              <h4 className={`font-semibold ${step.status === 'pending' ? 'text-gray-400' : 'text-gray-900'}`}>
-                                {step.title}
-                              </h4>
-                              <span className="text-sm text-gray-500">{step.date}</span>
-                            </div>
-                            
-                            {step.status === 'in_progress' && (
-                              <p className="text-sm text-yellow-600 mt-1 bg-yellow-50 p-2 rounded-md inline-block">
-                                Ekipi ynë po kontrollon foton tuaj për të siguruar që përputhet me standardet e DV Lottery.
-                              </p>
-                            )}
+                            <CardTitle>Zgjidhni Paketën tuaj</CardTitle>
                           </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
+                        </CardHeader>
+                        <CardContent className="p-8">
+                          <div className="grid md:grid-cols-3 gap-6">
+                            {[
+                              { name: "Individual", desc: "Për një person", price: "20€", type: "individual" },
+                              { name: "Çifti (Partnerë)", desc: "Për dy persona", price: "35€", type: "couple", popular: true },
+                              { name: "Familjare", desc: "Për prindërit dhe fëmijët", price: "50€", type: "family" },
+                            ].map((pkg) => (
+                              <motion.div
+                                key={pkg.type}
+                                whileHover={{ y: -8 }}
+                                transition={{ duration: 0.2 }}
+                              >
+                                <Card className={`border-2 rounded-xl transition-all relative overflow-hidden
+                                  ${pkg.popular 
+                                    ? 'border-primary shadow-2xl dark:shadow-lg dark:shadow-primary/30 scale-105 md:scale-100' 
+                                    : 'border-gray-200 dark:border-slate-700 hover:border-primary dark:hover:border-primary'
+                                  }`}
+                                >
+                                  {pkg.popular && (
+                                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 bg-gradient-to-r from-primary to-secondary text-white px-4 py-1 rounded-full text-xs font-bold shadow-lg">
+                                      MË I KËRKUAR
+                                    </div>
+                                  )}
+                                  <CardContent className="p-8 text-center">
+                                    <h3 className="font-bold text-xl mb-2 dark:text-white">{pkg.name}</h3>
+                                    <p className="text-sm text-gray-600 dark:text-slate-400 mb-6">{pkg.desc}</p>
+                                    <div className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-8">{pkg.price}</div>
+                                    <Button 
+                                      className="w-full bg-gradient-to-r from-primary to-secondary hover:shadow-lg text-white rounded-lg h-12 text-base font-semibold"
+                                      onClick={() => handlePayment(pkg.type as "individual" | "couple" | "family")}
+                                      disabled={checkoutLoading}
+                                      data-testid={`button-pay-${pkg.type}`}
+                                    >
+                                      {checkoutLoading ? "Duke u përpunuar..." : "Paguaj Tani"}
+                                    </Button>
+                                  </CardContent>
+                                </Card>
+                              </motion.div>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  )}
                 </motion.div>
               )}
 
@@ -694,53 +695,44 @@ export default function Dashboard() {
               {activeTab === "application" && (
                 <motion.div
                   key="application"
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
                   className="space-y-6"
                 >
-                  {/* Application Summary */}
-                  <Card>
+                  <Card className="border-0 shadow-xl dark:shadow-2xl">
                     <CardHeader>
                       <CardTitle>Përmbledhja e Aplikimit</CardTitle>
                       <CardDescription>Detajet e plota të aplikimit tuaj</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="grid md:grid-cols-2 gap-6">
-                        <div className="space-y-3">
-                          <div>
-                            <p className="text-xs text-gray-500 font-medium">EMRI PLOTË</p>
-                            <p className="text-lg font-semibold text-gray-900">{profileData.firstName} {profileData.lastName}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-gray-500 font-medium">EMAIL</p>
-                            <p className="text-lg font-semibold text-gray-900">{profileData.email}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-gray-500 font-medium">TELEFONI</p>
-                            <p className="text-lg font-semibold text-gray-900">{profileData.phone}</p>
-                          </div>
-                        </div>
-                        <div className="space-y-3">
-                          <div>
-                            <p className="text-xs text-gray-500 font-medium">SHTETI I LINDJES</p>
-                            <p className="text-lg font-semibold text-gray-900">{profileData.birthCountry}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-gray-500 font-medium">QYTETI</p>
-                            <p className="text-lg font-semibold text-gray-900">{profileData.city}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-gray-500 font-medium">PAKETA</p>
-                            <p className="text-lg font-semibold text-gray-900">Individuale (20€)</p>
-                          </div>
-                        </div>
+                      <div className="grid md:grid-cols-2 gap-8">
+                        {[
+                          { label: "EMRI PLOTË", value: `${profileData.firstName} ${profileData.lastName}` },
+                          { label: "EMAIL", value: profileData.email },
+                          { label: "TELEFONI", value: profileData.phone },
+                          { label: "SHTETI I LINDJES", value: profileData.birthCountry },
+                          { label: "QYTETI", value: profileData.city },
+                          { label: "PAKETA", value: "Individuale (20€)" },
+                        ].map((item, idx) => (
+                          <motion.div
+                            key={idx}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: idx * 0.05 }}
+                          >
+                            <div className="p-4 rounded-lg bg-gray-50 dark:bg-slate-800/50">
+                              <p className="text-xs text-gray-500 dark:text-slate-400 font-bold mb-1">{item.label}</p>
+                              <p className="text-lg font-semibold text-gray-900 dark:text-white">{item.value}</p>
+                            </div>
+                          </motion.div>
+                        ))}
                       </div>
                     </CardContent>
                   </Card>
 
-                  {/* Documents */}
-                  <Card>
+                  <Card className="border-0 shadow-xl dark:shadow-2xl">
                     <CardHeader>
                       <CardTitle>Dokumentet Tuaja</CardTitle>
                       <CardDescription>Shkarkoni kopjet e dokumenteve të aplikimit</CardDescription>
@@ -748,29 +740,35 @@ export default function Dashboard() {
                     <CardContent>
                       <div className="space-y-3">
                         {documents.map((doc) => (
-                          <div key={doc.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                          <motion.div
+                            key={doc.id}
+                            whileHover={{ x: 4 }}
+                            transition={{ duration: 0.2 }}
+                            className="flex items-center justify-between p-4 border border-gray-200 dark:border-slate-700 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors"
+                          >
                             <div className="flex items-center gap-4">
                               <div className={`w-12 h-12 rounded-lg flex items-center justify-center
-                                ${doc.icon === 'red' ? 'bg-red-100 text-red-600' : 
-                                  doc.icon === 'blue' ? 'bg-blue-100 text-blue-600' : 
-                                  'bg-purple-100 text-purple-600'}
+                                ${doc.icon === 'red' ? 'bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400' : 
+                                  doc.icon === 'blue' ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' : 
+                                  'bg-purple-100 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400'}
                               `}>
                                 <FileText className="w-6 h-6" />
                               </div>
                               <div>
-                                <p className="font-semibold text-gray-900">{doc.name}</p>
-                                <p className="text-xs text-gray-500">{doc.type}</p>
+                                <p className="font-semibold text-gray-900 dark:text-white">{doc.name}</p>
+                                <p className="text-xs text-gray-500 dark:text-slate-400">{doc.type}</p>
                               </div>
                             </div>
                             <Button 
                               variant="ghost" 
                               size="icon"
                               onClick={() => downloadDocument(doc.url, doc.name)}
+                              className="hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg"
                               data-testid={`button-download-${doc.id}`}
                             >
-                              <Download className="w-5 h-5" />
+                              <Download className="w-5 h-5 text-primary dark:text-blue-400" />
                             </Button>
-                          </div>
+                          </motion.div>
                         ))}
                       </div>
                     </CardContent>
@@ -782,21 +780,21 @@ export default function Dashboard() {
               {activeTab === "profile" && (
                 <motion.div
                   key="profile"
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
                   className="space-y-6"
                 >
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between">
+                  <Card className="border-0 shadow-xl dark:shadow-2xl">
+                    <CardHeader className="flex flex-row items-center justify-between pb-6">
                       <div>
                         <CardTitle>Profili Juaj</CardTitle>
                         <CardDescription>Menaxhoni të dhënat e llogarisë tuaj</CardDescription>
                       </div>
                       <Button 
                         onClick={() => setEditingProfile(!editingProfile)}
-                        variant={editingProfile ? "outline" : "default"}
-                        size="sm"
+                        className={`rounded-lg transition-all ${editingProfile ? 'bg-gray-200 dark:bg-slate-700 text-gray-900 dark:text-white' : 'bg-gradient-to-r from-primary to-secondary text-white'}`}
                         data-testid="button-edit-profile"
                       >
                         {editingProfile ? "Anulo" : "Redakto"}
@@ -808,20 +806,22 @@ export default function Dashboard() {
                           <>
                             <div className="grid md:grid-cols-2 gap-6">
                               <div className="space-y-2">
-                                <Label htmlFor="firstName">Emri</Label>
+                                <Label htmlFor="firstName" className="dark:text-slate-200">Emri</Label>
                                 <Input
                                   id="firstName"
                                   value={profileData.firstName}
                                   onChange={(e) => setProfileData({...profileData, firstName: e.target.value})}
+                                  className="dark:bg-slate-700 dark:border-slate-600 dark:text-white rounded-lg"
                                   data-testid="input-first-name"
                                 />
                               </div>
                               <div className="space-y-2">
-                                <Label htmlFor="lastName">Mbiemri</Label>
+                                <Label htmlFor="lastName" className="dark:text-slate-200">Mbiemri</Label>
                                 <Input
                                   id="lastName"
                                   value={profileData.lastName}
                                   onChange={(e) => setProfileData({...profileData, lastName: e.target.value})}
+                                  className="dark:bg-slate-700 dark:border-slate-600 dark:text-white rounded-lg"
                                   data-testid="input-last-name"
                                 />
                               </div>
@@ -829,21 +829,23 @@ export default function Dashboard() {
 
                             <div className="grid md:grid-cols-2 gap-6">
                               <div className="space-y-2">
-                                <Label htmlFor="email">Email</Label>
+                                <Label htmlFor="email" className="dark:text-slate-200">Email</Label>
                                 <Input
                                   id="email"
                                   type="email"
                                   value={profileData.email}
                                   onChange={(e) => setProfileData({...profileData, email: e.target.value})}
+                                  className="dark:bg-slate-700 dark:border-slate-600 dark:text-white rounded-lg"
                                   data-testid="input-email"
                                 />
                               </div>
                               <div className="space-y-2">
-                                <Label htmlFor="phone">Telefoni</Label>
+                                <Label htmlFor="phone" className="dark:text-slate-200">Telefoni</Label>
                                 <Input
                                   id="phone"
                                   value={profileData.phone}
                                   onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
+                                  className="dark:bg-slate-700 dark:border-slate-600 dark:text-white rounded-lg"
                                   data-testid="input-phone"
                                 />
                               </div>
@@ -851,20 +853,22 @@ export default function Dashboard() {
 
                             <div className="grid md:grid-cols-2 gap-6">
                               <div className="space-y-2">
-                                <Label htmlFor="birthCountry">Shteti i Lindjes</Label>
+                                <Label htmlFor="birthCountry" className="dark:text-slate-200">Shteti i Lindjes</Label>
                                 <Input
                                   id="birthCountry"
                                   value={profileData.birthCountry}
                                   onChange={(e) => setProfileData({...profileData, birthCountry: e.target.value})}
+                                  className="dark:bg-slate-700 dark:border-slate-600 dark:text-white rounded-lg"
                                   data-testid="input-birth-country"
                                 />
                               </div>
                               <div className="space-y-2">
-                                <Label htmlFor="city">Qyteti</Label>
+                                <Label htmlFor="city" className="dark:text-slate-200">Qyteti</Label>
                                 <Input
                                   id="city"
                                   value={profileData.city}
                                   onChange={(e) => setProfileData({...profileData, city: e.target.value})}
+                                  className="dark:bg-slate-700 dark:border-slate-600 dark:text-white rounded-lg"
                                   data-testid="input-city"
                                 />
                               </div>
@@ -873,7 +877,7 @@ export default function Dashboard() {
                             <div className="flex gap-3 pt-4">
                               <Button 
                                 onClick={handleSaveProfile}
-                                className="bg-primary hover:bg-primary/90 text-white"
+                                className="bg-gradient-to-r from-primary to-secondary hover:shadow-lg text-white rounded-lg"
                                 data-testid="button-save-profile"
                               >
                                 <Save className="w-4 h-4 mr-2" />
@@ -882,45 +886,33 @@ export default function Dashboard() {
                               <Button 
                                 variant="outline"
                                 onClick={() => setEditingProfile(false)}
+                                className="rounded-lg dark:border-slate-600 dark:text-white"
                               >
                                 Anulo
                               </Button>
                             </div>
                           </>
                         ) : (
-                          <div className="space-y-6">
-                            <div className="grid md:grid-cols-2 gap-6">
-                              <div>
-                                <p className="text-xs text-gray-500 font-medium mb-1">EMRI</p>
-                                <p className="text-lg font-semibold text-gray-900">{profileData.firstName}</p>
-                              </div>
-                              <div>
-                                <p className="text-xs text-gray-500 font-medium mb-1">MBIEMRI</p>
-                                <p className="text-lg font-semibold text-gray-900">{profileData.lastName}</p>
-                              </div>
-                            </div>
-
-                            <div className="grid md:grid-cols-2 gap-6">
-                              <div>
-                                <p className="text-xs text-gray-500 font-medium mb-1">EMAIL</p>
-                                <p className="text-lg font-semibold text-gray-900">{profileData.email}</p>
-                              </div>
-                              <div>
-                                <p className="text-xs text-gray-500 font-medium mb-1">TELEFONI</p>
-                                <p className="text-lg font-semibold text-gray-900">{profileData.phone}</p>
-                              </div>
-                            </div>
-
-                            <div className="grid md:grid-cols-2 gap-6">
-                              <div>
-                                <p className="text-xs text-gray-500 font-medium mb-1">SHTETI I LINDJES</p>
-                                <p className="text-lg font-semibold text-gray-900">{profileData.birthCountry}</p>
-                              </div>
-                              <div>
-                                <p className="text-xs text-gray-500 font-medium mb-1">QYTETI</p>
-                                <p className="text-lg font-semibold text-gray-900">{profileData.city}</p>
-                              </div>
-                            </div>
+                          <div className="grid md:grid-cols-2 gap-6">
+                            {[
+                              { label: "EMRI", value: profileData.firstName },
+                              { label: "MBIEMRI", value: profileData.lastName },
+                              { label: "EMAIL", value: profileData.email },
+                              { label: "TELEFONI", value: profileData.phone },
+                              { label: "SHTETI I LINDJES", value: profileData.birthCountry },
+                              { label: "QYTETI", value: profileData.city },
+                            ].map((item, idx) => (
+                              <motion.div
+                                key={idx}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: idx * 0.05 }}
+                                className="p-4 rounded-lg bg-gray-50 dark:bg-slate-800/50"
+                              >
+                                <p className="text-xs text-gray-500 dark:text-slate-400 font-bold mb-1">{item.label}</p>
+                                <p className="text-lg font-semibold text-gray-900 dark:text-white">{item.value}</p>
+                              </motion.div>
+                            ))}
                           </div>
                         )}
                       </div>
@@ -933,76 +925,25 @@ export default function Dashboard() {
               {activeTab === "settings" && (
                 <motion.div
                   key="settings"
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
                   className="space-y-6"
                 >
-                  <Card>
+                  <Card className="border-0 shadow-xl dark:shadow-2xl">
                     <CardHeader>
                       <CardTitle>Siguria & Fjalëkalimi</CardTitle>
-                      <CardDescription>Menaxhoni cilësimet e sigurisë të llogarisë tuaj</CardDescription>
+                      <CardDescription>Ndryshoni fjalëkalimin tuaj rregullisht për siguri maksimale</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between p-4 border rounded-lg">
-                          <div>
-                            <p className="font-semibold text-gray-900">Fjalëkalimi i Llogarisë</p>
-                            <p className="text-sm text-gray-500">Ndryshoni fjalëkalimin tuaj për të mbrojtur llogarinë tuaj</p>
-                          </div>
-                          <Button 
-                            onClick={() => setShowPasswordDialog(true)}
-                            variant="outline"
-                            data-testid="button-change-password"
-                          >
-                            Ndryshoni
-                          </Button>
-                        </div>
-
-                        <div className="flex items-center justify-between p-4 border rounded-lg">
-                          <div>
-                            <p className="font-semibold text-gray-900">Verifikimi me Dy Faktorë</p>
-                            <p className="text-sm text-gray-500">Shtoni një shtresë shtesë sigurie</p>
-                          </div>
-                          <Button variant="outline" disabled>
-                            Shpejt
-                          </Button>
-                        </div>
-
-                        <div className="flex items-center justify-between p-4 border rounded-lg">
-                          <div>
-                            <p className="font-semibold text-gray-900">Seansat e Aktive</p>
-                            <p className="text-sm text-gray-500">Menaxhoni të gjitha seansat tuaja në pajisje</p>
-                          </div>
-                          <ChevronRight className="w-5 h-5 text-gray-400" />
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Preferencat</CardTitle>
-                      <CardDescription>Cilësimet e e-mailit dhe njoftimeve</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="font-semibold text-gray-900">Email përditësimet e statusit</p>
-                            <p className="text-sm text-gray-500">Merrni email kur statusi i aplikimit ndryshon</p>
-                          </div>
-                          <input type="checkbox" defaultChecked className="w-5 h-5" />
-                        </div>
-                        <Separator />
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="font-semibold text-gray-900">Newsletter</p>
-                            <p className="text-sm text-gray-500">Merrni përditësime rreth DV Lottery</p>
-                          </div>
-                          <input type="checkbox" defaultChecked className="w-5 h-5" />
-                        </div>
-                      </div>
+                      <Button 
+                        onClick={() => setShowPasswordDialog(true)}
+                        className="bg-gradient-to-r from-primary to-secondary hover:shadow-lg text-white rounded-lg"
+                        data-testid="button-change-password"
+                      >
+                        Ndrysho Fjalëkalimin
+                      </Button>
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -1012,357 +953,105 @@ export default function Dashboard() {
               {activeTab === "transactions" && (
                 <motion.div
                   key="transactions"
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
                   className="space-y-6"
                 >
-                  <Card className="border-gray-100 shadow-md">
+                  <Card className="border-0 shadow-xl dark:shadow-2xl">
                     <CardHeader>
-                      <CardTitle className="flex items-center">
-                        <Wallet className="mr-2 h-5 w-5 text-primary" />
-                        Historiku i Transaksioneve
-                      </CardTitle>
-                      <CardDescription>Të gjitha pagesat tuaja dhe statusi i tyre</CardDescription>
+                      <CardTitle>Historiku i Transaksioneve</CardTitle>
+                      <CardDescription>Shikoni të gjitha pagesën tuaja</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      {transactions.length === 0 ? (
-                        <div className="text-center py-8">
-                          <Wallet className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                          <p className="text-gray-500">Nuk ka transaksione të regjistruara ende</p>
+                      {transactions.length > 0 ? (
+                        <div className="space-y-3">
+                          {transactions.map((trans) => (
+                            <motion.div
+                              key={trans.id}
+                              whileHover={{ x: 4 }}
+                              className="flex items-center justify-between p-4 border border-gray-200 dark:border-slate-700 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors"
+                            >
+                              <div>
+                                <p className="font-semibold text-gray-900 dark:text-white">{trans.description}</p>
+                                <p className="text-sm text-gray-500 dark:text-slate-400">{new Date(trans.createdAt).toLocaleDateString('sq-AL')}</p>
+                              </div>
+                              <p className="font-bold text-lg bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">{trans.amount}€</p>
+                            </motion.div>
+                          ))}
                         </div>
                       ) : (
-                        <div className="space-y-3">
-                          {transactions.map((transaction: any) => {
-                            const packageNames: Record<string, string> = {
-                              individual: "Paket Individuale",
-                              couple: "Paket për Çifte",
-                              family: "Paket Familjare",
-                            };
-
-                            const statusColors: Record<string, { bg: string; text: string; label: string }> = {
-                              pending: { bg: "bg-yellow-100", text: "text-yellow-800", label: "Duke u përpunuar" },
-                              completed: { bg: "bg-green-100", text: "text-green-800", label: "Përfunduar" },
-                              failed: { bg: "bg-red-100", text: "text-red-800", label: "Dështuar" },
-                            };
-
-                            const statusInfo = statusColors[transaction.status] || statusColors.pending;
-                            const createdDate = new Date(transaction.createdAt).toLocaleDateString("sq-AL", {
-                              year: "numeric",
-                              month: "long",
-                              day: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            });
-
-                            return (
-                              <div
-                                key={transaction.id}
-                                className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-primary/20 transition"
-                                data-testid={`transaction-row-${transaction.id}`}
-                              >
-                                <div className="flex items-center gap-4 flex-1">
-                                  <div className="p-3 bg-white rounded-full border-2 border-primary/10">
-                                    <CreditCard className="h-5 w-5 text-primary" />
-                                  </div>
-                                  <div>
-                                    <p className="font-semibold text-gray-900">{packageNames[transaction.packageType]}</p>
-                                    <p className="text-sm text-gray-500">{createdDate}</p>
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                  <div className="text-right">
-                                    <p className="font-bold text-gray-900">€{parseFloat(transaction.amount).toFixed(2)}</p>
-                                    <Badge className={`${statusInfo.bg} ${statusInfo.text} hover:${statusInfo.bg} border-0 mt-1`}>
-                                      {statusInfo.label}
-                                    </Badge>
-                                  </div>
-                                  {transaction.status === "completed" && (
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => handleReviewData(transaction)}
-                                      className="ml-4"
-                                      data-testid={`button-review-${transaction.id}`}
-                                    >
-                                      Rishiko
-                                    </Button>
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
+                        <p className="text-center text-gray-500 dark:text-slate-400 py-8">Nuk ka transaksione për të shfaqur</p>
                       )}
                     </CardContent>
                   </Card>
                 </motion.div>
               )}
             </AnimatePresence>
-
           </div>
         </div>
       </div>
 
-      {/* Payment Success Dialog */}
-      <Dialog open={showPaymentSuccessDialog} onOpenChange={setShowPaymentSuccessDialog}>
-        <DialogContent className="sm:max-w-md">
+      {/* Dialogs */}
+      <Dialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+        <DialogContent className="dark:bg-slate-800 dark:border-slate-700">
           <DialogHeader>
-            <div className="mx-auto w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4">
-              <CheckCircle className="h-8 w-8 text-green-600" />
-            </div>
-            <DialogTitle className="text-center text-2xl font-bold">Pagesa u Përfundua me Sukses! ✓</DialogTitle>
-            <DialogDescription className="text-center pt-4">
-              Faleminderit për pagesën tuaj. Tani mund të vazhdoni me aplikimin tuaj. Një email konfirmimi ka qenë dërguar në adresën tuaj.
+            <DialogTitle className="dark:text-white">Jeni i sigurt?</DialogTitle>
+            <DialogDescription className="dark:text-slate-400">
+              A dëshironi të dilni nga llogaria juaj?
             </DialogDescription>
           </DialogHeader>
-
-          <DialogFooter className="flex gap-3 sm:flex-row">
-            <Button
-              onClick={() => {
-                setShowPaymentSuccessDialog(false);
-                setActiveTab("transactions");
-              }}
-              className="flex-1 bg-primary hover:bg-primary/90 text-white"
-            >
-              Shiko Transaksionet
-            </Button>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowLogoutDialog(false)} className="dark:border-slate-600 dark:text-white">Anulo</Button>
+            <Button onClick={confirmLogout} className="bg-red-500 hover:bg-red-600 text-white">Dil</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Password Change Dialog */}
       <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="dark:bg-slate-800 dark:border-slate-700">
           <DialogHeader>
-            <DialogTitle>Ndryshoni Fjalëkalimin</DialogTitle>
-            <DialogDescription>
-              Për sigurinë e llogarisë tuaj, ju duhet të futni fjalëkalimin aktual dhe atë të ri.
-            </DialogDescription>
+            <DialogTitle className="dark:text-white">Ndrysho Fjalëkalimin</DialogTitle>
           </DialogHeader>
-          
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="current-password">Fjalëkalimi Aktual</Label>
-              <div className="relative">
-                <Input
-                  id="current-password"
-                  type={showCurrentPassword ? "text" : "password"}
-                  value={passwordData.currentPassword}
-                  onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})}
-                  placeholder="Futni fjalëkalimin aktual"
-                  data-testid="input-current-password"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                >
-                  {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="new-password">Fjalëkalimi i Ri</Label>
-              <div className="relative">
-                <Input
-                  id="new-password"
-                  type={showNewPassword ? "text" : "password"}
-                  value={passwordData.newPassword}
-                  onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
-                  placeholder="Futni fjalëkalimin e ri"
-                  data-testid="input-new-password"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowNewPassword(!showNewPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                >
-                  {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="confirm-password">Konfirmo Fjalëkalimin</Label>
+              <Label htmlFor="currentPassword" className="dark:text-slate-200">Fjalëkalimi Aktual</Label>
               <Input
-                id="confirm-password"
+                id="currentPassword"
+                type={showCurrentPassword ? "text" : "password"}
+                value={passwordData.currentPassword}
+                onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})}
+                className="dark:bg-slate-700 dark:border-slate-600 dark:text-white rounded-lg"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="newPassword" className="dark:text-slate-200">Fjalëkalimi i Ri</Label>
+              <Input
+                id="newPassword"
+                type={showNewPassword ? "text" : "password"}
+                value={passwordData.newPassword}
+                onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
+                className="dark:bg-slate-700 dark:border-slate-600 dark:text-white rounded-lg"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword" className="dark:text-slate-200">Konfirmo Fjalëkalimin</Label>
+              <Input
+                id="confirmPassword"
                 type="password"
                 value={passwordData.confirmPassword}
                 onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
-                placeholder="Përsërit fjalëkalimin e ri"
-                data-testid="input-confirm-password"
+                className="dark:bg-slate-700 dark:border-slate-600 dark:text-white rounded-lg"
               />
             </div>
           </div>
-
           <DialogFooter>
-            <Button 
-              variant="outline"
-              onClick={() => setShowPasswordDialog(false)}
-            >
-              Anulo
-            </Button>
-            <Button 
-              onClick={handleChangePassword}
-              className="bg-primary hover:bg-primary/90 text-white"
-              data-testid="button-confirm-password"
-            >
-              Ndryshoni Fjalëkalimin
-            </Button>
+            <Button variant="outline" onClick={() => setShowPasswordDialog(false)} className="dark:border-slate-600 dark:text-white">Anulo</Button>
+            <Button onClick={handleChangePassword} className="bg-gradient-to-r from-primary to-secondary text-white">Ruaj</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Review Data Dialog */}
-      <Dialog open={showReviewDataDialog} onOpenChange={setShowReviewDataDialog}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-green-600" />
-              Rishikoni Të Dhënat Tuaja
-            </DialogTitle>
-            <DialogDescription>
-              Ju lutem verifikoni se të gjithë të dhënat tuaja janë të sakta përpara se të vazhdoni me aplikimin
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 py-4 max-h-96 overflow-y-auto">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-xs font-semibold text-gray-600">Emër i Parë</Label>
-                <Input
-                  value={profileData.firstName}
-                  onChange={(e) => setProfileData({...profileData, firstName: e.target.value})}
-                  placeholder="Futni emrin e parë"
-                  className="text-sm"
-                  data-testid="input-review-firstname"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-xs font-semibold text-gray-600">Emër i Dytë</Label>
-                <Input
-                  value={profileData.lastName}
-                  onChange={(e) => setProfileData({...profileData, lastName: e.target.value})}
-                  placeholder="Futni emrin e dytë"
-                  className="text-sm"
-                  data-testid="input-review-lastname"
-                />
-              </div>
-              <div className="space-y-2 col-span-2">
-                <Label className="text-xs font-semibold text-gray-600">Email</Label>
-                <Input
-                  value={profileData.email}
-                  onChange={(e) => setProfileData({...profileData, email: e.target.value})}
-                  placeholder="email@example.com"
-                  className="text-sm"
-                  data-testid="input-review-email"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-xs font-semibold text-gray-600">Telefon</Label>
-                <Input
-                  value={profileData.phone}
-                  onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
-                  placeholder="+383 4X XXX XXX"
-                  className="text-sm"
-                  data-testid="input-review-phone"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-xs font-semibold text-gray-600">Qytet</Label>
-                <Input
-                  value={profileData.city}
-                  onChange={(e) => setProfileData({...profileData, city: e.target.value})}
-                  placeholder="Futni qytetin"
-                  className="text-sm"
-                  data-testid="input-review-city"
-                />
-              </div>
-              <div className="space-y-2 col-span-2">
-                <Label className="text-xs font-semibold text-gray-600">Vendi i Lindjes</Label>
-                <Input
-                  value={profileData.birthCountry}
-                  onChange={(e) => setProfileData({...profileData, birthCountry: e.target.value})}
-                  placeholder="Futni vendin e lindjes"
-                  className="text-sm"
-                  data-testid="input-review-birthcountry"
-                />
-              </div>
-              <div className="space-y-2 col-span-2">
-                <Label className="text-xs font-semibold text-gray-600">Paketa e Zgjedhur</Label>
-                <p className="text-sm font-medium text-gray-900 bg-gray-50 p-2 rounded">
-                  {selectedTransaction ? (
-                    selectedTransaction.packageType === "individual" ? "Paket Individuale" :
-                    selectedTransaction.packageType === "couple" ? "Paket për Çifte" :
-                    "Paket Familjare"
-                  ) : "—"}
-                </p>
-              </div>
-              <div className="space-y-2 col-span-2">
-                <Label className="text-xs font-semibold text-gray-600">Shuma e Paguar</Label>
-                <p className="text-sm font-medium text-gray-900 bg-gray-50 p-2 rounded">
-                  {selectedTransaction ? `€${parseFloat(selectedTransaction.amount).toFixed(2)}` : "—"}
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-4">
-              <p className="text-sm text-blue-800">
-                <strong>ℹ Shënim:</strong> Mund të redaktoni fushat më sipër. Kur të klikoni "Konfirmo", të dhënat do të ruhen.
-              </p>
-            </div>
-          </div>
-
-          <DialogFooter className="gap-3">
-            <Button 
-              variant="outline"
-              onClick={() => setShowReviewDataDialog(false)}
-              data-testid="button-cancel-review"
-            >
-              Anulo
-            </Button>
-            <Button 
-              onClick={handleConfirmData}
-              className="bg-green-600 hover:bg-green-700 text-white"
-              data-testid="button-confirm-review"
-            >
-              ✓ Konfirmo Të Dhënat
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Logout Confirmation Dialog */}
-      <Dialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Dilni nga Llogaria?</DialogTitle>
-            <DialogDescription>
-              A jeni i sigurt se dëshironi të dilni? Duhet t'i futni kredencialet tuaja për të hyrë përsëri.
-            </DialogDescription>
-          </DialogHeader>
-
-          <DialogFooter>
-            <Button 
-              variant="outline"
-              onClick={() => setShowLogoutDialog(false)}
-            >
-              Anulo
-            </Button>
-            <Button 
-              onClick={confirmLogout}
-              className="bg-red-500 hover:bg-red-600 text-white"
-              data-testid="button-confirm-logout"
-            >
-              Po, Dil
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Footer />
     </div>
   );
 }
