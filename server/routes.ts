@@ -428,6 +428,74 @@ export async function registerRoutes(httpServer: HTTPServer, app: Express): Prom
     }
   });
 
+  // Alias for resend-verification to match frontend expectations
+  app.post("/api/auth/resend-code", async (req: Request, res: Response) => {
+    try {
+      const { userId } = req.body;
+
+      if (!userId) {
+        return res.status(400).json({ error: "Missing userId" });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      if (user.isVerified) {
+        return res.status(400).json({ error: "User already verified" });
+      }
+
+      const code = Math.random().toString().slice(2, 8);
+      await storage.createVerificationCode({
+        userId: user.id,
+        code,
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      });
+
+      const verificationUrl = `https://${req.get("host")}/verify-email?userId=${user.id}&code=${code}`;
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: Arial, sans-serif; background-color: #f5f5f5; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; background-color: white; border-radius: 8px; }
+            h1 { color: #0B1B3B; text-align: center; }
+            p { color: #555; line-height: 1.6; }
+            .button { display: inline-block; padding: 12px 30px; margin: 20px auto; background-color: #E63946; color: white; text-decoration: none; border-radius: 5px; text-align: center; }
+            .code { font-size: 24px; font-weight: bold; color: #0B1B3B; text-align: center; letter-spacing: 5px; margin: 20px 0; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h1>AplikoUSA - Email Verification</h1>
+            <p>Përshëndetje ${user.firstName},</p>
+            <p>Përdorni kodin më poshtë për të verifikuar email-in tuaj:</p>
+            <div class="code">${code}</div>
+            <a href="${verificationUrl}" class="button">Verifikoni Email-in</a>
+            <p>Ky kod skadohet brenda 24 orësh.</p>
+          </div>
+        </body>
+        </html>
+      `;
+
+      await sendTemplateEmail(
+        user.email,
+        `Verifikoni Email-in - AplikoUSA`,
+        htmlContent
+      );
+
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("Resend code error:", error);
+      res
+        .status(500)
+        .json({ error: error.message || "Failed to resend verification code" });
+    }
+  });
+
   app.post("/api/auth/resend-verification", async (req: Request, res: Response) => {
     try {
       const { userId } = req.body;
