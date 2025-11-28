@@ -742,7 +742,7 @@ export function ApplicationForm() {
 
               <Button 
                 type="submit" 
-                className="w-full h-14 text-lg bg-primary hover:bg-primary/90 text-white shadow-lg"
+                className="w-full h-14 text-lg bg-primary dark:bg-blue-600 hover:bg-primary/90 dark:hover:bg-blue-700 text-white shadow-lg"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? (
@@ -787,7 +787,7 @@ export function ApplicationForm() {
                 setShowCodeDialog(false);
                 setLocation(`/verify-email?userId=${userId}&code=${verificationCode}`);
               }}
-              className="w-full bg-primary hover:bg-primary/90 text-white"
+              className="w-full bg-primary dark:bg-blue-600 hover:bg-primary/90 dark:hover:bg-blue-700 text-white"
               data-testid="button-go-to-verify"
             >
               Vazhdo në verifikim
@@ -846,7 +846,7 @@ export function ApplicationForm() {
 
             <Button 
               type="submit" 
-              className="w-full bg-primary hover:bg-primary/90 text-white"
+              className="w-full bg-primary dark:bg-blue-600 hover:bg-primary/90 dark:hover:bg-blue-700 text-white"
               disabled={creatingAccount}
             >
               {creatingAccount ? (
