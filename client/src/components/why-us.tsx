@@ -47,7 +47,7 @@ export function WhyUs() {
           >
             <div>
               <h2 className="text-3xl md:text-4xl font-bold text-primary dark:text-white mb-6 font-heading">
-                Pse të zgjedhësh <span className="text-secondary">AplikoUSA</span>?
+                Pse të zgjedhësh <span className="text-secondary dark:text-orange-400">AplikoUSA</span>?
               </h2>
               <p className="text-lg text-gray-600 dark:text-slate-300 leading-relaxed">
                 Aplikimi për Green Card ka rregulla strikte. Një gabim i vogël në foto ose në të dhëna mund t'ju skualifikojë automatikisht. Ne sigurohemi që kjo të mos ndodhë.
